@@ -1,0 +1,43 @@
+"use client";
+
+import { motion } from "framer-motion";
+import SearchBar from "@/components/SearchBar";
+
+export default function Hero() {
+  return (
+    <section className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-navy-800 via-navy-600 to-navy-700 overflow-hidden">
+      {/* Decorative overlay */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(230,0,126,0.12),transparent_60%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,rgba(26,34,81,0.4),transparent_60%)]" />
+
+      <div className="relative z-10 flex flex-col items-center text-center px-4 sm:px-6 lg:px-8 w-full max-w-4xl mx-auto">
+        <motion.h1
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, ease: "easeOut" }}
+          className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white leading-tight mb-4"
+        >
+          Tu proximo hogar empieza aca
+        </motion.h1>
+
+        <motion.p
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, delay: 0.2, ease: "easeOut" }}
+          className="text-lg sm:text-xl text-white/70 mb-10 max-w-2xl"
+        >
+          Las necesidades y objetivos de nuestros clientes son nuestra prioridad
+        </motion.p>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, delay: 0.4, ease: "easeOut" }}
+          className="w-full flex justify-center"
+        >
+          <SearchBar variant="hero" />
+        </motion.div>
+      </div>
+    </section>
+  );
+}
