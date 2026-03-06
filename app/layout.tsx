@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import Navbar from "@/components/Navbar";
+import WhatsAppFAB from "@/components/WhatsAppFAB";
 
 export const metadata: Metadata = {
   title: "Russo Propiedades",
@@ -13,7 +15,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es">
-      <body>{children}</body>
+      <body>
+        <Navbar />
+        {children}
+        <WhatsAppFAB />
+      </body>
     </html>
   );
 }
