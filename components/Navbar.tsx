@@ -1,0 +1,203 @@
+"use client";
+
+import { useState, useEffect, useCallback } from "react";
+import Link from "next/link";
+import Image from "next/image";
+import { usePathname } from "next/navigation";
+import { Phone, Mail, Menu, X } from "lucide-react";
+
+const navLinks = [
+  { href: "/", label: "Inicio" },
+  { href: "/ventas", label: "Ventas" },
+  { href: "/alquileres", label: "Alquileres" },
+  { href: "/emprendimientos", label: "Emprendimientos" },
+  { href: "/tasaciones", label: "Tasaciones" },
+  { href: "/contacto", label: "Contacto" },
+];
+
+export default function Navbar() {
+  const pathname = usePathname();
+  const [scrolled, setScrolled] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  const handleScroll = useCallback(() => {
+    setScrolled(window.scrollY > 50);
+  }, []);
+
+  useEffect(() => {
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [handleScroll]);
+
+  // Lock body scroll when mobile menu is open
+  useEffect(() => {
+    if (menuOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [menuOpen]);
+
+  // Close menu on route change
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [pathname]);
+
+  return (
+    <nav
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        scrolled ? "py-2 bg-white shadow-md" : "py-4 bg-white/95"
+      }`}
+    >
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between">
+          {/* Logo */}
+          <Link href="/" className="flex-shrink-0">
+            <Image
+              src="/images/logo-placeholder.svg"
+              alt="Russo Propiedades"
+              width={160}
+              height={48}
+              priority
+              className={`transition-all duration-300 ${
+                scrolled ? "h-8 w-auto" : "h-10 w-auto"
+              }`}
+            />
+          </Link>
+
+          {/* Desktop nav links */}
+          <ul className="hidden lg:flex items-center gap-1">
+            {navLinks.map(({ href, label }) => {
+              const isActive =
+                href === "/" ? pathname === "/" : pathname.startsWith(href);
+              return (
+                <li key={href}>
+                  <Link
+                    href={href}
+                    className={`px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                      isActive
+                        ? "text-magenta"
+                        : "text-navy hover:text-magenta"
+                    }`}
+                  >
+                    {label}
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+
+          {/* Desktop contact info */}
+          <div className="hidden lg:flex items-center gap-4 text-sm text-navy">
+            <a
+              href="tel:+541146514024"
+              className="flex items-center gap-1.5 hover:text-magenta transition-colors"
+            >
+              <Phone className="h-4 w-4" />
+              <span>+54 11 4651 4024</span>
+            </a>
+            <span className="text-navy-200">|</span>
+            <a
+              href="mailto:info@russopropiedades.com.ar"
+              className="flex items-center gap-1.5 hover:text-magenta transition-colors"
+            >
+              <Mail className="h-4 w-4" />
+              <span>info@russopropiedades.com.ar</span>
+            </a>
+          </div>
+
+          {/* Mobile hamburger */}
+          <button
+            type="button"
+            className="lg:hidden inline-flex items-center justify-center rounded-md p-2 text-navy hover:text-magenta transition-colors"
+            aria-label={menuOpen ? "Cerrar menu" : "Abrir menu"}
+            aria-expanded={menuOpen}
+            onClick={() => setMenuOpen((prev) => !prev)}
+          >
+            {menuOpen ? (
+              <X className="h-6 w-6" />
+            ) : (
+              <Menu className="h-6 w-6" />
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile slide-in menu */}
+      {/* Overlay */}
+      <div
+        className={`fixed inset-0 bg-black/40 transition-opacity duration-300 lg:hidden ${
+          menuOpen
+            ? "opacity-100 pointer-events-auto"
+            : "opacity-0 pointer-events-none"
+        }`}
+        aria-hidden="true"
+        onClick={() => setMenuOpen(false)}
+      />
+
+      {/* Slide-in panel */}
+      <div
+        className={`fixed top-0 right-0 h-full w-72 bg-white shadow-xl transition-transform duration-300 ease-in-out lg:hidden ${
+          menuOpen ? "translate-x-0" : "translate-x-full"
+        }`}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Menu de navegacion"
+      >
+        <div className="flex items-center justify-between p-4 border-b border-navy-100">
+          <span className="text-navy font-semibold text-lg">Menu</span>
+          <button
+            type="button"
+            className="rounded-md p-2 text-navy hover:text-magenta transition-colors"
+            aria-label="Cerrar menu"
+            onClick={() => setMenuOpen(false)}
+          >
+            <X className="h-6 w-6" />
+          </button>
+        </div>
+
+        <ul className="flex flex-col p-4 gap-1">
+          {navLinks.map(({ href, label }) => {
+            const isActive =
+              href === "/" ? pathname === "/" : pathname.startsWith(href);
+            return (
+              <li key={href}>
+                <Link
+                  href={href}
+                  className={`block px-3 py-3 rounded-md text-base font-medium transition-colors ${
+                    isActive
+                      ? "text-magenta bg-magenta-50"
+                      : "text-navy hover:text-magenta hover:bg-navy-50"
+                  }`}
+                  onClick={() => setMenuOpen(false)}
+                >
+                  {label}
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+
+        <div className="border-t border-navy-100 p-4 flex flex-col gap-3 text-sm text-navy">
+          <a
+            href="tel:+541146514024"
+            className="flex items-center gap-2 hover:text-magenta transition-colors"
+          >
+            <Phone className="h-4 w-4" />
+            <span>+54 11 4651 4024</span>
+          </a>
+          <a
+            href="mailto:info@russopropiedades.com.ar"
+            className="flex items-center gap-2 hover:text-magenta transition-colors"
+          >
+            <Mail className="h-4 w-4" />
+            <span>info@russopropiedades.com.ar</span>
+          </a>
+        </div>
+      </div>
+    </nav>
+  );
+}
