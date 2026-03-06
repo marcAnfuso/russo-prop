@@ -1,0 +1,283 @@
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import {
+  Heart,
+  Share2,
+  Maximize2,
+  LandPlot,
+  Home,
+  Bath,
+  BedDouble,
+  Car,
+  Calendar,
+} from "lucide-react";
+import { properties } from "@/data/properties";
+import type { Property } from "@/data/types";
+import { formatPrice } from "@/lib/utils";
+import Gallery from "@/components/Gallery";
+import ContactSidebar from "@/components/ContactSidebar";
+import MapView from "@/components/MapView";
+import Breadcrumb from "@/components/Breadcrumb";
+import SimilarProperties from "@/components/SimilarProperties";
+
+export function generateStaticParams() {
+  return properties.map((p) => ({ id: p.id }));
+}
+
+interface PageProps {
+  params: Promise<{ id: string }>;
+}
+
+export default async function PropertyDetailPage({ params }: PageProps) {
+  const { id } = await params;
+  const property = properties.find((p) => p.id === id);
+
+  if (!property) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+        <h1 className="text-2xl font-bold text-navy">
+          Propiedad no encontrada
+        </h1>
+        <p className="text-gray-500">
+          La propiedad que buscas no existe o fue removida.
+        </p>
+        <Link
+          href="/ventas"
+          className="rounded bg-magenta px-6 py-2 text-sm font-semibold text-white transition-colors hover:bg-magenta-600"
+        >
+          Ver propiedades en venta
+        </Link>
+      </div>
+    );
+  }
+
+  const isAlquiler = property.operation === "alquiler";
+  const operationLabel = isAlquiler ? "Alquiler" : "Venta";
+  const operationHref = isAlquiler ? "/alquileres" : "/ventas";
+
+  // Capitalize type
+  const typeLabel =
+    property.type.charAt(0).toUpperCase() + property.type.slice(1);
+
+  const breadcrumbItems = [
+    { label: isAlquiler ? "Alquilar" : "Comprar", href: operationHref },
+    { label: typeLabel, href: operationHref },
+    { label: property.locality, href: operationHref },
+    { label: property.code },
+  ];
+
+  // Build features list
+  const featureItems: {
+    icon: React.ReactNode;
+    value: string;
+    label: string;
+  }[] = [];
+
+  if (property.features.totalArea) {
+    featureItems.push({
+      icon: <Maximize2 className="h-5 w-5 text-magenta" />,
+      value: `${property.features.totalArea}`,
+      label: "m\u00B2 totales",
+    });
+  }
+  if (property.features.coveredArea) {
+    featureItems.push({
+      icon: <Maximize2 className="h-5 w-5 text-magenta" />,
+      value: `${property.features.coveredArea}`,
+      label: "m\u00B2 cubiertos",
+    });
+  }
+  if (property.features.landArea) {
+    featureItems.push({
+      icon: <LandPlot className="h-5 w-5 text-magenta" />,
+      value: `${property.features.landArea}`,
+      label: "m\u00B2 terreno",
+    });
+  }
+  if (property.features.rooms) {
+    featureItems.push({
+      icon: <Home className="h-5 w-5 text-magenta" />,
+      value: `${property.features.rooms}`,
+      label: "Ambientes",
+    });
+  }
+  if (property.features.bathrooms) {
+    featureItems.push({
+      icon: <Bath className="h-5 w-5 text-magenta" />,
+      value: `${property.features.bathrooms}`,
+      label: "Banos",
+    });
+  }
+  if (property.features.bedrooms) {
+    featureItems.push({
+      icon: <BedDouble className="h-5 w-5 text-magenta" />,
+      value: `${property.features.bedrooms}`,
+      label: "Dormitorios",
+    });
+  }
+  if (property.features.garage) {
+    featureItems.push({
+      icon: <Car className="h-5 w-5 text-magenta" />,
+      value: `${property.features.garage}`,
+      label: "Cocheras",
+    });
+  }
+  if (property.features.age != null) {
+    featureItems.push({
+      icon: <Calendar className="h-5 w-5 text-magenta" />,
+      value: `${property.features.age}`,
+      label: "Antiguedad",
+    });
+  }
+
+  const mapProperty = {
+    id: property.id,
+    title: property.title,
+    price: property.price,
+    address: property.address,
+    location: property.location,
+    images: property.images,
+    operation: property.operation,
+  };
+
+  return (
+    <div className="mx-auto max-w-7xl px-4 py-8">
+      {/* Two-column layout */}
+      <div className="flex flex-col lg:flex-row gap-8">
+        {/* Left column */}
+        <div className="w-full lg:w-[65%] space-y-6">
+          {/* Breadcrumb */}
+          <Breadcrumb items={breadcrumbItems} />
+
+          {/* Title + actions row */}
+          <div className="flex items-start justify-between gap-4">
+            <h1 className="text-2xl font-bold text-navy md:text-3xl">
+              {property.title}
+            </h1>
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <button
+                aria-label="Agregar a favoritos"
+                className="rounded-full border border-gray-300 p-2 text-gray-500 transition-colors hover:border-magenta hover:text-magenta"
+              >
+                <Heart className="h-5 w-5" />
+              </button>
+              <button
+                aria-label="Compartir"
+                className="rounded-full border border-gray-300 p-2 text-gray-500 transition-colors hover:border-magenta hover:text-magenta"
+              >
+                <Share2 className="h-5 w-5" />
+              </button>
+            </div>
+          </div>
+
+          {/* Gallery */}
+          <Gallery
+            images={property.images}
+            videoUrl={property.videoUrl}
+            title={property.title}
+          />
+
+          {/* Operation badge */}
+          <div>
+            <span
+              className={`inline-block rounded-full px-4 py-1.5 text-sm font-semibold uppercase tracking-wide text-white ${
+                isAlquiler ? "bg-navy" : "bg-magenta"
+              }`}
+            >
+              {operationLabel}
+            </span>
+          </div>
+
+          {/* Price */}
+          <p className="text-3xl font-bold text-gray-900">
+            {formatPrice(property.price)} USD{isAlquiler ? "/mes" : ""}
+          </p>
+
+          {/* Features grid */}
+          {featureItems.length > 0 && (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {featureItems.map((item, idx) => (
+                <div
+                  key={idx}
+                  className="flex items-center gap-3 rounded-lg border border-gray-200 p-3"
+                >
+                  {item.icon}
+                  <div>
+                    <p className="text-lg font-bold text-gray-900">
+                      {item.value}
+                    </p>
+                    <p className="text-xs text-gray-500">{item.label}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Description */}
+          {property.description && (
+            <section>
+              <h2 className="text-xl font-bold text-navy mb-3">Descripcion</h2>
+              <p className="text-gray-700 leading-relaxed whitespace-pre-line">
+                {property.description}
+              </p>
+            </section>
+          )}
+
+          {/* Amenities */}
+          {property.amenities.length > 0 && (
+            <section>
+              <h2 className="text-xl font-bold text-navy mb-3">
+                Caracteristicas
+              </h2>
+              <div className="flex flex-wrap gap-2">
+                {property.amenities.map((amenity) => (
+                  <span
+                    key={amenity}
+                    className="rounded-full border border-gray-300 bg-gray-50 px-4 py-1.5 text-sm text-gray-700"
+                  >
+                    {amenity}
+                  </span>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* Location / Map */}
+          <section>
+            <h2 className="text-xl font-bold text-navy mb-3">Ubicacion</h2>
+            <p className="text-gray-700 mb-4">
+              {property.address}
+              {property.locality ? `, ${property.locality}` : ""}
+              {property.district ? `, ${property.district}` : ""}
+            </p>
+            <div className="h-[400px] rounded-lg overflow-hidden">
+              <MapView
+                properties={[mapProperty]}
+                center={[property.location.lat, property.location.lng]}
+                zoom={15}
+                singleMarker
+                className="h-full w-full"
+              />
+            </div>
+          </section>
+        </div>
+
+        {/* Right column */}
+        <div className="w-full lg:w-[35%]">
+          <ContactSidebar
+            propertyCode={property.code}
+            propertyTitle={property.title}
+          />
+        </div>
+      </div>
+
+      {/* Similar properties - full width below */}
+      <div className="mt-12">
+        <SimilarProperties
+          currentProperty={property}
+          allProperties={properties}
+        />
+      </div>
+    </div>
+  );
+}
