@@ -29,11 +29,12 @@ export default function FeaturedDevelopments() {
       <div className="mx-auto max-w-7xl">
         {/* Heading */}
         <div className="text-center mb-16">
-          <h2 className="text-3xl sm:text-4xl font-bold uppercase tracking-wide">
-            Emprendimientos Destacados
+          <p className="text-xs font-semibold uppercase tracking-widest text-magenta mb-3">Nuevos proyectos</p>
+          <h2 className="text-3xl sm:text-4xl font-bold">
+            Emprendimientos destacados
           </h2>
-          <p className="mt-3 text-white/70 text-lg">
-            Queremos facilitarte y ayudarte con tu idea de inversion
+          <p className="mt-3 text-white/50 text-base max-w-md mx-auto">
+            Invertí en tu futuro con los mejores proyectos de zona oeste
           </p>
         </div>
 

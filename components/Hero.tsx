@@ -5,10 +5,21 @@ import SearchBar from "@/components/SearchBar";
 
 export default function Hero() {
   return (
-    <section className="relative -mt-[72px] min-h-screen flex items-center justify-center bg-gradient-to-br from-navy-800 via-navy-600 to-navy-700 overflow-hidden">
-      {/* Decorative overlay */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(230,0,126,0.12),transparent_60%)]" />
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,rgba(26,34,81,0.4),transparent_60%)]" />
+    <section className="relative -mt-[72px] min-h-screen flex items-center justify-center overflow-hidden">
+      {/* Video background */}
+      <video
+        autoPlay
+        muted
+        loop
+        playsInline
+        className="absolute inset-0 w-full h-full object-cover"
+      >
+        <source src="/images/hero.mp4" type="video/mp4" />
+      </video>
+
+      {/* Dark overlay for text readability */}
+      <div className="absolute inset-0 bg-navy/60" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(230,0,126,0.15),transparent_60%)]" />
 
       <div className="relative z-10 flex flex-col items-center text-center px-4 sm:px-6 lg:px-8 w-full max-w-4xl mx-auto">
         <motion.h1

@@ -49,7 +49,7 @@ export default function Navbar() {
   return (
     <nav
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        scrolled ? "py-2 bg-white shadow-md" : "py-4 bg-white/95"
+        scrolled ? "py-2 bg-white shadow-soft border-b border-gray-100" : "py-4 bg-white/95 border-b border-transparent"
       }`}
     >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -57,13 +57,13 @@ export default function Navbar() {
           {/* Logo */}
           <Link href="/" className="flex-shrink-0">
             <Image
-              src="/images/logo-placeholder.svg"
+              src="/images/logo.png"
               alt="Russo Propiedades"
               width={160}
               height={48}
               priority
               className={`transition-all duration-300 ${
-                scrolled ? "h-8 w-auto" : "h-10 w-auto"
+                scrolled ? "h-10 w-auto" : "h-12 w-auto"
               }`}
             />
           </Link>

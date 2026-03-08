@@ -9,133 +9,83 @@ interface DevelopmentCardProps {
   development: Development;
 }
 
-const statusConfig: Record<
-  DevelopmentStatus,
-  { label: string; color: string }
-> = {
-  "pre-venta": { label: "Pre Venta", color: "bg-blue-500" },
-  pozo: { label: "Pozo", color: "bg-amber-500" },
-  "en-construccion": { label: "En Construccion", color: "bg-orange-500" },
-  terminado: { label: "Terminado", color: "bg-green-500" },
+const statusConfig: Record<DevelopmentStatus, { label: string; color: string; dot: string }> = {
+  "pre-venta":      { label: "Pre Venta",      color: "bg-violet-50 text-violet-700 border-violet-200",  dot: "bg-violet-500" },
+  pozo:             { label: "En Pozo",         color: "bg-amber-50 text-amber-700 border-amber-200",     dot: "bg-amber-500" },
+  "en-construccion":{ label: "En Construccion", color: "bg-blue-50 text-blue-700 border-blue-200",        dot: "bg-blue-500" },
+  terminado:        { label: "Terminado",        color: "bg-emerald-50 text-emerald-700 border-emerald-200", dot: "bg-emerald-500" },
 };
 
 export default function DevelopmentCard({ development }: DevelopmentCardProps) {
-  const {
-    id,
-    code,
-    name,
-    address,
-    locality,
-    district,
-    status,
-    deliveryDate,
-    priceFrom,
-    priceTo,
-    totalUnits,
-    areaRange,
-    roomsRange,
-    bathrooms,
-    images,
-  } = development;
+  const { id, code, name, address, locality, district, status, deliveryDate,
+          priceFrom, priceTo, totalUnits, areaRange, roomsRange, bathrooms, images } = development;
 
-  const { label: statusLabel, color: statusColor } = statusConfig[status];
+  const { label: statusLabel, color: statusColor, dot: statusDot } = statusConfig[status];
   const imageSrc = images?.[0];
 
   return (
     <Link
       href={`/emprendimiento/${id}`}
-      className="group flex flex-col md:flex-row overflow-hidden rounded-2xl bg-white shadow-md hover:shadow-xl transition-shadow duration-300"
+      className="group flex flex-col sm:flex-row overflow-hidden rounded-2xl bg-white border border-gray-100 shadow-card hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-200 ease-out"
     >
-      {/* Left: Image (40%) */}
-      <div className="relative w-full md:w-[40%] aspect-[4/3] flex-shrink-0">
+      {/* Image */}
+      <div className="relative w-full sm:w-[38%] aspect-[4/3] sm:aspect-auto flex-shrink-0 overflow-hidden">
         {imageSrc ? (
           <Image
             src={imageSrc}
             alt={name}
             fill
-            sizes="(max-width: 768px) 100vw, 40vw"
-            className="object-cover transition-transform duration-300 group-hover:scale-105"
+            sizes="(max-width: 640px) 100vw, 38vw"
+            className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
           />
         ) : (
-          <div className="absolute inset-0 bg-gradient-to-br from-navy-200 to-navy-400" />
+          <div className="absolute inset-0 bg-gradient-to-br from-navy-100 to-navy-300" />
         )}
       </div>
 
-      {/* Right: Content (60%) */}
-      <div className="flex flex-col justify-between w-full md:w-[60%] p-4 sm:p-5 gap-3">
-        {/* Top row: status + delivery */}
+      {/* Content */}
+      <div className="flex flex-col justify-between gap-3 p-5 w-full">
+        {/* Status + delivery */}
         <div className="flex flex-wrap items-center gap-2">
-          <span
-            className={`${statusColor} text-white text-xs font-semibold px-2.5 py-1 rounded-full`}
-          >
+          <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold ${statusColor}`}>
+            <span className={`h-1.5 w-1.5 rounded-full ${statusDot}`} />
             {statusLabel}
           </span>
           {deliveryDate && (
-            <span className="bg-gray-100 text-gray-600 text-xs font-medium px-2.5 py-1 rounded-full">
-              Entrega: {deliveryDate}
-            </span>
+            <span className="text-xs text-gray-400">Entrega: {deliveryDate}</span>
           )}
         </div>
 
-        {/* Name */}
-        <h3 className="text-lg font-bold text-navy leading-tight group-hover:text-magenta transition-colors">
-          {name}
-        </h3>
+        <div className="space-y-1">
+          <h3 className="text-xl font-bold tracking-tight text-navy group-hover:text-magenta transition-colors">
+            {name}
+          </h3>
+          <p className="text-sm text-gray-400">
+            {address}{(locality || district) ? ` · ${[locality, district].filter(Boolean).join(", ")}` : ""}
+          </p>
+        </div>
 
-        {/* Price range */}
-        <p className="text-base text-navy-700">
-          Desde{" "}
-          <span className="text-xl font-bold text-navy">
-            {formatPrice(priceFrom)}
-          </span>{" "}
-          hasta{" "}
-          <span className="text-xl font-bold text-navy">
-            {formatPrice(priceTo)}
-          </span>{" "}
-          <span className="text-sm font-medium text-navy-400">USD</span>
+        <p className="text-sm text-gray-600">
+          Desde <span className="text-xl font-bold tracking-tight text-gray-900">USD {formatPrice(priceFrom)}</span>
+          {" "}&ndash; hasta <span className="font-bold text-gray-900">USD {formatPrice(priceTo)}</span>
         </p>
 
-        {/* Address */}
-        <p className="text-sm text-navy-500 leading-snug">
-          {address}
-          {(locality || district) && (
-            <span className="text-navy-400">
-              {" "}
-              &middot; {[locality, district].filter(Boolean).join(", ")}
-            </span>
-          )}
-        </p>
-
-        {/* Features row */}
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-navy-500">
+        <ul className="flex flex-wrap gap-4 text-xs text-gray-500">
           {totalUnits > 0 && (
-            <span className="inline-flex items-center gap-1">
-              <Building2 className="h-4 w-4" aria-hidden="true" />
-              {totalUnits} Unidades
-            </span>
+            <li className="flex items-center gap-1.5"><Building2 className="h-3.5 w-3.5 text-navy-300" />{totalUnits} unidades</li>
           )}
           {areaRange && (
-            <span className="inline-flex items-center gap-1">
-              <Maximize2 className="h-4 w-4" aria-hidden="true" />
-              {areaRange}
-            </span>
+            <li className="flex items-center gap-1.5"><Maximize2 className="h-3.5 w-3.5 text-navy-300" />{areaRange}</li>
           )}
           {roomsRange && (
-            <span className="inline-flex items-center gap-1">
-              <Home className="h-4 w-4" aria-hidden="true" />
-              {roomsRange} Ambientes
-            </span>
+            <li className="flex items-center gap-1.5"><Home className="h-3.5 w-3.5 text-navy-300" />{roomsRange} amb.</li>
           )}
           {bathrooms > 0 && (
-            <span className="inline-flex items-center gap-1">
-              <Droplets className="h-4 w-4" aria-hidden="true" />
-              {bathrooms} {bathrooms === 1 ? "Bano" : "Banos"}
-            </span>
+            <li className="flex items-center gap-1.5"><Droplets className="h-3.5 w-3.5 text-navy-300" />{bathrooms} baño{bathrooms > 1 ? "s" : ""}</li>
           )}
-        </div>
+        </ul>
 
-        {/* Contact buttons */}
-        <div className="flex justify-end mt-auto pt-1">
+        <div className="flex justify-end pt-2 border-t border-gray-50">
           <ContactButtons propertyCode={code} size="sm" />
         </div>
       </div>

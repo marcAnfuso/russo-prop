@@ -29,12 +29,13 @@ export default function FeaturedProperties() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-60px" }}
           transition={{ duration: 0.5 }}
-          className="text-center mb-12"
+          className="text-center mb-14"
         >
-          <h2 className="text-3xl sm:text-4xl text-navy uppercase tracking-wide">
-            PROPIEDADES <span className="font-bold">DESTACADAS</span>
+          <p className="section-label mb-3">Seleccion de propiedades</p>
+          <h2 className="text-3xl sm:text-4xl font-bold text-navy">
+            Propiedades <span className="text-magenta">destacadas</span>
           </h2>
-          <p className="mt-3 text-gray-500 text-lg">
+          <p className="mt-3 text-gray-400 text-base max-w-md mx-auto">
             Lo que estas buscando, lo podes encontrar
           </p>
         </motion.div>

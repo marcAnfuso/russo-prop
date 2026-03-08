@@ -165,11 +165,11 @@ export default function SearchBar({
     }
   }, [activeIndex]);
 
-  const pillBase = `rounded-full px-4 py-2 font-medium transition-colors cursor-pointer whitespace-nowrap ${
-    isHero ? "text-sm sm:text-base" : "text-xs sm:text-sm"
+  const pillBase = `rounded-full px-5 py-2 font-semibold transition-all duration-200 ease-out cursor-pointer whitespace-nowrap active:scale-[0.97] ${
+    isHero ? "text-sm" : "text-xs sm:text-sm"
   }`;
-  const pillSelected = "bg-magenta text-white";
-  const pillUnselected = "bg-white/90 text-navy border border-white/50 hover:bg-white";
+  const pillSelected = "bg-magenta text-white shadow-soft";
+  const pillUnselected = "bg-white/90 text-navy border border-white/40 hover:bg-white hover:shadow-soft";
 
   return (
     <div className={`w-full ${isHero ? "max-w-3xl" : "max-w-2xl"}`}>
@@ -180,21 +180,21 @@ export default function SearchBar({
           className={`${pillBase} ${operation === "comprar" ? pillSelected : pillUnselected}`}
           onClick={() => setOperation("comprar")}
         >
-          Quiero comprar
+          Comprar
         </button>
         <button
           type="button"
           className={`${pillBase} ${operation === "alquilar" ? pillSelected : pillUnselected}`}
           onClick={() => setOperation("alquilar")}
         >
-          Quiero alquilar
+          Alquilar
         </button>
         <button
           type="button"
           className={`${pillBase} ${pillUnselected}`}
           onClick={() => router.push("/tasaciones")}
         >
-          Quiero vender
+          Tasar
         </button>
         <button
           type="button"

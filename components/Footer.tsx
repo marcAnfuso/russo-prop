@@ -25,7 +25,7 @@ export default function Footer() {
           <div>
             <Link href="/" aria-label="Russo Propiedades - Inicio">
               <Image
-                src="/images/logo-placeholder.svg"
+                src="/images/logo.png"
                 alt="Russo Propiedades"
                 width={180}
                 height={48}
@@ -107,7 +107,7 @@ export default function Footer() {
                   >
                     <div className="h-14 w-14 shrink-0 overflow-hidden rounded bg-gray-200">
                       <Image
-                        src={property.images[0] ?? "/images/logo-placeholder.svg"}
+                        src={property.images[0] ?? "/images/logo.png"}
                         alt={property.title}
                         width={56}
                         height={56}
