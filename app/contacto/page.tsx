@@ -80,7 +80,7 @@ export default function ContactoPage() {
             const Icon = card.icon;
             const content = (
               <>
-                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-blue-900 text-white">
+                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-navy text-white">
                   <Icon className="h-7 w-7" />
                 </div>
                 <h3 className="text-lg font-semibold mb-1">{card.heading}</h3>
@@ -133,7 +133,7 @@ export default function ContactoPage() {
                       copiaEmail: false,
                     });
                   }}
-                  className="mt-2 text-sm text-blue-700 underline"
+                  className="mt-2 text-sm text-magenta underline"
                 >
                   Enviar otro mensaje
                 </button>
@@ -165,7 +165,7 @@ export default function ContactoPage() {
                       required
                       value={form.nombre}
                       onChange={handleChange}
-                      className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-magenta focus:outline-none focus:ring-1 focus:ring-magenta/30"
                     />
                   </div>
 
@@ -184,7 +184,7 @@ export default function ContactoPage() {
                       required
                       value={form.email}
                       onChange={handleChange}
-                      className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-magenta focus:outline-none focus:ring-1 focus:ring-magenta/30"
                     />
                   </div>
 
@@ -203,7 +203,7 @@ export default function ContactoPage() {
                       required
                       value={form.telefono}
                       onChange={handleChange}
-                      className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-magenta focus:outline-none focus:ring-1 focus:ring-magenta/30"
                     />
                   </div>
 
@@ -221,7 +221,7 @@ export default function ContactoPage() {
                       type="text"
                       value={form.direccion}
                       onChange={handleChange}
-                      className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-magenta focus:outline-none focus:ring-1 focus:ring-magenta/30"
                     />
                   </div>
 
@@ -238,7 +238,7 @@ export default function ContactoPage() {
                       name="comoNosConociste"
                       value={form.comoNosConociste}
                       onChange={handleChange}
-                      className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-magenta focus:outline-none focus:ring-1 focus:ring-magenta/30"
                     >
                       <option value="">Seleccionar...</option>
                       {HOW_OPTIONS.map((opt) => (
@@ -264,7 +264,7 @@ export default function ContactoPage() {
                       maxLength={250}
                       value={form.mensaje}
                       onChange={handleChange}
-                      className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none"
+                      className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-magenta focus:outline-none focus:ring-1 focus:ring-magenta/30 resize-none"
                     />
                     <p className="text-xs text-gray-400 text-right">
                       {form.mensaje.length}/250
@@ -279,7 +279,7 @@ export default function ContactoPage() {
                       type="checkbox"
                       checked={form.copiaEmail}
                       onChange={handleChange}
-                      className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      className="h-4 w-4 rounded border-gray-300 text-magenta focus:ring-magenta/30"
                     />
                     <label htmlFor="copiaEmail" className="text-sm">
                       Recibir una copia del mensaje en mi email

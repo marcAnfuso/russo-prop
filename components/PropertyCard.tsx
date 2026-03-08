@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { motion } from "framer-motion";
 import { Maximize2, Home, Droplets, Car } from "lucide-react";
 import type { Property } from "@/data/types";
 import ContactButtons from "@/components/ContactButtons";
@@ -45,7 +46,7 @@ export default function PropertyCard({ property, onHover }: PropertyCardProps) {
     featureItems.push({
       icon: <Home className="w-4 h-4" />,
       value: features.rooms,
-      label: features.rooms === 1 ? "amb." : "amb.",
+      label: "amb.",
     });
   }
   if (features.bathrooms) {
@@ -64,8 +65,10 @@ export default function PropertyCard({ property, onHover }: PropertyCardProps) {
   }
 
   return (
-    <article
-      className="group relative flex flex-col md:flex-row overflow-hidden rounded-xl bg-white shadow-md transition-shadow duration-300 hover:shadow-xl"
+    <motion.article
+      whileHover={{ scale: 1.01 }}
+      transition={{ duration: 0.2 }}
+      className="group relative flex flex-col md:flex-row overflow-hidden rounded-xl bg-white shadow-md hover:shadow-xl transition-shadow duration-300"
       onMouseEnter={() => onHover?.(id)}
       onMouseLeave={() => onHover?.(null)}
     >
@@ -135,6 +138,6 @@ export default function PropertyCard({ property, onHover }: PropertyCardProps) {
           <ContactButtons propertyCode={code} size="sm" />
         </div>
       </div>
-    </article>
+    </motion.article>
   );
 }

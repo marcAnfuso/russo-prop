@@ -5,7 +5,7 @@ import SearchBar from "@/components/SearchBar";
 
 export default function Hero() {
   return (
-    <section className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-navy-800 via-navy-600 to-navy-700 overflow-hidden">
+    <section className="relative -mt-[72px] min-h-screen flex items-center justify-center bg-gradient-to-br from-navy-800 via-navy-600 to-navy-700 overflow-hidden">
       {/* Decorative overlay */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(230,0,126,0.12),transparent_60%)]" />
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,rgba(26,34,81,0.4),transparent_60%)]" />

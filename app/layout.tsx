@@ -18,7 +18,7 @@ export default function RootLayout({
     <html lang="es">
       <body>
         <Navbar />
-        {children}
+        <div className="pt-[72px]">{children}</div>
         <Footer />
         <WhatsAppFAB />
       </body>
