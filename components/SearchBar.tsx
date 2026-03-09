@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { Search, X, ChevronDown } from "lucide-react";
+import { Search, X, ChevronDown, Check } from "lucide-react";
 
 interface SearchBarProps {
   variant?: "hero" | "compact";
@@ -43,7 +43,7 @@ export default function SearchBar({
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [selectedZones, setSelectedZones] = useState<string[]>([]);
-  const [propertyType, setPropertyType] = useState("");
+  const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
   const [showAutocomplete, setShowAutocomplete] = useState(false);
   const [showPropertyDropdown, setShowPropertyDropdown] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
@@ -113,25 +113,30 @@ export default function SearchBar({
     setSelectedZones((prev) => prev.filter((z) => z !== zone));
   }, []);
 
+  const toggleType = useCallback((type: string) => {
+    setSelectedTypes((prev) =>
+      prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type]
+    );
+  }, []);
+
   const handleSearch = useCallback(() => {
     const basePath = operation === "comprar" ? "/ventas" : "/alquileres";
     const params = new URLSearchParams();
     if (selectedZones.length > 0) {
       params.set("zona", selectedZones.join(","));
     }
-    if (propertyType) {
-      params.set("tipo", propertyType);
+    if (selectedTypes.length > 0) {
+      params.set("tipo", selectedTypes.join(","));
     }
     const qs = params.toString();
     router.push(qs ? `${basePath}?${qs}` : basePath);
-  }, [operation, selectedZones, propertyType, router]);
+  }, [operation, selectedZones, selectedTypes, router]);
 
   const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Escape") {
       setShowAutocomplete(false);
       return;
     }
-
     if (e.key === "ArrowDown") {
       e.preventDefault();
       setActiveIndex((prev) =>
@@ -139,13 +144,11 @@ export default function SearchBar({
       );
       return;
     }
-
     if (e.key === "ArrowUp") {
       e.preventDefault();
       setActiveIndex((prev) => (prev > 0 ? prev - 1 : -1));
       return;
     }
-
     if (e.key === "Enter") {
       e.preventDefault();
       if (activeIndex >= 0 && activeIndex < suggestions.length) {
@@ -165,11 +168,19 @@ export default function SearchBar({
     }
   }, [activeIndex]);
 
+  const typeLabel =
+    selectedTypes.length === 0
+      ? "Tipo de propiedad"
+      : selectedTypes.length === 1
+      ? selectedTypes[0]
+      : `${selectedTypes.length} tipos`;
+
   const pillBase = `rounded-full px-5 py-2 font-semibold transition-all duration-200 ease-out cursor-pointer whitespace-nowrap active:scale-[0.97] ${
     isHero ? "text-sm" : "text-xs sm:text-sm"
   }`;
   const pillSelected = "bg-magenta text-white shadow-soft";
-  const pillUnselected = "bg-white/90 text-navy border border-white/40 hover:bg-white hover:shadow-soft";
+  const pillUnselected =
+    "bg-white/90 text-navy border border-white/40 hover:bg-white hover:shadow-soft";
 
   return (
     <div className={`w-full ${isHero ? "max-w-3xl" : "max-w-2xl"}`}>
@@ -177,14 +188,18 @@ export default function SearchBar({
       <div className="flex flex-wrap gap-2 mb-3">
         <button
           type="button"
-          className={`${pillBase} ${operation === "comprar" ? pillSelected : pillUnselected}`}
+          className={`${pillBase} ${
+            operation === "comprar" ? pillSelected : pillUnselected
+          }`}
           onClick={() => setOperation("comprar")}
         >
           Comprar
         </button>
         <button
           type="button"
-          className={`${pillBase} ${operation === "alquilar" ? pillSelected : pillUnselected}`}
+          className={`${pillBase} ${
+            operation === "alquilar" ? pillSelected : pillUnselected
+          }`}
           onClick={() => setOperation("alquilar")}
         >
           Alquilar
@@ -208,7 +223,9 @@ export default function SearchBar({
       {/* Search bar row */}
       <div
         className={`flex items-stretch rounded-lg overflow-visible shadow-lg ${
-          isHero ? "bg-white/95 backdrop-blur-sm" : "bg-white border border-navy-100"
+          isHero
+            ? "bg-white/95 backdrop-blur-sm"
+            : "bg-white border border-navy-100"
         }`}
       >
         {/* Zone input with autocomplete */}
@@ -275,52 +292,76 @@ export default function SearchBar({
           }`}
         />
 
-        {/* Property type dropdown */}
+        {/* Property type multi-select dropdown */}
         <div ref={propertyDropdownRef} className="relative">
           <button
             type="button"
-            className={`flex items-center gap-1.5 h-full whitespace-nowrap text-navy transition-colors hover:text-magenta ${
-              isHero ? "px-4 text-base sm:text-lg" : "px-3 text-sm"
-            }`}
+            className={`flex items-center gap-1.5 h-full whitespace-nowrap transition-colors hover:text-magenta ${
+              selectedTypes.length > 0 ? "text-navy font-medium" : "text-navy-300"
+            } ${isHero ? "px-4 text-base sm:text-lg" : "px-3 text-sm"}`}
             onClick={() => setShowPropertyDropdown((prev) => !prev)}
             aria-haspopup="listbox"
             aria-expanded={showPropertyDropdown}
           >
-            <span className={propertyType ? "text-navy" : "text-navy-300"}>
-              {propertyType || "Tipo de propiedad"}
-            </span>
+            <span>{typeLabel}</span>
             <ChevronDown
-              className={`h-4 w-4 transition-transform ${
+              className={`h-4 w-4 transition-transform shrink-0 ${
                 showPropertyDropdown ? "rotate-180" : ""
               }`}
             />
           </button>
 
           {showPropertyDropdown && (
-            <ul
+            <div
               role="listbox"
-              className="absolute right-0 top-full mt-1 bg-white rounded-lg shadow-xl border border-navy-100 z-50 min-w-[200px] overflow-hidden"
+              aria-multiselectable="true"
+              className="absolute right-0 top-full mt-1 bg-white rounded-lg shadow-xl border border-navy-100 z-50 min-w-[210px] overflow-hidden py-1"
             >
-              {PROPERTY_TYPES.map((type) => (
-                <li
-                  key={type}
-                  role="option"
-                  aria-selected={propertyType === type}
-                  className={`px-4 py-2.5 text-sm cursor-pointer transition-colors ${
-                    propertyType === type
-                      ? "bg-magenta-50 text-magenta font-medium"
-                      : "text-navy hover:bg-navy-50"
-                  }`}
-                  onMouseDown={(e) => {
-                    e.preventDefault();
-                    setPropertyType(type === propertyType ? "" : type);
-                    setShowPropertyDropdown(false);
-                  }}
-                >
-                  {type}
-                </li>
-              ))}
-            </ul>
+              {PROPERTY_TYPES.map((type) => {
+                const checked = selectedTypes.includes(type);
+                return (
+                  <button
+                    key={type}
+                    type="button"
+                    role="option"
+                    aria-selected={checked}
+                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-left cursor-pointer transition-colors hover:bg-navy-50 text-navy"
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      toggleType(type);
+                    }}
+                  >
+                    {/* Checkbox */}
+                    <span
+                      className={`flex-shrink-0 w-4 h-4 rounded border transition-colors flex items-center justify-center ${
+                        checked
+                          ? "bg-magenta border-magenta"
+                          : "border-gray-300"
+                      }`}
+                    >
+                      {checked && (
+                        <Check className="w-2.5 h-2.5 text-white stroke-[3]" />
+                      )}
+                    </span>
+                    {type}
+                  </button>
+                );
+              })}
+              {selectedTypes.length > 0 && (
+                <div className="border-t border-gray-100 px-4 py-2">
+                  <button
+                    type="button"
+                    className="text-xs text-gray-400 hover:text-magenta transition-colors"
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      setSelectedTypes([]);
+                    }}
+                  >
+                    Limpiar selección
+                  </button>
+                </div>
+              )}
+            </div>
           )}
         </div>
 
@@ -330,9 +371,7 @@ export default function SearchBar({
           onClick={handleSearch}
           aria-label="Buscar propiedades"
           className={`bg-magenta text-white flex items-center justify-center transition-colors hover:bg-magenta-600 ${
-            isHero
-              ? "px-5 py-3"
-              : "px-4 py-2.5"
+            isHero ? "px-5 py-3" : "px-4 py-2.5"
           }`}
         >
           <Search className={isHero ? "h-5 w-5" : "h-4 w-4"} />

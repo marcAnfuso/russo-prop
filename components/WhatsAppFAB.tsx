@@ -29,8 +29,8 @@ export default function WhatsAppFAB() {
         target="_blank"
         rel="noopener noreferrer"
         aria-label="Contactar por WhatsApp"
-        className="fixed bottom-6 right-6 z-50 flex items-center justify-center w-14 h-14 rounded-full bg-[#25D366] shadow-lg transition-transform duration-200 hover:scale-110"
-        style={{ animation: "pulse-ring 2s ease-in-out infinite" }}
+        className="fixed bottom-6 right-6 z-50 flex items-center justify-center w-14 h-14 rounded-full bg-[#25D366] shadow-lg transition-all duration-200 hover:scale-110 hover:shadow-[0_6px_24px_rgba(37,211,102,0.6)] active:scale-95"
+        style={{ animation: hovered ? "none" : "pulse-ring 2s ease-in-out infinite" }}
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
       >

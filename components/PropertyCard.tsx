@@ -16,10 +16,14 @@ function formatPrice(price: number): string {
 }
 
 export default function PropertyCard({ property, onHover }: PropertyCardProps) {
-  const { id, code, operation, price, address, locality, district, images, features } = property;
+  const { id, code, operation, price, currency, address, locality, district, images, features } = property;
 
   const isAlquiler = operation === "alquiler";
-  const priceLabel = `USD ${formatPrice(price)}${isAlquiler ? "/mes" : ""}`;
+  const currencyLabel = currency === "ARS" ? "$" : "USD";
+  const priceLabel =
+    price === 9999999
+      ? "Reservado"
+      : `${currencyLabel} ${formatPrice(price)}${isAlquiler ? "/mes" : ""}`;
   const imageSrc = images.length > 0 ? images[0] : null;
 
   const featureItems: { icon: React.ReactNode; value: number; label: string }[] = [];

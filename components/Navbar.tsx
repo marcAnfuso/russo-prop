@@ -57,7 +57,7 @@ export default function Navbar() {
           {/* Logo */}
           <Link href="/" className="flex-shrink-0">
             <Image
-              src="/images/logo.png"
+              src="/images/logo.webp"
               alt="Russo Propiedades"
               width={160}
               height={48}
@@ -77,13 +77,20 @@ export default function Navbar() {
                 <li key={href}>
                   <Link
                     href={href}
-                    className={`px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                    className={`relative px-3 py-2 text-sm font-medium transition-colors group/nav ${
                       isActive
                         ? "text-magenta"
                         : "text-navy hover:text-magenta"
                     }`}
                   >
                     {label}
+                    <span
+                      className={`absolute bottom-0 left-1/2 -translate-x-1/2 h-0.5 bg-magenta rounded-full transition-all duration-200 ${
+                        isActive
+                          ? "w-4"
+                          : "w-0 group-hover/nav:w-4"
+                      }`}
+                    />
                   </Link>
                 </li>
               );

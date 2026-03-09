@@ -69,10 +69,10 @@ export default function ContactSidebar({
       {/* Agent / Company info */}
       <div className="flex flex-col items-center gap-2 p-5 text-center">
         <Image
-          src="/images/logo-placeholder.svg"
+          src="/images/logo-icon.webp"
           alt="Russo Propiedades"
-          width={120}
-          height={40}
+          width={80}
+          height={80}
           className="mb-1"
         />
         <p className="text-sm font-semibold text-navy">Russo Propiedades</p>

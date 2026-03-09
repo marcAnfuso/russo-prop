@@ -15,6 +15,14 @@
 }
 
 @layer components {
+  /* Rich-text description from Xintel CRM */
+  .description-html p { @apply mb-3; }
+  .description-html ul, .description-html ol { @apply pl-5 mb-3; }
+  .description-html li { @apply list-disc mb-0.5; }
+  .description-html ol li { @apply list-decimal; }
+  .description-html strong, .description-html b { @apply font-semibold; }
+  .description-html span[style] { background-color: transparent !important; }
+
   /* Buttons */
   .btn-magenta {
     @apply bg-magenta text-white font-semibold px-6 py-3 rounded-full

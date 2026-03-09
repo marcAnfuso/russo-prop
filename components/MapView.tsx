@@ -7,6 +7,7 @@ export interface MapViewProps {
     id: string;
     title: string;
     price: number;
+    currency?: "USD" | "ARS";
     address: string;
     location: { lat: number; lng: number };
     images: string[];

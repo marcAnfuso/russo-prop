@@ -11,7 +11,7 @@ import {
   Car,
   Calendar,
 } from "lucide-react";
-import { properties } from "@/data/properties";
+import { fetchProperty, fetchPropertyIds } from "@/lib/xintel";
 import type { Property } from "@/data/types";
 import { formatPrice } from "@/lib/utils";
 import Gallery from "@/components/Gallery";
@@ -19,9 +19,11 @@ import ContactSidebar from "@/components/ContactSidebar";
 import MapView from "@/components/MapView";
 import Breadcrumb from "@/components/Breadcrumb";
 import SimilarProperties from "@/components/SimilarProperties";
+import { fetchProperties } from "@/lib/xintel";
 
-export function generateStaticParams() {
-  return properties.map((p) => ({ id: p.id }));
+export async function generateStaticParams() {
+  const ids = await fetchPropertyIds();
+  return ids.map((id) => ({ id }));
 }
 
 interface PageProps {
@@ -30,7 +32,10 @@ interface PageProps {
 
 export default async function PropertyDetailPage({ params }: PageProps) {
   const { id } = await params;
-  const property = properties.find((p) => p.id === id);
+  const [property, { properties: allProperties }] = await Promise.all([
+    fetchProperty(id),
+    fetchProperties({ page: 1 }),
+  ]);
 
   if (!property) {
     return (
@@ -190,7 +195,7 @@ export default async function PropertyDetailPage({ params }: PageProps) {
 
           {/* Price */}
           <p className="text-3xl font-bold text-gray-900">
-            {formatPrice(property.price)} USD{isAlquiler ? "/mes" : ""}
+            {property.currency === "ARS" ? "$" : "USD"} {formatPrice(property.price)}{isAlquiler ? "/mes" : ""}
           </p>
 
           {/* Features grid */}
@@ -217,9 +222,10 @@ export default async function PropertyDetailPage({ params }: PageProps) {
           {property.description && (
             <section>
               <h2 className="text-xl font-bold text-navy mb-3">Descripcion</h2>
-              <p className="text-gray-700 leading-relaxed whitespace-pre-line">
-                {property.description}
-              </p>
+              <div
+                className="description-html text-gray-700 leading-relaxed"
+                dangerouslySetInnerHTML={{ __html: property.description }}
+              />
             </section>
           )}
 
@@ -275,7 +281,7 @@ export default async function PropertyDetailPage({ params }: PageProps) {
       <div className="mt-12">
         <SimilarProperties
           currentProperty={property}
-          allProperties={properties}
+          allProperties={allProperties}
         />
       </div>
     </div>

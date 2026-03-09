@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
 import PropertyCard from "@/components/PropertyCard";
-import { properties } from "@/data/properties";
+import type { Property } from "@/data/types";
 
 const containerVariants = {
   hidden: {},
@@ -17,8 +17,8 @@ const itemVariants = {
   visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" as const } },
 };
 
-export default function FeaturedProperties() {
-  const featured = properties.filter((p) => p.featured).slice(0, 3);
+export default function FeaturedProperties({ properties }: { properties: Property[] }) {
+  const featured = properties.slice(0, 3);
 
   return (
     <section className="py-16 px-4 sm:px-6 lg:px-8 bg-white">
@@ -46,7 +46,7 @@ export default function FeaturedProperties() {
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-60px" }}
-          className="grid grid-cols-1 gap-6"
+          className="grid grid-cols-1 gap-6 max-w-3xl mx-auto"
         >
           {featured.map((property) => (
             <motion.div key={property.id} variants={itemVariants}>

@@ -82,7 +82,7 @@ export default function Footer() {
                   <li key={link.label}>
                     <Link
                       href={link.href}
-                      className="hover:text-magenta transition-colors"
+                      className="inline-flex items-center gap-1 hover:text-magenta hover:translate-x-1 transition-all duration-200"
                     >
                       {link.label}
                     </Link>
@@ -111,7 +111,7 @@ export default function Footer() {
                         alt={property.title}
                         width={56}
                         height={56}
-                        className="h-full w-full object-cover"
+                        className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
                       />
                     </div>
                     <div className="text-sm">

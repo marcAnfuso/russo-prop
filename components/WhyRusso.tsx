@@ -54,9 +54,9 @@ export default function WhyRusso() {
               <motion.div
                 key={reason.title}
                 variants={cardVariants}
-                className="card card-hover flex flex-col items-center text-center p-8 gap-4"
+                className="group card card-hover flex flex-col items-center text-center p-8 gap-4"
               >
-                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-magenta/8 border border-magenta/12">
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-magenta/8 border border-magenta/12 transition-all duration-300 group-hover:bg-magenta/15 group-hover:border-magenta/25 group-hover:scale-110">
                   <Icon className="h-7 w-7 text-magenta" />
                 </div>
                 <div className="space-y-2">

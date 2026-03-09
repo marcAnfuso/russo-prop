@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { Search, X, ChevronDown, SlidersHorizontal } from "lucide-react";
 import type { Property } from "@/data/types";
 
@@ -199,14 +200,13 @@ export default function FilterBar({
   onFilterChange,
   operationType,
 }: FilterBarProps) {
+  const router = useRouter();
   /* ---- filter state ---- */
   const [zones, setZones] = useState<string[]>([]);
   const [zoneQuery, setZoneQuery] = useState("");
   const [zoneDropdownOpen, setZoneDropdownOpen] = useState(false);
   const [propertyType, setPropertyType] = useState("");
-  const [operation, setOperation] = useState(
-    operationType === "alquiler" ? "alquiler" : operationType === "venta" ? "venta" : ""
-  );
+  const [operation, setOperation] = useState("");
   const [priceRange, setPriceRange] = useState("");
   const [expanded, setExpanded] = useState(false);
 
@@ -450,13 +450,27 @@ export default function FilterBar({
 
           {/* Operacion dropdown */}
           <Dropdown
-            label="Operacion"
+            label={
+              operationType === "venta"
+                ? "Comprar"
+                : operationType === "alquiler"
+                ? "Alquilar"
+                : "Operacion"
+            }
             value={operation}
             options={[
               { label: "Comprar", value: "venta" },
               { label: "Alquilar", value: "alquiler" },
             ]}
-            onChange={setOperation}
+            onChange={(val) => {
+              if (val === "alquiler" && operationType !== "alquiler") {
+                router.push("/alquileres");
+              } else if (val === "venta" && operationType !== "venta") {
+                router.push("/ventas");
+              } else {
+                setOperation(val);
+              }
+            }}
             onClear={() => setOperation("")}
           />
 

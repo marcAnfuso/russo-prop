@@ -147,31 +147,33 @@ export default function Gallery({ images, videoUrl, title }: GalleryProps) {
     );
   };
 
+  const thumbnailButtons = images.map((src, idx) => (
+    <button
+      key={idx}
+      onClick={() => goTo(idx)}
+      aria-label={`Ver imagen ${idx + 1}`}
+      className={`relative flex-shrink-0 w-20 h-16 md:w-full md:h-auto md:aspect-video rounded-md overflow-hidden border-2 transition-all duration-200 group/thumb ${
+        idx === currentIndex
+          ? "border-magenta"
+          : "border-transparent hover:border-magenta-300"
+      }`}
+    >
+      <Image
+        src={src}
+        alt={`${title} - miniatura ${idx + 1}`}
+        fill
+        sizes="(max-width: 768px) 80px, 20vw"
+        className="object-cover transition-transform duration-300 group-hover/thumb:scale-105"
+      />
+    </button>
+  ));
+
   const renderThumbnails = () => {
     if (!hasImages) return null;
-
+    // Mobile-only: horizontal scrolling strip
     return (
-      <div className="flex flex-row md:flex-col gap-2 md:max-h-[calc(56.25vw*0.75)] overflow-x-auto md:overflow-y-auto md:overflow-x-hidden scrollbar-thin">
-        {images.map((src, idx) => (
-          <button
-            key={idx}
-            onClick={() => goTo(idx)}
-            aria-label={`Ver imagen ${idx + 1}`}
-            className={`relative flex-shrink-0 w-20 h-16 md:w-full md:h-auto md:aspect-video rounded-md overflow-hidden border-2 transition-colors ${
-              idx === currentIndex
-                ? "border-magenta"
-                : "border-transparent hover:border-magenta-300"
-            }`}
-          >
-            <Image
-              src={src}
-              alt={`${title} - miniatura ${idx + 1}`}
-              fill
-              sizes="(max-width: 768px) 80px, 20vw"
-              className="object-cover"
-            />
-          </button>
-        ))}
+      <div className="flex flex-row gap-2 overflow-x-auto">
+        {thumbnailButtons}
       </div>
     );
   };
@@ -233,11 +235,17 @@ export default function Gallery({ images, videoUrl, title }: GalleryProps) {
 
         {/* Tab content */}
         {activeTab === "fotos" && (
-          <div className="flex flex-col md:flex-row gap-3">
-            {/* Main image ~75% */}
-            <div className="w-full md:w-3/4">{renderMainImage()}</div>
-            {/* Thumbnails ~25% */}
-            <div className="w-full md:w-1/4">{renderThumbnails()}</div>
+          <div className="flex flex-col gap-3 md:grid md:grid-cols-[3fr_1fr]">
+            {/* Main image — its aspect-video determines the grid row height */}
+            <div>{renderMainImage()}</div>
+            {/* Thumbnail column: outer stretches to grid row height; inner scrolls within */}
+            <div className="relative hidden md:block">
+              <div className="absolute inset-0 flex flex-col gap-2 overflow-y-auto">
+                {hasImages && thumbnailButtons}
+              </div>
+            </div>
+            {/* Mobile thumbnails (rendered by renderThumbnails) */}
+            <div className="md:hidden">{renderThumbnails()}</div>
           </div>
         )}
 

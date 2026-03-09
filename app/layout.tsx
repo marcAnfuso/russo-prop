@@ -7,6 +7,7 @@ import WhatsAppFAB from "@/components/WhatsAppFAB";
 export const metadata: Metadata = {
   title: "Russo Propiedades",
   description: "Tu hogar ideal te espera",
+  icons: { icon: "/images/logo-icon.webp" },
 };
 
 export default function RootLayout({

@@ -198,7 +198,7 @@ export default function MapViewInner({
                     </div>
                   )}
                   <p className="font-semibold text-sm text-gray-900">
-                    USD {formatPrice(property.price)}
+                    {property.currency === "ARS" ? "$" : "USD"} {formatPrice(property.price)}
                   </p>
                   <p className="text-xs text-gray-600">{property.address}</p>
                   <a

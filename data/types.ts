@@ -9,6 +9,7 @@ export interface Property {
   operation: OperationType;
   type: PropertyType;
   price: number;
+  currency: "USD" | "ARS";
   address: string;
   locality: string;
   district: string;
