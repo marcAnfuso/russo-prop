@@ -38,7 +38,7 @@ export default function WhyRusso() {
           className="text-center mb-14"
         >
           <p className="section-label mb-3">Nuestros valores</p>
-          <h2 className="text-3xl sm:text-4xl font-bold text-navy">Por que Russo?</h2>
+          <h2 className="text-3xl sm:text-4xl font-bold text-navy">¿Por qué elegirnos?</h2>
         </motion.div>
 
         <motion.div

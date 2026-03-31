@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -sL --max-time 15 -A \"Mozilla/5.0 \\(Windows NT 10.0; Win64; x64\\) AppleWebKit/537.36 \\(KHTML, like Gecko\\) Chrome/120.0.0.0 Safari/537.36\" https://www.mirandabosch.com)",
+      "Bash(curl -sL --max-time 15 -A \"Mozilla/5.0 \\(Windows NT 10.0; Win64; x64\\) AppleWebKit/537.36 \\(KHTML, like Gecko\\) Chrome/120.0.0.0 Safari/537.36\" https://kelsieblevinsrealestate.com)",
+      "Bash(curl -sL --max-time 15 -A \"Mozilla/5.0 \\(Windows NT 10.0; Win64; x64\\) AppleWebKit/537.36 \\(KHTML, like Gecko\\) Chrome/120.0.0.0 Safari/537.36\" https://valentinoragolia.com/site/properties/sale)",
+      "Bash(curl -sL --max-time 15 -A \"Mozilla/5.0 \\(Windows NT 10.0; Win64; x64\\) AppleWebKit/537.36 \\(KHTML, like Gecko\\) Chrome/120.0.0.0 Safari/537.36\" https://www.inevita.mx/)",
+      "Bash(git checkout:*)"
+    ],
+    "additionalDirectories": [
+      "/home/marc/russo-prop/app",
+      "/home/marc/russo-prop/app/api/property"
+    ]
+  }
+}

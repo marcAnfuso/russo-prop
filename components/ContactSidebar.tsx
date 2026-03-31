@@ -23,6 +23,9 @@ export default function ContactSidebar({
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -38,7 +41,7 @@ export default function ContactSidebar({
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const newErrors: Record<string, string> = {};
 
@@ -51,6 +54,32 @@ export default function ContactSidebar({
     }
 
     setErrors(newErrors);
+    if (Object.keys(newErrors).length > 0) return;
+
+    setLoading(true);
+    setSubmitError(null);
+
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          message: formData.message,
+          propertyCode,
+          type: "consulta",
+        }),
+      });
+
+      if (!res.ok) throw new Error("Error al enviar");
+      setSuccess(true);
+    } catch {
+      setSubmitError("No se pudo enviar el mensaje. Intenta de nuevo.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const shareUrl =
@@ -98,6 +127,21 @@ export default function ContactSidebar({
         <h3 className="mb-4 text-sm font-semibold text-navy">
           Envianos un mensaje
         </h3>
+        {success ? (
+          <div className="text-center py-4">
+            <p className="text-sm text-green-600 font-medium mb-2">Mensaje enviado con exito!</p>
+            <p className="text-xs text-gray-500">Nos comunicaremos a la brevedad.</p>
+            <button
+              onClick={() => {
+                setSuccess(false);
+                setFormData({ name: "", phone: "", email: "", message: "Vi esta propiedad y me gustaria que me contacten..." });
+              }}
+              className="mt-3 text-xs text-magenta underline"
+            >
+              Enviar otro mensaje
+            </button>
+          </div>
+        ) : (
         <form onSubmit={handleSubmit} noValidate className="space-y-3">
           <div>
             <label htmlFor="sidebar-name" className="sr-only">
