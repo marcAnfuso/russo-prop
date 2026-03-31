@@ -12,6 +12,7 @@ export default function Hero() {
         muted
         loop
         playsInline
+        preload="metadata"
         className="absolute inset-0 w-full h-full object-cover"
       >
         <source src="/images/hero.mp4" type="video/mp4" />
