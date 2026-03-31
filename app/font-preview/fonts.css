@@ -1,0 +1,21 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Serif+Display&family=Cormorant+Garamond:wght@400;600;700&family=Libre+Baskerville:wght@400;700&display=swap');
+
+.font-playfair {
+  font-family: 'Playfair Display', serif;
+  font-weight: 700;
+}
+
+.font-dm-serif {
+  font-family: 'DM Serif Display', serif;
+  font-weight: 400;
+}
+
+.font-cormorant {
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 700;
+}
+
+.font-baskerville {
+  font-family: 'Libre Baskerville', serif;
+  font-weight: 700;
+}
