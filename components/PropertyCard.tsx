@@ -10,13 +10,14 @@ import FavoriteButton from "@/components/FavoriteButton";
 interface PropertyCardProps {
   property: Property;
   onHover?: (id: string | null) => void;
+  compact?: boolean;
 }
 
 function formatPrice(price: number): string {
   return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 }
 
-export default function PropertyCard({ property, onHover }: PropertyCardProps) {
+export default function PropertyCard({ property, onHover, compact = false }: PropertyCardProps) {
   const { id, code, operation, price, currency, address, locality, district, images, features } = property;
 
   const isAlquiler = operation === "alquiler";
@@ -95,7 +96,7 @@ export default function PropertyCard({ property, onHover }: PropertyCardProps) {
         )}
 
         <div className="relative z-20 flex justify-end pt-2 border-t border-gray-50">
-          <ContactButtons propertyCode={code} size="sm" />
+          <ContactButtons propertyCode={code} size="sm" compact={compact} />
         </div>
       </div>
     </article>

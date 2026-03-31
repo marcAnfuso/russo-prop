@@ -50,7 +50,7 @@ export default function FeaturedProperties({ properties }: { properties: Propert
         >
           {featured.map((property) => (
             <motion.div key={property.id} variants={itemVariants}>
-              <PropertyCard property={property} />
+              <PropertyCard property={property} compact />
             </motion.div>
           ))}
         </motion.div>

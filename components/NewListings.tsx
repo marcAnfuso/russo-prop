@@ -49,7 +49,7 @@ export default function NewListings({ properties }: { properties: Property[] }) 
                 <span className="absolute -top-2 -right-2 z-30 rounded-full bg-magenta px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white shadow-sm">
                   Nuevo
                 </span>
-                <PropertyCard property={property} />
+                <PropertyCard property={property} compact />
               </div>
             </motion.div>
           ))}

@@ -5,6 +5,7 @@ import { Phone, Mail } from "lucide-react";
 interface ContactButtonsProps {
   propertyCode: string;
   size?: "sm" | "md";
+  compact?: boolean;
 }
 
 const WA_ICON = (
@@ -16,6 +17,7 @@ const WA_ICON = (
 export default function ContactButtons({
   propertyCode,
   size = "sm",
+  compact = false,
 }: ContactButtonsProps) {
   const whatsappUrl = `https://wa.me/541146514024?text=Hola!%20Consulto%20por%20la%20propiedad%20${propertyCode}`;
   const phoneUrl = "tel:+541146514024";
@@ -39,25 +41,29 @@ export default function ContactButtons({
         Consultar
       </a>
 
-      {/* Phone – outline square */}
-      <a
-        href={phoneUrl}
-        aria-label="Llamar por telefono"
-        className={`inline-flex items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition-all duration-200 hover:border-navy hover:bg-navy hover:text-white hover:-translate-y-px active:scale-95 ${iconBtnSize}`}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <Phone className={iconSize} />
-      </a>
+      {!compact && (
+        <>
+          {/* Phone – outline square */}
+          <a
+            href={phoneUrl}
+            aria-label="Llamar por telefono"
+            className={`inline-flex items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition-all duration-200 hover:border-navy hover:bg-navy hover:text-white hover:-translate-y-px active:scale-95 ${iconBtnSize}`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <Phone className={iconSize} />
+          </a>
 
-      {/* Email – outline square */}
-      <a
-        href={emailUrl}
-        aria-label="Enviar email"
-        className={`inline-flex items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition-all duration-200 hover:border-magenta hover:bg-magenta hover:text-white hover:-translate-y-px active:scale-95 ${iconBtnSize}`}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <Mail className={iconSize} />
-      </a>
+          {/* Email – outline square */}
+          <a
+            href={emailUrl}
+            aria-label="Enviar email"
+            className={`inline-flex items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition-all duration-200 hover:border-magenta hover:bg-magenta hover:text-white hover:-translate-y-px active:scale-95 ${iconBtnSize}`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <Mail className={iconSize} />
+          </a>
+        </>
+      )}
     </div>
   );
 }
