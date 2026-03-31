@@ -340,5 +340,6 @@ export default async function PropertyDetailPage({ params }: PageProps) {
         />
       </div>
     </div>
+    </>
   );
 }
