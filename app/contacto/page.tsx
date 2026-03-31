@@ -48,6 +48,7 @@ export default function ContactoPage() {
   });
   const [submitted, setSubmitted] = useState(false);
   const [sending, setSending] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   function handleChange(
     e: React.ChangeEvent<
@@ -65,10 +66,32 @@ export default function ContactoPage() {
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setSending(true);
-    // Simulate send
-    await new Promise((r) => setTimeout(r, 1000));
-    setSending(false);
-    setSubmitted(true);
+    setSubmitError(null);
+
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: form.nombre,
+          email: form.email,
+          phone: form.telefono,
+          message: [
+            form.mensaje,
+            form.direccion ? `Direccion: ${form.direccion}` : "",
+            form.comoNosConociste ? `Como nos conocio: ${form.comoNosConociste}` : "",
+          ].filter(Boolean).join("\n"),
+          type: "contacto",
+        }),
+      });
+
+      if (!res.ok) throw new Error("Error al enviar");
+      setSubmitted(true);
+    } catch {
+      setSubmitError("No se pudo enviar el mensaje. Intenta de nuevo.");
+    } finally {
+      setSending(false);
+    }
   }
 
   return (
@@ -285,6 +308,10 @@ export default function ContactoPage() {
                       Recibir una copia del mensaje en mi email
                     </label>
                   </div>
+
+                  {submitError && (
+                    <p className="text-sm text-red-500 text-center">{submitError}</p>
+                  )}
 
                   {/* Submit */}
                   <button

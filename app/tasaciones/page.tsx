@@ -23,6 +23,8 @@ export default function TasacionesPage() {
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitted, setSubmitted] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   function validate(): Record<string, string> {
     const errs: Record<string, string> = {};
@@ -57,14 +59,41 @@ export default function TasacionesPage() {
     }
   }
 
-  function handleSubmit(e: FormEvent) {
+  async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     const errs = validate();
     if (Object.keys(errs).length > 0) {
       setErrors(errs);
       return;
     }
-    setSubmitted(true);
+
+    setSending(true);
+    setSubmitError(null);
+
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: formData.nombre,
+          email: formData.email,
+          phone: formData.telefono,
+          message: [
+            formData.comentarios,
+            `Direccion: ${formData.direccion}`,
+            formData.tipo ? `Tipo: ${formData.tipo}` : "",
+          ].filter(Boolean).join("\n"),
+          type: "tasacion",
+        }),
+      });
+
+      if (!res.ok) throw new Error("Error al enviar");
+      setSubmitted(true);
+    } catch {
+      setSubmitError("No se pudo enviar la solicitud. Intenta de nuevo.");
+    } finally {
+      setSending(false);
+    }
   }
 
   return (
@@ -300,9 +329,17 @@ export default function TasacionesPage() {
                   />
                 </div>
 
+                {submitError && (
+                  <p className="text-sm text-red-500 text-center">{submitError}</p>
+                )}
+
                 {/* Submit */}
-                <button type="submit" className="btn-magenta w-full text-center">
-                  Solicitar tasacion gratuita
+                <button
+                  type="submit"
+                  disabled={sending}
+                  className="btn-magenta w-full text-center disabled:opacity-50"
+                >
+                  {sending ? "Enviando..." : "Solicitar tasacion gratuita"}
                 </button>
 
                 <p className="text-xs text-navy-300 text-center">

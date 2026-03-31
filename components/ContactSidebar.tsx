@@ -221,13 +221,19 @@ export default function ContactSidebar({
             />
           </div>
 
+          {submitError && (
+            <p className="text-xs text-red-500">{submitError}</p>
+          )}
+
           <button
             type="submit"
-            className="w-full rounded bg-magenta py-2.5 text-sm font-semibold uppercase tracking-wide text-white transition-colors hover:bg-magenta-600"
+            disabled={loading}
+            className="w-full rounded bg-magenta py-2.5 text-sm font-semibold uppercase tracking-wide text-white transition-colors hover:bg-magenta-600 disabled:opacity-50"
           >
-            Contactarse
+            {loading ? "Enviando..." : "Contactarse"}
           </button>
         </form>
+        )}
       </div>
 
       <hr className="border-gray-200" />
