@@ -41,8 +41,9 @@ export default function Gallery({ images, videoUrl, title }: GalleryProps) {
 
   // ---------- Lightbox ----------
 
-  const openLightbox = () => {
+  const openLightbox = (index?: number) => {
     if (!hasImages) return;
+    if (index !== undefined) setCurrentIndex(index);
     setLightboxOpen(true);
   };
 
@@ -103,7 +104,7 @@ export default function Gallery({ images, videoUrl, title }: GalleryProps) {
     return (
       <div
         className="relative w-full aspect-video rounded-lg overflow-hidden cursor-pointer group/main"
-        onClick={openLightbox}
+        onClick={() => openLightbox()}
       >
         <Image
           src={images[currentIndex]}
@@ -235,18 +236,106 @@ export default function Gallery({ images, videoUrl, title }: GalleryProps) {
 
         {/* Tab content */}
         {activeTab === "fotos" && (
-          <div className="flex flex-col gap-3 md:grid md:grid-cols-[3fr_1fr]">
-            {/* Main image — its aspect-video determines the grid row height */}
-            <div>{renderMainImage()}</div>
-            {/* Thumbnail column: outer stretches to grid row height; inner scrolls within */}
-            <div className="relative hidden md:block">
-              <div className="absolute inset-0 flex flex-col gap-2 overflow-y-auto">
-                {hasImages && thumbnailButtons}
+          <>
+            {/* Desktop: asymmetric grid (lg+) */}
+            <div className="hidden lg:block">
+              {!hasImages && renderPlaceholder()}
+              {images.length === 1 && (
+                <div
+                  className="relative w-full aspect-video rounded-2xl overflow-hidden cursor-pointer"
+                  onClick={() => openLightbox(0)}
+                >
+                  <Image
+                    src={images[0]}
+                    alt={`${title} - imagen 1`}
+                    fill
+                    sizes="100vw"
+                    className="object-cover"
+                    priority
+                  />
+                </div>
+              )}
+              {images.length === 2 && (
+                <div className="grid grid-cols-2 gap-2 rounded-2xl overflow-hidden max-h-[500px]">
+                  {images.slice(0, 2).map((src, idx) => (
+                    <div
+                      key={idx}
+                      className="relative aspect-video cursor-pointer"
+                      onClick={() => openLightbox(idx)}
+                    >
+                      <Image
+                        src={src}
+                        alt={`${title} - imagen ${idx + 1}`}
+                        fill
+                        sizes="50vw"
+                        className="object-cover"
+                        priority={idx === 0}
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
+              {images.length >= 3 && (
+                <div className="grid grid-cols-3 grid-rows-2 gap-2 rounded-2xl overflow-hidden max-h-[500px]">
+                  {/* Main image - spans 2 cols and full height */}
+                  <div
+                    className="col-span-2 row-span-2 relative cursor-pointer"
+                    onClick={() => openLightbox(0)}
+                  >
+                    <Image
+                      src={images[0]}
+                      alt={`${title} - imagen 1`}
+                      fill
+                      sizes="66vw"
+                      className="object-cover"
+                      priority
+                    />
+                  </div>
+                  {/* Second image */}
+                  <div
+                    className="relative cursor-pointer"
+                    onClick={() => openLightbox(1)}
+                  >
+                    <Image
+                      src={images[1]}
+                      alt={`${title} - imagen 2`}
+                      fill
+                      sizes="33vw"
+                      className="object-cover"
+                    />
+                  </div>
+                  {/* Third image with "+N" overlay if more images exist */}
+                  <div
+                    className="relative cursor-pointer"
+                    onClick={() => openLightbox(2)}
+                  >
+                    <Image
+                      src={images[2]}
+                      alt={`${title} - imagen 3`}
+                      fill
+                      sizes="33vw"
+                      className="object-cover"
+                    />
+                    {images.length > 3 && (
+                      <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                        <span className="text-white text-lg font-bold">
+                          +{images.length - 3} fotos
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Mobile: main image with carousel + "Ver fotos" button */}
+            <div className="lg:hidden">
+              <div className="flex flex-col gap-3">
+                <div>{renderMainImage()}</div>
+                <div>{renderThumbnails()}</div>
               </div>
             </div>
-            {/* Mobile thumbnails (rendered by renderThumbnails) */}
-            <div className="md:hidden">{renderThumbnails()}</div>
-          </div>
+          </>
         )}
 
         {activeTab === "video" && renderVideoTab()}
