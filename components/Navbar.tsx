@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { Phone, Mail, Menu, X } from "lucide-react";
+import { Phone, Mail, Menu, X, Heart } from "lucide-react";
 
 const navLinks = [
   { href: "/", label: "Inicio" },
@@ -99,6 +99,14 @@ export default function Navbar() {
 
           {/* Desktop contact info */}
           <div className="hidden lg:flex items-center gap-4 text-sm text-navy">
+            <Link
+              href="/favoritos"
+              className="flex items-center gap-1.5 hover:text-magenta transition-colors"
+              aria-label="Favoritos"
+            >
+              <Heart className="h-4 w-4" />
+            </Link>
+            <span className="text-navy-200">|</span>
             <a
               href="tel:+541146514024"
               className="flex items-center gap-1.5 hover:text-magenta transition-colors"
@@ -187,6 +195,17 @@ export default function Navbar() {
             );
           })}
         </ul>
+
+        <div className="border-t border-navy-100 p-4">
+          <Link
+            href="/favoritos"
+            className="flex items-center gap-2 px-3 py-3 rounded-md text-base font-medium text-navy hover:text-magenta hover:bg-navy-50 transition-colors"
+            onClick={() => setMenuOpen(false)}
+          >
+            <Heart className="h-4 w-4" />
+            Favoritos
+          </Link>
+        </div>
 
         <div className="border-t border-navy-100 p-4 flex flex-col gap-3 text-sm text-navy">
           <a

@@ -5,6 +5,7 @@ import Image from "next/image";
 import { Maximize2, Home, Droplets, Car } from "lucide-react";
 import type { Property } from "@/data/types";
 import ContactButtons from "@/components/ContactButtons";
+import FavoriteButton from "@/components/FavoriteButton";
 
 interface PropertyCardProps {
   property: Property;
@@ -56,10 +57,12 @@ export default function PropertyCard({ property, onHover }: PropertyCardProps) {
         <span className={`absolute top-3 left-3 z-20 rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-white backdrop-blur-sm ${isAlquiler ? "bg-navy/90" : "bg-magenta/90"}`}>
           {isAlquiler ? "Alquiler" : "Venta"}
         </span>
-        {price === 9999999 && (
+        {price === 9999999 ? (
           <span className="absolute top-3 right-3 z-20 rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-white bg-amber-500 backdrop-blur-sm">
             Reservado
           </span>
+        ) : (
+          <FavoriteButton propertyId={id} />
         )}
         <div className="absolute inset-0 z-[5] bg-black/0 group-hover:bg-black/20 transition-all duration-300 flex items-center justify-center pointer-events-none">
           <span className="text-white font-semibold text-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300">
