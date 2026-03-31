@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
@@ -24,6 +25,30 @@ import { fetchProperties } from "@/lib/xintel";
 export async function generateStaticParams() {
   const ids = await fetchPropertyIds();
   return ids.map((id) => ({ id }));
+}
+
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params;
+  const property = await fetchProperty(id);
+  if (!property) return { title: "Propiedad no encontrada | Russo Propiedades" };
+
+  const priceLabel = property.price === 9999999
+    ? "Reservado"
+    : `${property.currency === "ARS" ? "$" : "USD"} ${property.price.toLocaleString("es-AR")}`;
+
+  const title = `${property.type.charAt(0).toUpperCase() + property.type.slice(1)} en ${property.operation === "alquiler" ? "Alquiler" : "Venta"} — ${priceLabel} | Russo Propiedades`;
+  const description = `${property.address}, ${property.locality}. ${property.features.rooms ? property.features.rooms + " amb." : ""} ${property.features.totalArea ? property.features.totalArea + " m²" : ""}`.trim();
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title: `${priceLabel} — ${property.address}`,
+      description: description.slice(0, 160),
+      images: property.images[0] ? [{ url: property.images[0], width: 1200, height: 630 }] : [],
+      type: "website",
+    },
+  };
 }
 
 interface PageProps {
@@ -146,7 +171,37 @@ export default async function PropertyDetailPage({ params }: PageProps) {
   };
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8">
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "RealEstateListing",
+            name: property.title,
+            description: property.description,
+            url: `https://russopropiedades.com.ar/propiedad/${property.id}`,
+            image: property.images[0],
+            address: {
+              "@type": "PostalAddress",
+              streetAddress: property.address,
+              addressLocality: property.locality,
+              addressRegion: property.district,
+              addressCountry: "AR",
+            },
+            offers: {
+              "@type": "Offer",
+              price: property.price === 9999999 ? undefined : property.price,
+              priceCurrency: property.currency,
+              availability:
+                property.price === 9999999
+                  ? "https://schema.org/SoldOut"
+                  : "https://schema.org/InStock",
+            },
+          }),
+        }}
+      />
+      <div className="mx-auto max-w-7xl px-4 py-8">
       {/* Two-column layout */}
       <div className="flex flex-col lg:flex-row gap-8">
         {/* Left column */}
