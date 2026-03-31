@@ -5,6 +5,7 @@ import NewListings from "@/components/NewListings";
 import FeaturedDevelopments from "@/components/FeaturedDevelopments";
 import NeighborhoodGrid from "@/components/NeighborhoodGrid";
 import WhyRusso from "@/components/WhyRusso";
+import TeamSection from "@/components/TeamSection";
 import GoogleReviews from "@/components/GoogleReviews";
 import { fetchFeaturedProperties, fetchLatestProperties } from "@/lib/xintel";
 
@@ -67,6 +68,7 @@ export default function Home() {
       <NeighborhoodGrid />
       <FeaturedDevelopments />
       <WhyRusso />
+      <TeamSection />
       <GoogleReviews />
     </>
   );
