@@ -36,14 +36,14 @@ export default function PropertyCard({ property, onHover, compact = false }: Pro
 
   return (
     <article
-      className="group relative flex flex-col sm:flex-row overflow-hidden rounded-2xl bg-white border border-gray-100 shadow-card hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-200 ease-out"
+      className={`group relative flex overflow-hidden rounded-2xl bg-white border border-gray-100 shadow-card hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-200 ease-out ${compact ? "flex-col h-full" : "flex-col sm:flex-row"}`}
       onMouseEnter={() => onHover?.(id)}
       onMouseLeave={() => onHover?.(null)}
     >
       <Link href={`/propiedad/${id}`} className="absolute inset-0 z-10" aria-label={`Ver propiedad ${code}`} />
 
       {/* Image */}
-      <div className="relative w-full sm:w-[38%] aspect-[4/3] sm:aspect-auto flex-shrink-0 overflow-hidden">
+      <div className={`relative flex-shrink-0 overflow-hidden ${compact ? "w-full aspect-[4/3]" : "w-full sm:w-[38%] aspect-[4/3] sm:aspect-auto"}`}>
         {imageSrc ? (
           <Image
             src={imageSrc}
@@ -73,7 +73,7 @@ export default function PropertyCard({ property, onHover, compact = false }: Pro
       </div>
 
       {/* Content */}
-      <div className="flex flex-col justify-between gap-3 p-5 w-full">
+      <div className="flex flex-col justify-between gap-3 p-5 w-full flex-1">
         <div className="space-y-1">
           <p className="text-2xl font-bold tracking-tight text-gray-900">{priceLabel}</p>
           <p className="text-sm font-medium text-gray-700">{address}</p>
