@@ -55,9 +55,11 @@ export default function PropertyCard({ property, onHover, compact = false }: Pro
         ) : (
           <div className="absolute inset-0 bg-gradient-to-br from-navy-100 to-navy-200" />
         )}
-        <span className={`absolute top-3 left-3 z-20 rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-white backdrop-blur-sm ${isAlquiler ? "bg-navy/90" : "bg-magenta/90"}`}>
-          {isAlquiler ? "Alquiler" : "Venta"}
-        </span>
+        {!compact && (
+          <span className={`absolute top-3 left-3 z-20 rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-white backdrop-blur-sm ${isAlquiler ? "bg-navy/90" : "bg-magenta/90"}`}>
+            {isAlquiler ? "Alquiler" : "Venta"}
+          </span>
+        )}
         {price === 9999999 ? (
           <span className="absolute top-3 right-3 z-20 rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-white bg-amber-500 backdrop-blur-sm">
             Reservado
