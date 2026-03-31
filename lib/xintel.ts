@@ -1,4 +1,4 @@
-import type { Property, Development, OperationType, PropertyType } from "@/data/types";
+import type { Property, OperationType, PropertyType } from "@/data/types";
 
 // ─── Config ────────────────────────────────────────────────────────────────
 
@@ -23,7 +23,9 @@ interface XintelListFicha {
   in_fic: string;
   titulo?: string;
   operacion?: string; // "Venta" | "Alquiler"
-  tipo?: string;
+  tipo?: string;      // display string: "Casa", "Departamento", etc.
+  in_tip?: string;    // single-letter code: "C", "D", etc.
+  in_tpr?: string;    // internal type: "CASA", "PH", "DEPARTAMENTO", etc.
   venta_precio?: number | string | null;
   alquiler_precio?: number | string | null;
   alquiler_moneda?: string;
@@ -61,6 +63,7 @@ interface XintelListResponse {
     total?: number;
     cantidadFichas?: number;
     paginas?: number;
+    caracteristicas?: Record<string, string[]>;
     datos?: {
       cantidadFichas?: number;
       paginas?: number;
@@ -127,6 +130,19 @@ function mapCurrency(moneda?: string): "USD" | "ARS" {
 }
 
 const TYPE_MAP: Record<string, PropertyType> = {
+  // Xintel single-letter codes
+  c: "casa",
+  d: "departamento",
+  e: "edificio",
+  g: "local",    // Galpon
+  h: "cochera",
+  l: "local",
+  n: "local",    // Negocio
+  o: "oficina",
+  p: "terreno",  // Campo
+  q: "terreno",  // Quinta
+  t: "terreno",  // Lote
+  // full names (fallback)
   casa: "casa",
   departamento: "departamento",
   depto: "departamento",
@@ -134,8 +150,11 @@ const TYPE_MAP: Record<string, PropertyType> = {
   "p.h.": "ph",
   terreno: "terreno",
   lote: "terreno",
+  campo: "terreno",
+  quinta: "terreno",
   cochera: "cochera",
   local: "local",
+  negocio: "local",
   oficina: "oficina",
   galpon: "local",
   edificio: "edificio",
@@ -152,7 +171,7 @@ function firstImg(entry: string | string[]): string {
   return entry ?? "";
 }
 
-function mapListFicha(ficha: XintelListFicha, imgs: string | string[]): Property {
+function mapListFicha(ficha: XintelListFicha, imgs: string | string[], amenities?: string[]): Property {
   const op = mapOperation(ficha.operacion);
   const rawPrice =
     op === "alquiler"
@@ -171,7 +190,7 @@ function mapListFicha(ficha: XintelListFicha, imgs: string | string[]): Property
     code: `RUS${ficha.in_num}`,
     title: decodeHtml(ficha.titulo) || `Propiedad ${ficha.in_num}`,
     operation: op,
-    type: mapType(ficha.tipo),
+    type: mapType(ficha.in_tpr || ficha.tipo || ficha.in_tip),
     price,
     currency,
     address: decodeHtml(ficha.direccion_completa) || `${ficha.in_cal ?? ""} ${ficha.in_nro ?? ""}`.trim(),
@@ -186,7 +205,7 @@ function mapListFicha(ficha: XintelListFicha, imgs: string | string[]): Property
       bedrooms: num(ficha.cantidad_dormitorios),
       garage: num(ficha.in_coc) || num(ficha.garage),
     },
-    amenities: [],
+    amenities: amenities ?? [],
     images,
     videoUrl: ficha.video ?? undefined,
     location: parseCoords(ficha.in_coo),
@@ -222,9 +241,9 @@ function buildListUrl(params: FetchPropertiesParams, page: number): string {
 
 async function fetchPage(
   urlStr: string
-): Promise<{ fichas: XintelListFicha[]; imgs: (string | string[])[]; total: number | null }> {
+): Promise<{ fichas: XintelListFicha[]; imgs: (string | string[])[]; total: number | null; caracteristicas: Record<string, string[]> }> {
   const res = await fetch(urlStr, { next: { revalidate: REVALIDATE } });
-  if (!res.ok) return { fichas: [], imgs: [], total: null };
+  if (!res.ok) return { fichas: [], imgs: [], total: null, caracteristicas: {} };
   const data: XintelListResponse = await res.json();
   const total =
     data?.resultado?.datos?.cantidadFichas ??
@@ -234,6 +253,7 @@ async function fetchPage(
   return {
     fichas: data?.resultado?.fichas ?? [],
     imgs: data?.resultado?.img ?? [],
+    caracteristicas: data?.resultado?.caracteristicas ?? {},
     total,
   };
 }
@@ -250,9 +270,9 @@ export async function fetchProperties(
 ): Promise<FetchPropertiesResult> {
   try {
     const page = params.page ?? 1;
-    const { fichas, imgs, total } = await fetchPage(buildListUrl(params, page));
+    const { fichas, imgs, total, caracteristicas } = await fetchPage(buildListUrl(params, page));
     return {
-      properties: fichas.map((f, i) => mapListFicha(f, imgs[i] ?? [])),
+      properties: fichas.map((f, i) => mapListFicha(f, imgs[i] ?? [], caracteristicas[f.in_num])),
       hasMore: fichas.length === PER_PAGE,
       total,
     };
@@ -363,4 +383,10 @@ export async function fetchFeaturedProperties(): Promise<Property[]> {
     const { properties } = await fetchProperties();
     return properties.filter((p) => p.featured).slice(0, 6);
   }
+}
+
+/** Fetch latest properties (newest first) for home page */
+export async function fetchLatestProperties(): Promise<Property[]> {
+  const { properties } = await fetchProperties({ page: 1 });
+  return properties.slice(0, 6);
 }
