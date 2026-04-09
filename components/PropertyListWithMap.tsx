@@ -27,6 +27,7 @@ export default function PropertyListWithMap({
   const [loadingPage, setLoadingPage] = useState(false);
   const [highlightedId, setHighlightedId] = useState<string | null>(null);
   const [showMobileMap, setShowMobileMap] = useState(false);
+  const [selectedPropertyType, setSelectedPropertyType] = useState<string | undefined>(undefined);
 
   const displayed = pages[currentPage] ?? [];
 
@@ -37,6 +38,16 @@ export default function PropertyListWithMap({
   const handleFilterChange = useCallback((result: Property[]) => {
     setFiltered(result);
   }, []);
+
+  const handleFilterStateChange = useCallback((filters: { propertyType?: string; zones: string[] }) => {
+    // Reset pages when property type filter changes so we fetch fresh results from API
+    if (filters.propertyType !== selectedPropertyType) {
+      setPages([initialProperties]);
+      setCurrentPage(0);
+      setFiltered(null);
+    }
+    setSelectedPropertyType(filters.propertyType);
+  }, [selectedPropertyType, initialProperties]);
 
   // A filter is "active" if the result differs from the full current page
   const showingFiltered =
@@ -99,6 +110,7 @@ export default function PropertyListWithMap({
       <FilterBar
         properties={baseProperties}
         onFilterChange={handleFilterChange}
+        onFilterStateChange={handleFilterStateChange}
         operationType={operationType}
       />
 

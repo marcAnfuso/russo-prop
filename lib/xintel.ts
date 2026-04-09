@@ -160,6 +160,18 @@ const TYPE_MAP: Record<string, PropertyType> = {
   edificio: "edificio",
 };
 
+// Reverse mapping: PropertyType display value → Xintel single-letter code
+const TYPE_TO_XINTEL_CODE: Record<PropertyType, string> = {
+  casa: "C",
+  departamento: "D",
+  edificio: "E",
+  cochera: "H",
+  local: "L",
+  oficina: "O",
+  ph: "PH",
+  terreno: "T",
+};
+
 function mapType(t?: string): PropertyType {
   const key = t?.toLowerCase().trim() ?? "";
   return TYPE_MAP[key] ?? "casa";
@@ -217,7 +229,6 @@ function mapListFicha(ficha: XintelListFicha, imgs: string | string[], amenities
 
 interface FetchPropertiesParams {
   operation?: "venta" | "alquiler";
-  type?: string;
   page?: number;
 }
 
@@ -233,9 +244,8 @@ function buildListUrl(params: FetchPropertiesParams, page: number): string {
   if (params.operation) {
     url.searchParams.set("ope", params.operation === "venta" ? "V" : "A");
   }
-  if (params.type) {
-    url.searchParams.set("tip", params.type);
-  }
+  // Note: Xintel API does not support type filtering via 'tip' parameter
+  // Property type filtering is handled client-side by FilterBar component
   return url.toString();
 }
 

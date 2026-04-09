@@ -73,6 +73,7 @@ const AGE_RANGES: { label: string; min: number; max: number }[] = [
 interface FilterBarProps {
   properties: Property[];
   onFilterChange: (filtered: Property[]) => void;
+  onFilterStateChange?: (filters: { propertyType?: string; zones: string[] }) => void;
   operationType?: "venta" | "alquiler";
 }
 
@@ -211,6 +212,7 @@ function ToggleGroup({
 export default function FilterBar({
   properties,
   onFilterChange,
+  onFilterStateChange,
   operationType,
 }: FilterBarProps) {
   const router = useRouter();
@@ -362,7 +364,8 @@ export default function FilterBar({
 
   useEffect(() => {
     applyFilters();
-  }, [applyFilters]);
+    onFilterStateChange?.({ propertyType, zones });
+  }, [applyFilters, propertyType, zones, onFilterStateChange]);
 
   /* ---- zone suggestions ---- */
   const zoneSuggestions = useMemo(() => {
