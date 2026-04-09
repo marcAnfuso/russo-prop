@@ -75,6 +75,8 @@ interface FilterBarProps {
   onFilterChange: (filtered: Property[]) => void;
   onFilterStateChange?: (filters: { propertyType?: string; zones: string[] }) => void;
   operationType?: "venta" | "alquiler";
+  initialPropertyType?: string;
+  initialZones?: string[];
 }
 
 /* ------------------------------------------------------------------ */
@@ -214,13 +216,15 @@ export default function FilterBar({
   onFilterChange,
   onFilterStateChange,
   operationType,
+  initialPropertyType = "",
+  initialZones = [],
 }: FilterBarProps) {
   const router = useRouter();
   /* ---- filter state ---- */
-  const [zones, setZones] = useState<string[]>([]);
+  const [zones, setZones] = useState<string[]>(initialZones);
   const [zoneQuery, setZoneQuery] = useState("");
   const [zoneDropdownOpen, setZoneDropdownOpen] = useState(false);
-  const [propertyType, setPropertyType] = useState("");
+  const [propertyType, setPropertyType] = useState(initialPropertyType);
   const [operation, setOperation] = useState("");
   const [priceRange, setPriceRange] = useState("");
   const [expanded, setExpanded] = useState(false);
@@ -386,6 +390,21 @@ export default function FilterBar({
 
   const removeZone = (z: string) => {
     setZones((prev) => prev.filter((zone) => zone !== z));
+  };
+
+  const clearAllFilters = () => {
+    setZones([]);
+    setZoneQuery("");
+    setPropertyType("");
+    setOperation("");
+    setPriceRange("");
+    setExpanded(false);
+    setAmbientes(null);
+    setBanos(null);
+    setSuperficieMin("");
+    setSuperficieMax("");
+    setCochera(null);
+    setAntiguedad(null);
   };
 
   /* ---- zone display text ---- */
@@ -609,19 +628,39 @@ export default function FilterBar({
         </div>
       </div>
 
-      {/* ---- Results counter + sort ---- */}
+      {/* ---- Results counter + sort + clear ---- */}
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-2 border-t border-navy-100">
-        <div className="flex items-center justify-between">
-          <p className="text-sm text-navy">
-            <span className="font-semibold">
-              {properties.length > 0
-                ? `${properties.length} propiedades`
-                : "0 propiedades"}
-            </span>
-            {zones.length > 0 && (
-              <span className="text-navy-300"> en {zoneLabel}</span>
+        <div className="flex items-center justify-between flex-wrap gap-3">
+          <div className="flex items-center gap-3">
+            <p className="text-sm text-navy">
+              <span className="font-semibold">
+                {properties.length > 0
+                  ? `${properties.length} propiedades`
+                  : "0 propiedades"}
+              </span>
+              {zones.length > 0 && (
+                <span className="text-navy-300"> en {zoneLabel}</span>
+              )}
+            </p>
+
+            {(zones.length > 0 ||
+              propertyType ||
+              operation ||
+              priceRange ||
+              ambientes ||
+              banos ||
+              superficieMin ||
+              superficieMax ||
+              cochera ||
+              antiguedad) && (
+              <button
+                onClick={clearAllFilters}
+                className="text-xs font-semibold text-magenta hover:text-magenta/80 transition-colors"
+              >
+                Limpiar filtros ×
+              </button>
             )}
-          </p>
+          </div>
 
           <Dropdown
             label="Ordenar por"

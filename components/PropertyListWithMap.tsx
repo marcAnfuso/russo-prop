@@ -1,9 +1,11 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Map, X, ChevronLeft, ChevronRight } from "lucide-react";
 import FilterBar from "@/components/FilterBar";
 import PropertyCard from "@/components/PropertyCard";
+import PropertyQuickViewModal from "@/components/PropertyQuickViewModal";
 import MapView from "@/components/MapView";
 import type { Property } from "@/data/types";
 import type { FetchPropertiesResult } from "@/lib/xintel";
@@ -21,6 +23,14 @@ export default function PropertyListWithMap({
   initialHasMore,
   totalCount,
 }: PropertyListWithMapProps) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Read initial filters from URL
+  const initialPropertyType = searchParams.get("type") || "";
+  const initialZonesParam = searchParams.get("zones");
+  const initialZones = initialZonesParam ? initialZonesParam.split(",") : [];
+
   const [pages, setPages] = useState<Property[][]>([initialProperties]);
   const [hasMore, setHasMore] = useState(initialHasMore);
   const [currentPage, setCurrentPage] = useState(0); // 0-indexed into pages[]
@@ -28,6 +38,8 @@ export default function PropertyListWithMap({
   const [highlightedId, setHighlightedId] = useState<string | null>(null);
   const [showMobileMap, setShowMobileMap] = useState(false);
   const [selectedPropertyType, setSelectedPropertyType] = useState<string | undefined>(undefined);
+  const [quickViewProperty, setQuickViewProperty] = useState<Property | null>(null);
+  const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
 
   const displayed = pages[currentPage] ?? [];
 
@@ -47,7 +59,18 @@ export default function PropertyListWithMap({
       setFiltered(null);
     }
     setSelectedPropertyType(filters.propertyType);
-  }, [selectedPropertyType, initialProperties]);
+
+    // Update URL with current filters
+    const params = new URLSearchParams();
+    if (filters.propertyType) {
+      params.set("type", filters.propertyType);
+    }
+    if (filters.zones.length > 0) {
+      params.set("zones", filters.zones.join(","));
+    }
+    const newUrl = params.toString() ? `?${params.toString()}` : "";
+    router.push(newUrl || `/ventas`);
+  }, [selectedPropertyType, initialProperties, router]);
 
   // A filter is "active" if the result differs from the full current page
   const showingFiltered =
@@ -112,6 +135,8 @@ export default function PropertyListWithMap({
         onFilterChange={handleFilterChange}
         onFilterStateChange={handleFilterStateChange}
         operationType={operationType}
+        initialPropertyType={initialPropertyType}
+        initialZones={initialZones}
       />
 
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6">
@@ -132,9 +157,31 @@ export default function PropertyListWithMap({
 
             {visibleProperties.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-20 text-center">
-                <p className="text-lg text-navy-300">
-                  No encontramos propiedades con esos filtros. Proba ajustando tu busqueda.
-                </p>
+                <div className="max-w-md">
+                  <p className="text-lg font-semibold text-navy mb-4">
+                    No encontramos propiedades con esos filtros
+                  </p>
+                  <p className="text-sm text-gray-600 mb-6">
+                    Intenta ajustar tu búsqueda para encontrar más opciones
+                  </p>
+                  <div className="space-y-3">
+                    <button
+                      onClick={() => {
+                        // Scroll to filter bar
+                        document.querySelector("[data-testid='filter-bar']")?.scrollIntoView({ behavior: "smooth" });
+                      }}
+                      className="block w-full rounded-lg border-2 border-magenta px-4 py-2 text-sm font-semibold text-magenta hover:bg-magenta hover:text-white transition-colors"
+                    >
+                      Cambiar filtros
+                    </button>
+                    <a
+                      href={`/${operationType === 'alquiler' ? 'alquileres' : 'ventas'}`}
+                      className="block w-full rounded-lg border-2 border-navy px-4 py-2 text-sm font-semibold text-navy hover:bg-navy hover:text-white transition-colors"
+                    >
+                      Ver todas las propiedades
+                    </a>
+                  </div>
+                </div>
               </div>
             ) : (
               <>
@@ -144,6 +191,10 @@ export default function PropertyListWithMap({
                       key={property.id}
                       property={property}
                       onHover={setHighlightedId}
+                      onQuickView={(prop) => {
+                        setQuickViewProperty(prop);
+                        setIsQuickViewOpen(true);
+                      }}
                     />
                   ))}
                 </div>
@@ -220,6 +271,16 @@ export default function PropertyListWithMap({
           />
         </div>
       )}
+
+      {/* Quick View Modal */}
+      <PropertyQuickViewModal
+        property={quickViewProperty}
+        isOpen={isQuickViewOpen}
+        onClose={() => {
+          setIsQuickViewOpen(false);
+          setQuickViewProperty(null);
+        }}
+      />
     </div>
   );
 }

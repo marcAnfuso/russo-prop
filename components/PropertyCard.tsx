@@ -10,6 +10,7 @@ import FavoriteButton from "@/components/FavoriteButton";
 interface PropertyCardProps {
   property: Property;
   onHover?: (id: string | null) => void;
+  onQuickView?: (property: Property) => void;
   compact?: boolean;
 }
 
@@ -17,7 +18,7 @@ function formatPrice(price: number): string {
   return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 }
 
-export default function PropertyCard({ property, onHover, compact = false }: PropertyCardProps) {
+export default function PropertyCard({ property, onHover, onQuickView, compact = false }: PropertyCardProps) {
   const { id, code, operation, price, currency, address, locality, district, images, features } = property;
 
   const isAlquiler = operation === "alquiler";
@@ -43,7 +44,14 @@ export default function PropertyCard({ property, onHover, compact = false }: Pro
       <Link href={`/propiedad/${id}`} className="absolute inset-0 z-10" aria-label={`Ver propiedad ${code}`} />
 
       {/* Image */}
-      <div className={`relative flex-shrink-0 overflow-hidden ${compact ? "w-full aspect-[4/3]" : "w-full sm:w-[38%] aspect-[4/3] sm:aspect-auto"}`}>
+      <div
+        className={`relative flex-shrink-0 overflow-hidden cursor-pointer ${compact ? "w-full aspect-[4/3]" : "w-full sm:w-[38%] aspect-[4/3] sm:aspect-auto"}`}
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          onQuickView?.(property);
+        }}
+      >
         {imageSrc ? (
           <Image
             src={imageSrc}

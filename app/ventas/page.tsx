@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import PropertyListWithMap from "@/components/PropertyListWithMap";
 import { fetchProperties } from "@/lib/xintel";
 
@@ -10,7 +11,15 @@ export const metadata = {
   },
 };
 
-export default async function VentasPage() {
+async function VentasContent() {
   const { properties, hasMore, total } = await fetchProperties({ operation: "venta", page: 1 });
   return <PropertyListWithMap operationType="venta" initialProperties={properties} initialHasMore={hasMore} totalCount={total} />;
+}
+
+export default function VentasPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Cargando...</div>}>
+      <VentasContent />
+    </Suspense>
+  );
 }
