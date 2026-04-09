@@ -8,7 +8,9 @@
       "Bash(git checkout:*)",
       "Bash(git log:*)",
       "Bash(node_modules/.bin/next dev:*)",
-      "Bash(netstat -tlnp)"
+      "Bash(netstat -tlnp)",
+      "Bash(jq '{status: \"\"\"\"OK\"\"\"\", count: .properties | length, hasMore: .hasMore, total: .total}')",
+      "Bash(/home/marc/russo-prop/TEST_RESULTS_SUMMARY.md:*)"
     ],
     "additionalDirectories": [
       "/home/marc/russo-prop/app",
