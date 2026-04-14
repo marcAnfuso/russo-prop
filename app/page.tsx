@@ -8,6 +8,8 @@ import WhyRusso from "@/components/WhyRusso";
 import TeamSection from "@/components/TeamSection";
 import GoogleReviews from "@/components/GoogleReviews";
 import { fetchFeaturedProperties, fetchLatestProperties } from "@/lib/xintel";
+import FeaturedOpportunities from "@/components/FeaturedOpportunities";
+import { fetchOpportunityProperties } from "@/lib/opportunities";
 
 async function FeaturedPropertiesLoader() {
   const featured = await fetchFeaturedProperties();
@@ -55,6 +57,29 @@ function NewListingsSkeleton() {
   );
 }
 
+async function FeaturedOpportunitiesLoader() {
+  const properties = await fetchOpportunityProperties();
+  return <FeaturedOpportunities properties={properties} />;
+}
+
+function FeaturedOpportunitiesSkeleton() {
+  return (
+    <section className="py-16 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-white to-gray-50">
+      <div className="mx-auto max-w-7xl">
+        <div className="text-center mb-12 space-y-3">
+          <div className="h-4 w-40 bg-gray-200 rounded-full mx-auto animate-pulse" />
+          <div className="h-8 w-72 bg-gray-200 rounded-full mx-auto animate-pulse" />
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[0, 1, 2].map((i) => (
+            <div key={i} className="h-96 rounded-2xl bg-gray-200 animate-pulse" />
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export default function Home() {
   return (
     <>
@@ -64,6 +89,9 @@ export default function Home() {
       </Suspense>
       <Suspense fallback={<NewListingsSkeleton />}>
         <NewListingsLoader />
+      </Suspense>
+      <Suspense fallback={<FeaturedOpportunitiesSkeleton />}>
+        <FeaturedOpportunitiesLoader />
       </Suspense>
       <NeighborhoodGrid />
       <FeaturedDevelopments />
