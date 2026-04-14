@@ -48,3 +48,10 @@ next-env.d.ts
 /playwright/.cache/
 junit.xml
 test-results.json
+
+# Playwright MCP screenshots & artifacts
+.playwright-mcp/
+*.jpg
+*.png
+!public/**/*.jpg
+!public/**/*.png

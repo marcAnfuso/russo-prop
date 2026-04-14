@@ -33,10 +33,10 @@ export default function Footer() {
               />
             </Link>
             <p className="text-sm leading-relaxed text-gray-500">
-              Hemos agregado a nuestra amplia experiencia, toda la tecnologia
-              hoy disponible, sumada a nuestro mas importante capital, que es la
-              gente joven, rigurosamente seleccionada por su capacidad,
-              idoneidad y honestidad
+              Hemos agregado a nuestra amplia experiencia, toda la tecnología
+              hoy disponible, sumada a nuestro más importante capital, que es
+              la gente joven, rigurosamente seleccionada por su capacidad,
+              idoneidad y honestidad.
             </p>
           </div>
 
@@ -92,10 +92,10 @@ export default function Footer() {
             </nav>
           </div>
 
-          {/* Column 4 - Ultimas Propiedades */}
+          {/* Column 4 - Últimas Propiedades */}
           <div>
             <h3 className="mb-4 text-lg font-semibold text-navy">
-              Ultimas Propiedades
+              Últimas Propiedades
             </h3>
             <ul className="space-y-3">
               {latestProperties.map((property) => (

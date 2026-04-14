@@ -39,7 +39,7 @@ export default function NeighborhoodGrid() {
             <motion.div key={neighborhood.slug} variants={cardVariants}>
               <Link
                 href={`/ventas?zona=${neighborhood.slug}`}
-                className="group relative aspect-[4/3] rounded-2xl overflow-hidden block"
+                className="group relative aspect-[3/4] sm:aspect-[4/3] rounded-2xl overflow-hidden block"
               >
                 <Image
                   src={neighborhood.image}

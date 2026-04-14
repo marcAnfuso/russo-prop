@@ -8,7 +8,7 @@ import DevelopmentCard from "@/components/DevelopmentCard";
 const statusFilters: { value: DevelopmentStatus; label: string }[] = [
   { value: "pre-venta", label: "Pre Venta" },
   { value: "pozo", label: "Pozo" },
-  { value: "en-construccion", label: "En Construccion" },
+  { value: "en-construccion", label: "En Construcción" },
   { value: "terminado", label: "Terminado" },
 ];
 
@@ -38,7 +38,7 @@ export default function EmprendimientosPage() {
           EMPRENDIMIENTOS
         </h1>
         <p className="mt-2 text-lg text-navy-500">
-          Encontra tu proxima inversion
+          Encontrá tu próxima inversión
         </p>
       </div>
 

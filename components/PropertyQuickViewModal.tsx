@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight, X, Maximize2, Home, Droplets, Car } from "lucide-react";
 import type { Property } from "@/data/types";
 import ContactButtons from "@/components/ContactButtons";
@@ -17,6 +17,27 @@ export default function PropertyQuickViewModal({
   onClose,
 }: PropertyQuickViewModalProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  // Reset image index and lock body scroll when modal opens
+  useEffect(() => {
+    if (!isOpen) return;
+    setCurrentImageIndex(0);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [isOpen]);
+
+  // Close on Escape
+  useEffect(() => {
+    if (!isOpen) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [isOpen, onClose]);
 
   if (!isOpen || !property) return null;
 
@@ -108,12 +129,12 @@ export default function PropertyQuickViewModal({
           </div>
 
           {/* Features Grid */}
-          {(features.totalArea ||
-            features.rooms ||
-            features.bathrooms ||
-            features.garage) && (
+          {(!!features.totalArea ||
+            !!features.rooms ||
+            !!features.bathrooms ||
+            !!features.garage) && (
             <div className="grid grid-cols-2 gap-3 mb-6 pb-6 border-b border-gray-200">
-              {features.totalArea && (
+              {!!features.totalArea && (
                 <div className="flex items-center gap-2">
                   <Maximize2 className="w-4 h-4 text-magenta" />
                   <div>
@@ -124,7 +145,7 @@ export default function PropertyQuickViewModal({
                   </div>
                 </div>
               )}
-              {features.rooms && (
+              {!!features.rooms && (
                 <div className="flex items-center gap-2">
                   <Home className="w-4 h-4 text-magenta" />
                   <div>
@@ -135,7 +156,7 @@ export default function PropertyQuickViewModal({
                   </div>
                 </div>
               )}
-              {features.bathrooms && (
+              {!!features.bathrooms && (
                 <div className="flex items-center gap-2">
                   <Droplets className="w-4 h-4 text-magenta" />
                   <div>
@@ -146,7 +167,7 @@ export default function PropertyQuickViewModal({
                   </div>
                 </div>
               )}
-              {features.garage && (
+              {!!features.garage && (
                 <div className="flex items-center gap-2">
                   <Car className="w-4 h-4 text-magenta" />
                   <div>

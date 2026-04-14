@@ -11,10 +11,10 @@ interface Reason {
 }
 
 const reasons: Reason[] = [
-  { icon: Building,    title: "Experiencia",   description: "Mas de 30 anos en el mercado inmobiliario de zona oeste" },
-  { icon: Monitor,     title: "Tecnologia",    description: "Herramientas digitales de ultima generacion para optimizar tu busqueda" },
+  { icon: Building,    title: "Experiencia",   description: "Más de 30 años en el mercado inmobiliario de zona oeste" },
+  { icon: Monitor,     title: "Tecnología",    description: "Herramientas digitales de última generación para optimizar tu búsqueda" },
   { icon: Users,       title: "Equipo joven",  description: "Capital humano rigurosamente seleccionado por su capacidad e idoneidad" },
-  { icon: ShieldCheck, title: "Honestidad",    description: "Transparencia y confianza en cada operacion" },
+  { icon: ShieldCheck, title: "Honestidad",    description: "Transparencia y confianza en cada operación" },
 ];
 
 const containerVariants = {

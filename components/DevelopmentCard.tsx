@@ -10,10 +10,10 @@ interface DevelopmentCardProps {
 }
 
 const statusConfig: Record<DevelopmentStatus, { label: string; color: string; dot: string }> = {
-  "pre-venta":      { label: "Pre Venta",      color: "bg-violet-50 text-violet-700 border-violet-200",  dot: "bg-violet-500" },
+  "pre-venta":      { label: "Pre Venta",       color: "bg-violet-50 text-violet-700 border-violet-200",  dot: "bg-violet-500" },
   pozo:             { label: "En Pozo",         color: "bg-amber-50 text-amber-700 border-amber-200",     dot: "bg-amber-500" },
-  "en-construccion":{ label: "En Construccion", color: "bg-blue-50 text-blue-700 border-blue-200",        dot: "bg-blue-500" },
-  terminado:        { label: "Terminado",        color: "bg-emerald-50 text-emerald-700 border-emerald-200", dot: "bg-emerald-500" },
+  "en-construccion":{ label: "En Construcción", color: "bg-blue-50 text-blue-700 border-blue-200",        dot: "bg-blue-500" },
+  terminado:        { label: "Terminado",       color: "bg-emerald-50 text-emerald-700 border-emerald-200", dot: "bg-emerald-500" },
 };
 
 export default function DevelopmentCard({ development }: DevelopmentCardProps) {
@@ -24,10 +24,13 @@ export default function DevelopmentCard({ development }: DevelopmentCardProps) {
   const imageSrc = images?.[0];
 
   return (
-    <Link
-      href={`/emprendimiento/${id}`}
-      className="group flex flex-col sm:flex-row overflow-hidden rounded-2xl bg-white border border-gray-100 shadow-card hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-200 ease-out"
-    >
+    <article className="group relative flex flex-col sm:flex-row overflow-hidden rounded-2xl bg-white border border-gray-100 shadow-card hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-200 ease-out">
+      <Link
+        href={`/emprendimiento/${id}`}
+        className="absolute inset-0 z-10"
+        aria-label={`Ver emprendimiento ${name}`}
+      />
+
       {/* Image */}
       <div className="relative w-full sm:w-[38%] aspect-[4/3] sm:aspect-auto flex-shrink-0 overflow-hidden">
         {imageSrc ? (
@@ -85,10 +88,10 @@ export default function DevelopmentCard({ development }: DevelopmentCardProps) {
           )}
         </ul>
 
-        <div className="flex justify-end pt-2 border-t border-gray-50">
+        <div className="relative z-20 flex justify-end pt-2 border-t border-gray-50">
           <ContactButtons propertyCode={code} size="sm" />
         </div>
       </div>
-    </Link>
+    </article>
   );
 }

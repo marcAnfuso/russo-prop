@@ -39,7 +39,7 @@ const PROPERTY_TYPES = [
   "Departamento",
   "Casa",
   "PH",
-  "Terrenos y lotes",
+  "Terreno",
   "Cochera",
   "Local",
   "Oficina",
@@ -253,7 +253,7 @@ export default function SearchBar({
               activeIndex >= 0 ? `zone-option-${activeIndex}` : undefined
             }
             aria-autocomplete="list"
-            placeholder="Donde queres mudarte?"
+            placeholder="¿Dónde querés mudarte?"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleInputKeyDown}

@@ -39,7 +39,7 @@ const PROPERTY_TYPES: { label: string; value: Property["type"] }[] = [
   { label: "Departamento", value: "departamento" },
   { label: "Casa", value: "casa" },
   { label: "PH", value: "ph" },
-  { label: "Terrenos", value: "terreno" },
+  { label: "Terreno", value: "terreno" },
   { label: "Cochera", value: "cochera" },
   { label: "Local", value: "local" },
   { label: "Oficina", value: "oficina" },
@@ -50,20 +50,20 @@ const PRICE_RANGES: { label: string; min: number; max: number }[] = [
   { label: "50.000 - 100.000", min: 50_000, max: 100_000 },
   { label: "100.000 - 200.000", min: 100_000, max: 200_000 },
   { label: "200.000 - 500.000", min: 200_000, max: 500_000 },
-  { label: "Mas de 500.000", min: 500_000, max: Infinity },
+  { label: "Más de 500.000", min: 500_000, max: Infinity },
 ];
 
 const SORT_OPTIONS = [
-  { label: "Mas recientes", value: "recent" },
+  { label: "Más recientes", value: "recent" },
   { label: "Menor precio", value: "price-asc" },
   { label: "Mayor precio", value: "price-desc" },
 ] as const;
 
 const AGE_RANGES: { label: string; min: number; max: number }[] = [
-  { label: "Hasta 5 anos", min: 0, max: 5 },
+  { label: "Hasta 5 años", min: 0, max: 5 },
   { label: "5 - 20", min: 5, max: 20 },
   { label: "20 - 50", min: 20, max: 50 },
-  { label: "Mas de 50", min: 50, max: Infinity },
+  { label: "Más de 50", min: 50, max: Infinity },
 ];
 
 /* ------------------------------------------------------------------ */
@@ -439,7 +439,7 @@ export default function FilterBar({
               <Search className="h-4 w-4 text-navy-300" />
               <input
                 type="text"
-                placeholder="Donde queres mudarte?"
+                placeholder="¿Dónde querés mudarte?"
                 value={zoneQuery}
                 onChange={(e) => {
                   setZoneQuery(e.target.value);
@@ -628,20 +628,13 @@ export default function FilterBar({
         </div>
       </div>
 
-      {/* ---- Results counter + sort + clear ---- */}
+      {/* ---- Sort + clear (count shown by list below) ---- */}
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-2 border-t border-navy-100">
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div className="flex items-center gap-3">
-            <p className="text-sm text-navy">
-              <span className="font-semibold">
-                {properties.length > 0
-                  ? `${properties.length} propiedades`
-                  : "0 propiedades"}
-              </span>
-              {zones.length > 0 && (
-                <span className="text-navy-300"> en {zoneLabel}</span>
-              )}
-            </p>
+            {zones.length > 0 && (
+              <p className="text-sm text-navy-300">en {zoneLabel}</p>
+            )}
 
             {(zones.length > 0 ||
               propertyType ||
