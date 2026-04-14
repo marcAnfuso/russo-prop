@@ -65,10 +65,10 @@ export default function OpportunityCard({ property }: OpportunityCardProps) {
 
       <div className="flex flex-col gap-3 p-5">
         <div>
-          <h3 className="text-base font-bold text-navy line-clamp-1">
+          <h3 className="text-base font-bold text-navy line-clamp-2 min-h-[3em]">
             {property.title}
           </h3>
-          <p className="text-xs text-navy-500 line-clamp-1">
+          <p className="text-xs text-navy-500 line-clamp-1 mt-1">
             {property.locality}
             {property.district && property.district !== property.locality
               ? `, ${property.district}`
