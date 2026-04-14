@@ -2,6 +2,12 @@ export type OperationType = "venta" | "alquiler";
 export type PropertyType = "casa" | "departamento" | "ph" | "terreno" | "cochera" | "local" | "oficina" | "edificio";
 export type DevelopmentStatus = "pre-venta" | "pozo" | "en-construccion" | "terminado";
 
+export interface PriceHistoryEntry {
+  price: number;
+  currency: "USD" | "ARS";
+  date: string; // ISO 8601
+}
+
 export interface Property {
   id: string;
   code: string;
@@ -29,6 +35,7 @@ export interface Property {
   videoUrl?: string;
   location: { lat: number; lng: number };
   featured: boolean;
+  priceHistory?: PriceHistoryEntry[];
 }
 
 export interface Development {
