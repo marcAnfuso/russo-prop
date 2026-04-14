@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Libre+Baskerville:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600;9..144,700;9..144,900&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Libre+Baskerville:wght@400;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -14,7 +14,19 @@
   }
 
   h1, h2, h3 {
-    font-family: 'Libre Baskerville', Georgia, serif;
+    font-family: 'Fraunces', 'Libre Baskerville', Georgia, serif;
+    font-optical-sizing: auto;
+  }
+}
+
+@layer components {
+  .font-display {
+    font-family: 'Fraunces', 'Libre Baskerville', Georgia, serif;
+    font-optical-sizing: auto;
+  }
+  .font-mono-price {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-feature-settings: "tnum";
   }
 }
 

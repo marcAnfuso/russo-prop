@@ -1,14 +1,18 @@
 import { Suspense } from "react";
-import Hero from "@/components/Hero";
+import HeroSplit from "@/components/HeroSplit";
 import FeaturedProperties from "@/components/FeaturedProperties";
 import NewListings from "@/components/NewListings";
 import FeaturedDevelopments from "@/components/FeaturedDevelopments";
 import NeighborhoodGrid from "@/components/NeighborhoodGrid";
-import WhyRusso from "@/components/WhyRusso";
-import TeamSection from "@/components/TeamSection";
-import GoogleReviews from "@/components/GoogleReviews";
-import { fetchFeaturedProperties, fetchLatestProperties } from "@/lib/xintel";
+import BarrioDestacado from "@/components/BarrioDestacado";
+import MarketExplorer from "@/components/MarketExplorer";
+import StatsSection from "@/components/StatsSection";
+import HistoriasMudanza from "@/components/HistoriasMudanza";
 import FeaturedOpportunities from "@/components/FeaturedOpportunities";
+import {
+  fetchFeaturedProperties,
+  fetchLatestProperties,
+} from "@/lib/xintel";
 import { fetchOpportunityProperties } from "@/lib/opportunities";
 
 async function FeaturedPropertiesLoader() {
@@ -83,7 +87,8 @@ function FeaturedOpportunitiesSkeleton() {
 export default function Home() {
   return (
     <>
-      <Hero />
+      <HeroSplit />
+      <StatsSection />
       <Suspense fallback={<FeaturedPropertiesSkeleton />}>
         <FeaturedPropertiesLoader />
       </Suspense>
@@ -93,11 +98,11 @@ export default function Home() {
       <Suspense fallback={<FeaturedOpportunitiesSkeleton />}>
         <FeaturedOpportunitiesLoader />
       </Suspense>
+      <BarrioDestacado />
       <NeighborhoodGrid />
+      <MarketExplorer />
       <FeaturedDevelopments />
-      <WhyRusso />
-      <TeamSection />
-      <GoogleReviews />
+      <HistoriasMudanza />
     </>
   );
 }
