@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { motion } from "framer-motion";
 import { neighborhoods } from "@/data/neighborhoods";
 
@@ -40,11 +41,17 @@ export default function NeighborhoodGrid() {
                 href={`/ventas?zona=${neighborhood.slug}`}
                 className="group relative aspect-[4/3] rounded-2xl overflow-hidden block"
               >
-                <div className="absolute inset-0 bg-gradient-to-br from-navy to-navy-600" />
-                <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors duration-300" />
+                <Image
+                  src={neighborhood.image}
+                  alt={neighborhood.name}
+                  fill
+                  sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                  className="object-cover transition-transform duration-500 group-hover:scale-[1.05]"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-navy via-navy/70 to-navy/20 group-hover:from-navy group-hover:via-navy/60 transition-colors duration-300" />
                 <div className="relative z-10 flex flex-col justify-end h-full p-5">
-                  <h3 className="text-lg font-bold text-white">{neighborhood.name}</h3>
-                  <p className="text-sm text-white/70 mt-1">{neighborhood.description}</p>
+                  <h3 className="text-lg font-bold text-white drop-shadow-sm">{neighborhood.name}</h3>
+                  <p className="text-sm text-white/80 mt-1 drop-shadow-sm">{neighborhood.description}</p>
                 </div>
               </Link>
             </motion.div>
