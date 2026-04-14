@@ -120,10 +120,10 @@ function Dropdown({
         onClick={() => setOpen((p) => !p)}
         aria-expanded={open}
         aria-haspopup="listbox"
-        className={`flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm transition-colors ${
+        className={`flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm transition-all duration-150 active:scale-[0.98] ${
           value
-            ? "border-magenta bg-magenta-50 text-magenta"
-            : "border-navy-100 bg-white text-navy hover:border-navy-200"
+            ? "border-magenta bg-magenta-50 text-magenta shadow-sm"
+            : "border-navy-100 bg-white text-navy hover:border-navy-300 hover:bg-gray-50"
         }`}
       >
         <span className="whitespace-nowrap">{displayLabel}</span>
@@ -193,10 +193,10 @@ function ToggleGroup({
             key={opt.value}
             type="button"
             onClick={() => onChange(value === opt.value ? null : opt.value)}
-            className={`rounded-lg border px-3 py-1.5 text-sm transition-colors ${
+            className={`rounded-lg border px-3 py-1.5 text-sm transition-all duration-150 active:scale-[0.97] ${
               value === opt.value
-                ? "border-magenta bg-magenta-50 text-magenta font-medium"
-                : "border-navy-100 text-navy hover:border-navy-200"
+                ? "border-magenta bg-magenta-50 text-magenta font-medium shadow-sm"
+                : "border-navy-100 text-navy hover:border-navy-300 hover:bg-navy-50"
             }`}
           >
             {opt.label}
@@ -483,14 +483,14 @@ export default function FilterBar({
             onClear={() => setPropertyType("")}
           />
 
-          {/* Operacion dropdown */}
+          {/* Operación dropdown */}
           <Dropdown
             label={
               operationType === "venta"
                 ? "Comprar"
                 : operationType === "alquiler"
                 ? "Alquilar"
-                : "Operacion"
+                : "Operación"
             }
             value={operation}
             options={[
@@ -526,10 +526,10 @@ export default function FilterBar({
             type="button"
             onClick={() => setExpanded((p) => !p)}
             aria-expanded={expanded}
-            className={`flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm transition-colors ${
+            className={`flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm transition-all duration-150 active:scale-[0.98] ${
               expanded || expandedFilterCount > 0
-                ? "border-magenta bg-magenta-50 text-magenta"
-                : "border-navy-100 text-navy hover:border-navy-200"
+                ? "border-magenta bg-magenta-50 text-magenta shadow-sm"
+                : "border-navy-100 text-navy hover:border-navy-300 hover:bg-gray-50"
             }`}
           >
             <SlidersHorizontal className="h-4 w-4" />
@@ -565,9 +565,9 @@ export default function FilterBar({
               onChange={setAmbientes}
             />
 
-            {/* Banos */}
+            {/* Baños */}
             <ToggleGroup
-              label="Banos"
+              label="Baños"
               options={[
                 { label: "1", value: "1" },
                 { label: "2", value: "2" },
@@ -580,7 +580,7 @@ export default function FilterBar({
             {/* Superficie */}
             <div className="flex flex-col gap-1.5">
               <span className="text-xs font-medium text-navy-300">
-                Superficie (m2)
+                Superficie (m²)
               </span>
               <div className="flex items-center gap-2">
                 <input
@@ -588,7 +588,7 @@ export default function FilterBar({
                   placeholder="Min"
                   value={superficieMin}
                   onChange={(e) => setSuperficieMin(e.target.value)}
-                  aria-label="Superficie minima en metros cuadrados"
+                  aria-label="Superficie mínima en metros cuadrados"
                   className="w-20 rounded-lg border border-navy-100 px-2 py-1.5 text-sm text-navy outline-none focus:border-magenta focus:ring-1 focus:ring-magenta"
                 />
                 <span className="text-navy-200">-</span>
@@ -597,7 +597,7 @@ export default function FilterBar({
                   placeholder="Max"
                   value={superficieMax}
                   onChange={(e) => setSuperficieMax(e.target.value)}
-                  aria-label="Superficie maxima en metros cuadrados"
+                  aria-label="Superficie máxima en metros cuadrados"
                   className="w-20 rounded-lg border border-navy-100 px-2 py-1.5 text-sm text-navy outline-none focus:border-magenta focus:ring-1 focus:ring-magenta"
                 />
               </div>
@@ -607,16 +607,16 @@ export default function FilterBar({
             <ToggleGroup
               label="Cochera"
               options={[
-                { label: "Si", value: "si" },
+                { label: "Sí", value: "si" },
                 { label: "No", value: "no" },
               ]}
               value={cochera}
               onChange={setCochera}
             />
 
-            {/* Antiguedad */}
+            {/* Antigüedad */}
             <ToggleGroup
-              label="Antiguedad"
+              label="Antigüedad"
               options={AGE_RANGES.map((r, i) => ({
                 label: r.label,
                 value: String(i),

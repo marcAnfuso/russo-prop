@@ -75,9 +75,9 @@ export default function PropertyCard({ property, onHover, onQuickView, compact =
         ) : (
           <FavoriteButton propertyId={id} />
         )}
-        <div className="absolute inset-0 z-[5] bg-black/0 group-hover:bg-black/20 transition-all duration-300 flex items-center justify-center pointer-events-none">
-          <span className="text-white font-semibold text-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-            Ver propiedad →
+        <div className="absolute inset-0 z-[5] bg-black/0 group-hover:bg-black/25 transition-all duration-300 flex items-center justify-center pointer-events-none">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-white/95 px-4 py-1.5 text-xs font-semibold text-navy opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 shadow-lg">
+            Vista rápida
           </span>
         </div>
       </div>

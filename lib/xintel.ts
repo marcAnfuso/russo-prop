@@ -98,8 +98,12 @@ function decodeHtml(s?: string): string {
 }
 
 function num(v: string | number | null | undefined): number {
-  if (!v) return 0;
-  const n = parseFloat(String(v).replace(/[^0-9.]/g, ""));
+  if (v == null || v === "") return 0;
+  if (typeof v === "number") return isNaN(v) ? 0 : v;
+  // Extract the first numeric token so values like "85.00m2" don't end up as 85.002
+  const match = String(v).match(/-?\d+(?:[.,]\d+)?/);
+  if (!match) return 0;
+  const n = parseFloat(match[0].replace(",", "."));
   return isNaN(n) ? 0 : n;
 }
 
