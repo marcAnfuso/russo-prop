@@ -57,10 +57,11 @@ interface PageProps {
 
 export default async function PropertyDetailPage({ params }: PageProps) {
   const { id } = await params;
-  const [property, { properties: allProperties }] = await Promise.all([
-    fetchProperty(id),
-    fetchProperties({ page: 1 }),
-  ]);
+  const property = await fetchProperty(id);
+  const { properties: allProperties } = await fetchProperties({
+    operation: property?.operation ?? "venta",
+    page: 1,
+  });
 
   if (!property) {
     return (
@@ -69,7 +70,7 @@ export default async function PropertyDetailPage({ params }: PageProps) {
           Propiedad no encontrada
         </h1>
         <p className="text-gray-500">
-          La propiedad que buscas no existe o fue removida.
+          La propiedad que buscás no existe o fue removida.
         </p>
         <Link
           href="/ventas"
@@ -135,7 +136,7 @@ export default async function PropertyDetailPage({ params }: PageProps) {
     featureItems.push({
       icon: <Bath className="h-5 w-5 text-magenta" />,
       value: `${property.features.bathrooms}`,
-      label: "Banos",
+      label: "Baños",
     });
   }
   if (property.features.bedrooms) {
@@ -156,7 +157,7 @@ export default async function PropertyDetailPage({ params }: PageProps) {
     featureItems.push({
       icon: <Calendar className="h-5 w-5 text-magenta" />,
       value: `${property.features.age}`,
-      label: "Antiguedad",
+      label: "Antigüedad",
     });
   }
 
@@ -276,7 +277,7 @@ export default async function PropertyDetailPage({ params }: PageProps) {
           {/* Description */}
           {property.description && (
             <section>
-              <h2 className="text-xl font-bold text-navy mb-3">Descripcion</h2>
+              <h2 className="text-xl font-bold text-navy mb-3">Descripción</h2>
               <div
                 className="description-html text-gray-700 leading-relaxed"
                 dangerouslySetInnerHTML={{ __html: property.description }}
@@ -288,7 +289,7 @@ export default async function PropertyDetailPage({ params }: PageProps) {
           {property.amenities.length > 0 && (
             <section>
               <h2 className="text-xl font-bold text-navy mb-3">
-                Caracteristicas
+                Características
               </h2>
               <div className="flex flex-wrap gap-2">
                 {property.amenities.map((amenity) => (
@@ -305,7 +306,7 @@ export default async function PropertyDetailPage({ params }: PageProps) {
 
           {/* Location / Map */}
           <section>
-            <h2 className="text-xl font-bold text-navy mb-3">Ubicacion</h2>
+            <h2 className="text-xl font-bold text-navy mb-3">Ubicación</h2>
             <p className="text-gray-700 mb-4">
               {property.address}
               {property.locality ? `, ${property.locality}` : ""}

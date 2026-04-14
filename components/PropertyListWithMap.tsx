@@ -60,7 +60,8 @@ export default function PropertyListWithMap({
     }
     setSelectedPropertyType(filters.propertyType);
 
-    // Update URL with current filters
+    // Update URL with current filters, preserving the current section (ventas or alquileres)
+    const basePath = operationType === "alquiler" ? "/alquileres" : "/ventas";
     const params = new URLSearchParams();
     if (filters.propertyType) {
       params.set("type", filters.propertyType);
@@ -68,9 +69,14 @@ export default function PropertyListWithMap({
     if (filters.zones.length > 0) {
       params.set("zones", filters.zones.join(","));
     }
-    const newUrl = params.toString() ? `?${params.toString()}` : "";
-    router.push(newUrl || `/ventas`);
-  }, [selectedPropertyType, initialProperties, router]);
+    const newUrl = params.toString() ? `${basePath}?${params.toString()}` : basePath;
+
+    // Skip navigation if nothing actually changed — avoids a bogus push on mount
+    const currentUrl = window.location.pathname + window.location.search;
+    if (currentUrl !== newUrl) {
+      router.replace(newUrl);
+    }
+  }, [selectedPropertyType, initialProperties, router, operationType]);
 
   // A filter is "active" if the result differs from the full current page
   const showingFiltered =

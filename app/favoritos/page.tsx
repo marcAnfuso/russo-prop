@@ -51,7 +51,7 @@ export default function FavoritosPage() {
           <h1 className="text-3xl font-bold text-navy">Mis favoritos</h1>
           <p className="mt-1 text-gray-500">
             {favorites.length === 0
-              ? "No tenes propiedades guardadas"
+              ? "No tenés propiedades guardadas"
               : `${favorites.length} propiedad${favorites.length === 1 ? "" : "es"} guardada${favorites.length === 1 ? "" : "s"}`}
           </p>
         </div>
@@ -75,7 +75,7 @@ export default function FavoritosPage() {
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <Heart className="h-16 w-16 text-gray-300 mb-4" />
             <p className="text-lg text-gray-500 mb-6">
-              No tenes propiedades guardadas todavia.
+              No tenés propiedades guardadas todavía.
             </p>
             <Link
               href="/ventas"

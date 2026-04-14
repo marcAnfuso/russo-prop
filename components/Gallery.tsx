@@ -94,7 +94,7 @@ export default function Gallery({ images, videoUrl, title }: GalleryProps) {
 
   const renderPlaceholder = () => (
     <div className="flex items-center justify-center w-full aspect-video bg-gradient-to-br from-navy-200 to-navy-400 rounded-lg">
-      <span className="text-white/80 text-lg font-medium">Sin imagenes</span>
+      <span className="text-white/80 text-lg font-medium">Sin imágenes</span>
     </div>
   );
 
@@ -206,7 +206,7 @@ export default function Gallery({ images, videoUrl, title }: GalleryProps) {
     <div className="flex flex-col items-center justify-center w-full aspect-video bg-gray-100 rounded-lg">
       <Map className="w-12 h-12 text-gray-400 mb-2" />
       <span className="text-gray-500 text-sm">
-        Mapa disponible mas abajo en la pagina
+        Mapa disponible más abajo en la página
       </span>
     </div>
   );
@@ -256,11 +256,11 @@ export default function Gallery({ images, videoUrl, title }: GalleryProps) {
                 </div>
               )}
               {images.length === 2 && (
-                <div className="grid grid-cols-2 gap-2 rounded-2xl overflow-hidden max-h-[500px]">
+                <div className="grid grid-cols-2 gap-2 rounded-2xl overflow-hidden aspect-[16/9]">
                   {images.slice(0, 2).map((src, idx) => (
                     <div
                       key={idx}
-                      className="relative aspect-video cursor-pointer"
+                      className="relative cursor-pointer"
                       onClick={() => openLightbox(idx)}
                     >
                       <Image
@@ -276,7 +276,7 @@ export default function Gallery({ images, videoUrl, title }: GalleryProps) {
                 </div>
               )}
               {images.length >= 3 && (
-                <div className="grid grid-cols-3 grid-rows-2 gap-2 rounded-2xl overflow-hidden max-h-[500px]">
+                <div className="grid grid-cols-3 grid-rows-2 gap-2 rounded-2xl overflow-hidden aspect-[16/9]">
                   {/* Main image - spans 2 cols and full height */}
                   <div
                     className="col-span-2 row-span-2 relative cursor-pointer"
@@ -347,7 +347,7 @@ export default function Gallery({ images, videoUrl, title }: GalleryProps) {
         <div
           ref={lightboxRef}
           role="dialog"
-          aria-label={`Galeria de imagenes - ${title}`}
+          aria-label={`Galería de imágenes - ${title}`}
           aria-modal="true"
           tabIndex={-1}
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 outline-none"
@@ -356,7 +356,7 @@ export default function Gallery({ images, videoUrl, title }: GalleryProps) {
           {/* Close button */}
           <button
             onClick={closeLightbox}
-            aria-label="Cerrar galeria"
+            aria-label="Cerrar galería"
             className="absolute top-4 right-4 text-white hover:text-magenta-300 transition-colors z-10"
           >
             <X className="w-7 h-7" />
