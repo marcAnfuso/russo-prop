@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import HeroSplit from "@/components/HeroSplit";
+import Hero from "@/components/Hero";
 import FeaturedProperties from "@/components/FeaturedProperties";
 import NewListings from "@/components/NewListings";
 import FeaturedDevelopments from "@/components/FeaturedDevelopments";
@@ -87,7 +87,7 @@ function FeaturedOpportunitiesSkeleton() {
 export default function Home() {
   return (
     <>
-      <HeroSplit />
+      <Hero />
       <StatsSection />
       <Suspense fallback={<FeaturedPropertiesSkeleton />}>
         <FeaturedPropertiesLoader />
