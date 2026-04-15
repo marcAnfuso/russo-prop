@@ -62,11 +62,11 @@ export default function PropertyQuickViewModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4"
+      className="fixed inset-0 z-50 bg-navy/40 backdrop-blur-md flex items-center justify-center p-4"
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+        className="bg-white/95 backdrop-blur-xl border border-white/60 rounded-3xl shadow-[0_40px_120px_-20px_rgba(26,34,81,0.4)] max-w-2xl w-full max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Close Button */}
@@ -133,7 +133,7 @@ export default function PropertyQuickViewModal({
             !!features.rooms ||
             !!features.bathrooms ||
             !!features.garage) && (
-            <div className="grid grid-cols-2 gap-3 mb-6 pb-6 border-b border-gray-200">
+            <div className="grid grid-cols-2 gap-3 mb-6 p-4 rounded-2xl bg-gradient-to-br from-gray-50/80 via-white/60 to-magenta/5 backdrop-blur-sm border border-gray-100">
               {!!features.totalArea && (
                 <div className="flex items-center gap-2">
                   <Maximize2 className="w-4 h-4 text-magenta" />

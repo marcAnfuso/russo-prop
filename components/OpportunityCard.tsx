@@ -58,7 +58,7 @@ export default function OpportunityCard({ property }: OpportunityCardProps) {
         ) : (
           <div className="absolute inset-0 bg-gradient-to-br from-gray-200 to-gray-300" />
         )}
-        <span className="absolute top-3 left-3 z-20 inline-flex items-center gap-1 rounded-full bg-magenta px-3 py-1 text-[11px] font-bold uppercase tracking-wide text-white shadow-sm">
+        <span className="absolute top-3 left-3 z-20 inline-flex items-center gap-1 rounded-full bg-magenta/90 backdrop-blur-md border border-white/20 px-3 py-1 text-[11px] font-bold uppercase tracking-wide text-white shadow-[0_6px_16px_-4px_rgba(230,0,126,0.45)]">
           <Flame className="w-3 h-3" /> Oportunidad
         </span>
       </div>

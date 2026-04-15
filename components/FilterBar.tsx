@@ -411,7 +411,7 @@ export default function FilterBar({
   const zoneLabel = zones.length > 0 ? zones.join(", ") : "Todas las zonas";
 
   return (
-    <div className="sticky top-[72px] z-30 bg-white border-b border-navy-100 shadow-sm">
+    <div className="sticky top-[72px] z-30 bg-white/80 backdrop-blur-md border-b border-white/50 shadow-[0_1px_0_rgba(26,34,81,0.04),0_8px_24px_-12px_rgba(26,34,81,0.08)]">
       {/* ---- Main filter row ---- */}
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-3">
         <div className="flex flex-wrap items-center gap-2">

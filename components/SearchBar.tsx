@@ -191,9 +191,10 @@ export default function SearchBar({
   const pillBase = `rounded-full px-5 py-2 font-semibold transition-all duration-200 ease-out cursor-pointer whitespace-nowrap active:scale-[0.97] ${
     isHero ? "text-sm" : "text-xs sm:text-sm"
   }`;
-  const pillSelected = "bg-magenta text-white shadow-soft";
-  const pillUnselected =
-    "bg-white/90 text-navy border border-white/40 hover:bg-white hover:shadow-soft";
+  const pillSelected = "bg-magenta text-white shadow-[0_8px_20px_-6px_rgba(230,0,126,0.55)]";
+  const pillUnselected = isHero
+    ? "bg-white/15 backdrop-blur-md text-white border border-white/25 hover:bg-white/25 hover:border-white/40"
+    : "bg-white/90 text-navy border border-white/40 hover:bg-white hover:shadow-soft";
 
   return (
     <div className={`w-full ${isHero ? "max-w-3xl" : "max-w-2xl"}`}>
@@ -235,10 +236,10 @@ export default function SearchBar({
 
       {/* Search bar row */}
       <div
-        className={`flex items-stretch rounded-lg overflow-visible shadow-lg ${
+        className={`flex items-stretch rounded-2xl overflow-visible ${
           isHero
-            ? "bg-white/95 backdrop-blur-sm"
-            : "bg-white border border-navy-100"
+            ? "bg-white/75 backdrop-blur-xl border border-white/40 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.45),0_8px_24px_-12px_rgba(230,0,126,0.25)]"
+            : "bg-white border border-navy-100 shadow-lg"
         }`}
       >
         {/* Zone input with autocomplete */}
