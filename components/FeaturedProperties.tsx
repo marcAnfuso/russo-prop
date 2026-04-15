@@ -18,7 +18,7 @@ const itemVariants = {
 };
 
 export default function FeaturedProperties({ properties }: { properties: Property[] }) {
-  const featured = properties.slice(0, 3);
+  const featured = properties.slice(0, 4);
 
   return (
     <section className="py-16 px-4 sm:px-6 lg:px-8 bg-white">
@@ -46,7 +46,7 @@ export default function FeaturedProperties({ properties }: { properties: Propert
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-60px" }}
-          className="grid grid-cols-1 gap-6 max-w-3xl mx-auto"
+          className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto"
         >
           {featured.map((property) => (
             <motion.div key={property.id} variants={itemVariants}>
