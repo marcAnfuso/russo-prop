@@ -1,9 +1,18 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import dynamic from "next/dynamic";
 import { DevelopmentStatus } from "@/data/types";
 import { developments } from "@/data/developments";
 import DevelopmentCard from "@/components/DevelopmentCard";
+
+// Lazy-load map to keep first paint fast
+const MapView = dynamic(() => import("@/components/MapView"), {
+  ssr: false,
+  loading: () => (
+    <div className="h-full w-full bg-gray-100 animate-pulse rounded-2xl" />
+  ),
+});
 
 const statusFilters: { value: DevelopmentStatus; label: string }[] = [
   { value: "pre-venta", label: "Pre Venta" },
@@ -30,42 +39,91 @@ export default function EmprendimientosPage() {
     return developments.filter((d) => selectedStatuses.includes(d.status));
   }, [selectedStatuses]);
 
+  // Map props — convert developments to map format
+  const mapProperties = useMemo(
+    () =>
+      filtered.map((d) => ({
+        id: d.id,
+        title: d.name,
+        price: d.priceFrom,
+        address: d.address,
+        location: d.location,
+        images: d.images,
+      })),
+    [filtered]
+  );
+
+  // Center on average of all shown developments
+  const mapCenter = useMemo<[number, number]>(() => {
+    if (filtered.length === 0) return [-34.6855, -58.5567];
+    const avgLat = filtered.reduce((s, d) => s + d.location.lat, 0) / filtered.length;
+    const avgLng = filtered.reduce((s, d) => s + d.location.lng, 0) / filtered.length;
+    return [avgLat, avgLng];
+  }, [filtered]);
+
   return (
     <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      {/* Page header */}
-      <div className="mb-8">
-        <h1 className="text-3xl sm:text-4xl font-bold text-navy tracking-wide">
-          EMPRENDIMIENTOS
-        </h1>
-        <p className="mt-2 text-lg text-navy-500">
-          Encontrá tu próxima inversión
-        </p>
-      </div>
+      {/* Header + map hero */}
+      <div className="grid lg:grid-cols-12 gap-8 mb-10">
+        {/* Left: header copy + filters */}
+        <div className="lg:col-span-5 flex flex-col justify-center">
+          <div className="flex items-center gap-3 mb-4">
+            <span className="h-8 w-1 rounded-full bg-magenta" />
+            <p className="text-xs font-semibold uppercase tracking-widest text-magenta">
+              Desarrollos inmobiliarios
+            </p>
+          </div>
+          <h1 className="font-display text-5xl sm:text-6xl font-semibold leading-[1.05] tracking-tight text-navy mb-4">
+            Emprendimientos
+          </h1>
+          <p className="text-lg text-gray-500 leading-relaxed max-w-md mb-6">
+            Los mejores proyectos de zona oeste, curados uno por uno.{" "}
+            <span className="text-navy font-semibold">
+              Russo te acompaña desde el pozo hasta la escritura.
+            </span>
+          </p>
 
-      {/* Status filter toggles */}
-      <div className="flex flex-wrap gap-3 mb-8">
-        {statusFilters.map(({ value, label }) => {
-          const isSelected = selectedStatuses.includes(value);
-          return (
-            <button
-              key={value}
-              onClick={() => toggleStatus(value)}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                isSelected
-                  ? "bg-magenta text-white"
-                  : "bg-white border border-gray-300 text-gray-700 hover:border-gray-400"
-              }`}
-            >
-              {label}
-            </button>
-          );
-        })}
+          {/* Status filter toggles */}
+          <div className="flex flex-wrap gap-2">
+            {statusFilters.map(({ value, label }) => {
+              const isSelected = selectedStatuses.includes(value);
+              return (
+                <button
+                  key={value}
+                  onClick={() => toggleStatus(value)}
+                  className={`rounded-full border px-3.5 py-1.5 text-xs font-semibold transition-all duration-150 active:scale-[0.97] ${
+                    isSelected
+                      ? "border-magenta bg-magenta text-white shadow-sm"
+                      : "border-navy-100 text-navy hover:border-navy-300 hover:bg-gray-50"
+                  }`}
+                >
+                  {label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Right: map */}
+        <div className="lg:col-span-7 h-[360px] lg:h-[440px] rounded-2xl overflow-hidden shadow-card border border-gray-100">
+          <MapView
+            properties={mapProperties}
+            center={mapCenter}
+            zoom={12}
+            className="h-full w-full"
+          />
+        </div>
       </div>
 
       {/* Results counter */}
-      <p className="text-sm text-navy-500 mb-6">
-        {filtered.length} emprendimiento{filtered.length !== 1 ? "s" : ""}
-      </p>
+      <div className="flex items-center gap-3 mb-6">
+        <span className="h-px flex-1 bg-gray-100" />
+        <p className="text-xs font-semibold uppercase tracking-widest text-gray-400">
+          {filtered.length} emprendimiento{filtered.length !== 1 ? "s" : ""}
+          {selectedStatuses.length > 0 && " filtrados"}
+        </p>
+        <span className="h-px flex-1 bg-gray-100" />
+      </div>
 
       {/* Development cards */}
       {filtered.length > 0 ? (

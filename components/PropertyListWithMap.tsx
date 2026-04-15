@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Map, X, ChevronLeft, ChevronRight } from "lucide-react";
+import { Map, EyeOff, X, ChevronLeft, ChevronRight } from "lucide-react";
 import FilterBar from "@/components/FilterBar";
 import PropertyCard from "@/components/PropertyCard";
 import PropertyQuickViewModal from "@/components/PropertyQuickViewModal";
@@ -37,6 +37,7 @@ export default function PropertyListWithMap({
   const [loadingPage, setLoadingPage] = useState(false);
   const [highlightedId, setHighlightedId] = useState<string | null>(null);
   const [showMobileMap, setShowMobileMap] = useState(false);
+  const [desktopMapVisible, setDesktopMapVisible] = useState(true);
   const [selectedPropertyType, setSelectedPropertyType] = useState<string | undefined>(undefined);
   const [quickViewProperty, setQuickViewProperty] = useState<Property | null>(null);
   const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
@@ -148,18 +149,44 @@ export default function PropertyListWithMap({
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6">
         <div className="flex gap-6">
           {/* Left: property list */}
-          <div className="w-full lg:w-[60%]">
-            <p className="text-sm text-gray-500 mb-4">
-              {showingFiltered ? (
-                <>{visibleProperties.length} {visibleProperties.length === 1 ? "propiedad" : "propiedades"} (filtradas)</>
-              ) : totalCount !== null ? (
-                <>Mostrando {visibleProperties.length} de {totalCount} propiedades</>
-              ) : hasMore ? (
-                <>Mostrando {visibleProperties.length} propiedades…</>
-              ) : (
-                <>{visibleProperties.length} {visibleProperties.length === 1 ? "propiedad" : "propiedades"}</>
-              )}
-            </p>
+          <div className={`w-full transition-[width] duration-300 ease-out ${desktopMapVisible ? "lg:w-[60%]" : "lg:w-full"}`}>
+            <div className="flex items-center justify-between mb-4 gap-3">
+              <p className="text-sm text-gray-500">
+                {showingFiltered ? (
+                  <>{visibleProperties.length} {visibleProperties.length === 1 ? "propiedad" : "propiedades"} (filtradas)</>
+                ) : totalCount !== null ? (
+                  <>Mostrando {visibleProperties.length} de {totalCount} propiedades</>
+                ) : hasMore ? (
+                  <>Mostrando {visibleProperties.length} propiedades…</>
+                ) : (
+                  <>{visibleProperties.length} {visibleProperties.length === 1 ? "propiedad" : "propiedades"}</>
+                )}
+              </p>
+
+              {/* Desktop map toggle */}
+              <button
+                type="button"
+                onClick={() => setDesktopMapVisible((v) => !v)}
+                aria-pressed={desktopMapVisible}
+                className={`hidden lg:inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition-all duration-150 active:scale-[0.97] ${
+                  desktopMapVisible
+                    ? "border-magenta bg-magenta-50 text-magenta shadow-sm"
+                    : "border-navy-100 text-navy hover:border-navy-300 hover:bg-gray-50"
+                }`}
+              >
+                {desktopMapVisible ? (
+                  <>
+                    <EyeOff className="h-3.5 w-3.5" />
+                    Ocultar mapa
+                  </>
+                ) : (
+                  <>
+                    <Map className="h-3.5 w-3.5" />
+                    Mostrar mapa
+                  </>
+                )}
+              </button>
+            </div>
 
             {visibleProperties.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-20 text-center">
@@ -191,11 +218,18 @@ export default function PropertyListWithMap({
               </div>
             ) : (
               <>
-                <div className="flex flex-col gap-4">
+                <div
+                  className={
+                    desktopMapVisible
+                      ? "flex flex-col gap-4"
+                      : "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4"
+                  }
+                >
                   {visibleProperties.map((property) => (
                     <PropertyCard
                       key={property.id}
                       property={property}
+                      compact={!desktopMapVisible}
                       onHover={setHighlightedId}
                       onQuickView={(prop) => {
                         setQuickViewProperty(prop);
@@ -234,7 +268,7 @@ export default function PropertyListWithMap({
           </div>
 
           {/* Right: sticky map (desktop) */}
-          <div className="hidden lg:block lg:w-[40%]">
+          <div className={`hidden lg:block lg:w-[40%] transition-all duration-300 ease-out ${desktopMapVisible ? "opacity-100" : "lg:hidden opacity-0"}`}>
             <div className="sticky top-[140px] h-[calc(100vh-160px)] rounded-xl overflow-hidden shadow-md">
               <MapView
                 properties={mapProperties}
