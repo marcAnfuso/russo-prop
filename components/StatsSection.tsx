@@ -8,14 +8,13 @@ interface Stat {
   suffix?: string;
   decimal?: number;
   label: string;
-  color: "magenta" | "navy";
 }
 
 const stats: Stat[] = [
-  { target: 30, label: "años en zona oeste", color: "magenta" },
-  { target: 2000, prefix: "+", label: "operaciones cerradas", color: "navy" },
-  { target: 8, label: "barrios que conocemos", color: "magenta" },
-  { target: 4.8, decimal: 1, label: "★ Google · 127 opiniones", color: "navy" },
+  { target: 30, label: "años en zona oeste" },
+  { target: 2000, prefix: "+", label: "operaciones cerradas" },
+  { target: 8, label: "barrios que conocemos" },
+  { target: 4.8, decimal: 1, label: "★ Google · 127 opiniones" },
 ];
 
 function AnimatedNumber({ stat }: { stat: Stat }) {
@@ -59,12 +58,10 @@ function AnimatedNumber({ stat }: { stat: Stat }) {
     return Math.floor(value).toString();
   })();
 
-  const colorClass = stat.color === "magenta" ? "text-magenta" : "text-navy";
-
   return (
     <span
       ref={ref}
-      className={`font-display text-6xl lg:text-7xl font-semibold tabular-nums ${colorClass}`}
+      className="font-display text-6xl lg:text-7xl font-semibold tabular-nums text-white"
     >
       {stat.prefix ?? ""}
       {formatted}
@@ -75,15 +72,15 @@ function AnimatedNumber({ stat }: { stat: Stat }) {
 
 export default function StatsSection() {
   return (
-    <section className="relative overflow-hidden border-y border-gray-100 bg-gradient-to-b from-white via-gray-50/80 to-white py-24 px-4 sm:px-6 lg:px-8">
-      {/* Decorative blobs */}
+    <section className="relative overflow-hidden bg-navy text-white py-20 px-4 sm:px-6 lg:px-8">
+      {/* Decorative gradient accents */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute -left-32 -top-32 h-[420px] w-[420px] rounded-full bg-magenta/10 blur-3xl"
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(230,0,126,0.18),transparent_55%)]"
       />
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute -right-40 -bottom-40 h-[520px] w-[520px] rounded-full bg-navy/8 blur-3xl"
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,rgba(255,255,255,0.06),transparent_50%)]"
       />
 
       <div className="relative mx-auto max-w-6xl">
@@ -92,25 +89,34 @@ export default function StatsSection() {
             <span className="h-1.5 w-1.5 rounded-full bg-magenta" />
             Nuestros números
           </p>
-          <h2 className="font-display text-4xl sm:text-5xl font-semibold leading-tight tracking-tight text-navy">
+          <h2 className="font-display text-4xl sm:text-5xl font-semibold leading-tight tracking-tight text-white">
             Conocemos cada cuadra
             <br />
-            <span className="italic text-gray-400">desde 1995</span>
+            <span className="italic text-white/50">desde 1995</span>
           </h2>
         </div>
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-4 text-center">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-0 lg:divide-x lg:divide-white/10">
           {stats.map((stat) => (
             <div
               key={stat.label}
-              className="flex flex-col gap-2 rounded-2xl p-6 transition-all duration-300 hover:bg-white hover:shadow-[0_20px_40px_-15px_rgba(26,34,81,0.12)] hover:-translate-y-1"
+              className="flex flex-col items-center gap-3 text-center px-4 py-6 lg:px-8"
             >
               <AnimatedNumber stat={stat} />
-              <span className="text-sm font-medium text-gray-500">
+              <span className="text-sm font-medium text-white/60">
                 {stat.label}
               </span>
             </div>
           ))}
+        </div>
+
+        {/* Bottom accent line */}
+        <div className="mt-14 flex items-center justify-center gap-3">
+          <span className="h-px w-12 bg-white/20" />
+          <span className="text-xs text-white/40 uppercase tracking-widest">
+            Russo Propiedades
+          </span>
+          <span className="h-px w-12 bg-white/20" />
         </div>
       </div>
     </section>
