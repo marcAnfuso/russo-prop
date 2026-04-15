@@ -2,14 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
-import {
-  ChevronLeft,
-  ChevronRight,
-  X,
-  Camera,
-  Play,
-  Map,
-} from "lucide-react";
+import { ChevronLeft, ChevronRight, X, Camera, Play } from "lucide-react";
 
 interface GalleryProps {
   images: string[];
@@ -17,7 +10,7 @@ interface GalleryProps {
   title: string;
 }
 
-type Tab = "fotos" | "video" | "mapa";
+type Tab = "fotos" | "video";
 
 export default function Gallery({ images, videoUrl, title }: GalleryProps) {
   const [activeTab, setActiveTab] = useState<Tab>("fotos");
@@ -83,11 +76,14 @@ export default function Gallery({ images, videoUrl, title }: GalleryProps) {
   }, [currentIndex, hasImages, images]);
 
   // ---------- Tabs ----------
+  // Only include Video tab when the property actually has a video.
+  // Map was removed — the property map is already shown in its own section below.
 
   const tabs: { key: Tab; label: string; icon: React.ReactNode }[] = [
     { key: "fotos", label: "Fotos", icon: <Camera className="w-4 h-4" /> },
-    { key: "video", label: "Video", icon: <Play className="w-4 h-4" /> },
-    { key: "mapa", label: "Mapa", icon: <Map className="w-4 h-4" /> },
+    ...(videoUrl
+      ? [{ key: "video" as Tab, label: "Video", icon: <Play className="w-4 h-4" /> }]
+      : []),
   ];
 
   // ---------- Render helpers ----------
@@ -194,22 +190,8 @@ export default function Gallery({ images, videoUrl, title }: GalleryProps) {
       );
     }
 
-    return (
-      <div className="flex flex-col items-center justify-center w-full aspect-video bg-gray-100 rounded-lg">
-        <Play className="w-12 h-12 text-gray-400 mb-2" />
-        <span className="text-gray-500 text-sm">Video no disponible</span>
-      </div>
-    );
+    return null;
   };
-
-  const renderMapTab = () => (
-    <div className="flex flex-col items-center justify-center w-full aspect-video bg-gray-100 rounded-lg">
-      <Map className="w-12 h-12 text-gray-400 mb-2" />
-      <span className="text-gray-500 text-sm">
-        Mapa disponible más abajo en la página
-      </span>
-    </div>
-  );
 
   // ---------- Main render ----------
 
@@ -339,7 +321,6 @@ export default function Gallery({ images, videoUrl, title }: GalleryProps) {
         )}
 
         {activeTab === "video" && renderVideoTab()}
-        {activeTab === "mapa" && renderMapTab()}
       </div>
 
       {/* Lightbox */}
