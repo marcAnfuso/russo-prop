@@ -38,7 +38,7 @@ export default function NeighborhoodGrid() {
           {neighborhoods.map((neighborhood) => (
             <motion.div key={neighborhood.slug} variants={cardVariants}>
               <Link
-                href={`/ventas?zona=${neighborhood.slug}`}
+                href={`/ventas?zones=${encodeURIComponent(neighborhood.slug)}`}
                 className="group relative aspect-[3/4] sm:aspect-[4/3] rounded-2xl overflow-hidden block"
               >
                 <Image

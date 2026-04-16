@@ -136,10 +136,13 @@ export default function SearchBar({
     const basePath = operation === "comprar" ? "/ventas" : "/alquileres";
     const params = new URLSearchParams();
     if (selectedZones.length > 0) {
-      params.set("zona", selectedZones.join(","));
+      params.set("zones", selectedZones.join(","));
     }
     if (selectedTypes.length > 0) {
-      params.set("tipo", selectedTypes.join(","));
+      // PropertyListWithMap expects a single "type" currently; if multiple are
+      // selected we pass the first and leave the rest to be re-applied by the
+      // filter bar once the user lands on /ventas.
+      params.set("type", selectedTypes[0].toLowerCase());
     }
     const qs = params.toString();
     router.push(qs ? `${basePath}?${qs}` : basePath);
