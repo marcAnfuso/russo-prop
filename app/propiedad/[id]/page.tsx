@@ -16,6 +16,7 @@ import { fetchProperty, fetchPropertyIds } from "@/lib/xintel";
 import type { Property } from "@/data/types";
 import { formatPrice } from "@/lib/utils";
 import Gallery from "@/components/Gallery";
+import AmenityList from "@/components/AmenityList";
 import ContactSidebar from "@/components/ContactSidebar";
 import MapView from "@/components/MapView";
 import Breadcrumb from "@/components/Breadcrumb";
@@ -288,19 +289,10 @@ export default async function PropertyDetailPage({ params }: PageProps) {
           {/* Amenities */}
           {property.amenities.length > 0 && (
             <section>
-              <h2 className="text-xl font-bold text-navy mb-3">
+              <h2 className="text-xl font-bold text-navy mb-6">
                 Características
               </h2>
-              <div className="flex flex-wrap gap-2">
-                {property.amenities.map((amenity) => (
-                  <span
-                    key={amenity}
-                    className="rounded-full border border-gray-300 bg-gray-50 px-4 py-1.5 text-sm text-gray-700"
-                  >
-                    {amenity}
-                  </span>
-                ))}
-              </div>
+              <AmenityList items={property.amenities} />
             </section>
           )}
 

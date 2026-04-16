@@ -295,6 +295,28 @@ export async function fetchProperties(
   }
 }
 
+/**
+ * Look up the amenities array for a property by scanning list pages
+ * (Xintel only exposes `caracteristicas` keyed by id via the list endpoint —
+ * the `fichas.propiedades` detail doesn't include them). Each page fetch is
+ * cached for REVALIDATE seconds so repeat lookups are cheap.
+ */
+async function fetchAmenitiesForId(id: string, maxPages = 4): Promise<string[]> {
+  for (let page = 1; page <= maxPages; page++) {
+    try {
+      const { caracteristicas, fichas } = await fetchPage(
+        buildListUrl({}, page)
+      );
+      if (caracteristicas[id]) return caracteristicas[id];
+      // Stop early if we've reached the last page
+      if (fichas.length < PER_PAGE) break;
+    } catch {
+      break;
+    }
+  }
+  return [];
+}
+
 /** Fetch single property detail (full images, superficie, video) */
 export async function fetchProperty(id: string): Promise<Property | null> {
   const url = new URL(BASE);
@@ -319,6 +341,7 @@ export async function fetchProperty(id: string): Promise<Property | null> {
     if (!ficha) return null;
 
     const imgs: string[] = Array.isArray(r.img) ? r.img.filter(Boolean) : [];
+    const amenities = await fetchAmenitiesForId(String(ficha.in_num));
 
     // Get covered area from superficie if available
     const coveredArea = (() => {
@@ -357,7 +380,7 @@ export async function fetchProperty(id: string): Promise<Property | null> {
         bedrooms: num(ficha.cantidad_dormitorios),
         garage: num(ficha.in_coc) || num(ficha.garage),
       },
-      amenities: [],
+      amenities,
       images: imgs,
       videoUrl: r.videos?.[0]?.video_url ?? ficha.video ?? undefined,
       location: parseCoords(ficha.in_coo),
