@@ -50,6 +50,18 @@ interface XintelListFicha {
   in_des?: string | boolean;
   video?: string;
   cantidad_dormitorios?: string | number;
+  // Detail-only fields (fichas.propiedades)
+  in_pis?: string | number;   // piso
+  in_dto?: string;            // depto letra/número
+  in_esa?: string;            // estado (Muy Bueno, A estrenar, etc)
+  in_eco?: string;            // categoría (Muy Buena, Standard, etc)
+  in_ant?: string | number;   // antigüedad en años
+  in_asc?: string | number;   // ascensores
+  in_exp?: string | number;   // expensas (ARS)
+  in_imp?: string | number;   // impuesto (ARS)
+  in_agu?: string;            // agua corriente (SI/NO)
+  in_ale?: string;            // agua caliente (SI/NO)
+  ubicacion?: string;         // frente/contrafrente/interno
 }
 
 interface XintelDetailFicha extends XintelListFicha {
@@ -343,6 +355,46 @@ export async function fetchProperty(id: string): Promise<Property | null> {
     const imgs: string[] = Array.isArray(r.img) ? r.img.filter(Boolean) : [];
     const amenities = await fetchAmenitiesForId(String(ficha.in_num));
 
+    // Build the `areas` list from superficie (title+dato pairs, skipping 0.00 values)
+    const areas: { label: string; value: string }[] = (() => {
+      const sup = r.superficie;
+      if (!sup?.title || !sup?.dato) return [];
+      return sup.title
+        .map((label, i) => ({ label, value: sup.dato![i] }))
+        .filter((a) => a.value && !/^0(?:[.,]0+)?\s*m?2?$/i.test(a.value));
+    })();
+
+    // Helpers to read optional string/numeric fields safely
+    const str = (v: string | number | undefined | null): string | undefined => {
+      if (v == null) return undefined;
+      const s = String(v).trim();
+      return s && s !== "0" && s !== "-" ? s : undefined;
+    };
+    const n = (v: string | number | undefined | null): number | undefined => {
+      const parsed = num(v);
+      return parsed > 0 ? parsed : undefined;
+    };
+    const bool = (v: string | undefined): boolean | undefined => {
+      if (!v) return undefined;
+      const up = v.toUpperCase().trim();
+      if (up === "SI" || up === "TRUE" || up === "S") return true;
+      if (up === "NO" || up === "FALSE" || up === "N") return false;
+      return undefined;
+    };
+
+    const details = {
+      floor: str(ficha.in_pis),
+      aptNumber: str(ficha.in_dto),
+      condition: str(ficha.in_esa),
+      category: str(ficha.in_eco),
+      orientation: decodeHtml(str(ficha.ubicacion)) || undefined,
+      elevators: n(ficha.in_asc),
+      expenses: n(ficha.in_exp),
+      tax: n(ficha.in_imp),
+      apartmentType: decodeHtml(str(ficha.in_tpr) || str(ficha.tipo)),
+      hasHotWater: bool(ficha.in_ale),
+    };
+
     // Get covered area from superficie if available
     const coveredArea = (() => {
       const sup = r.superficie;
@@ -381,6 +433,8 @@ export async function fetchProperty(id: string): Promise<Property | null> {
         garage: num(ficha.in_coc) || num(ficha.garage),
       },
       amenities,
+      areas: areas.length > 0 ? areas : undefined,
+      details,
       images: imgs,
       videoUrl: r.videos?.[0]?.video_url ?? ficha.video ?? undefined,
       location: parseCoords(ficha.in_coo),

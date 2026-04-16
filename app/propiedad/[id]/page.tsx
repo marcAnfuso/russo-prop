@@ -17,6 +17,8 @@ import type { Property } from "@/data/types";
 import { formatPrice } from "@/lib/utils";
 import Gallery from "@/components/Gallery";
 import AmenityList from "@/components/AmenityList";
+import PropertyDetailsTable from "@/components/PropertyDetailsTable";
+import AreaMeasurementsTable from "@/components/AreaMeasurementsTable";
 import ContactSidebar from "@/components/ContactSidebar";
 import MapView from "@/components/MapView";
 import Breadcrumb from "@/components/Breadcrumb";
@@ -286,6 +288,9 @@ export default async function PropertyDetailPage({ params }: PageProps) {
             </section>
           )}
 
+          {/* Detalles de la propiedad */}
+          <PropertyDetailsTable property={property} />
+
           {/* Amenities */}
           {property.amenities.length > 0 && (
             <section>
@@ -294,6 +299,11 @@ export default async function PropertyDetailPage({ params }: PageProps) {
               </h2>
               <AmenityList items={property.amenities} />
             </section>
+          )}
+
+          {/* Medidas */}
+          {property.areas && property.areas.length > 0 && (
+            <AreaMeasurementsTable areas={property.areas} />
           )}
 
           {/* Location / Map */}
