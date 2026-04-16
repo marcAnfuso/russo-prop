@@ -3,11 +3,8 @@ import Hero from "@/components/Hero";
 import FeaturedProperties from "@/components/FeaturedProperties";
 import NewListings from "@/components/NewListings";
 import FeaturedDevelopments from "@/components/FeaturedDevelopments";
-import NeighborhoodGrid from "@/components/NeighborhoodGrid";
-import BarrioDestacado from "@/components/BarrioDestacado";
 import MarketExplorer from "@/components/MarketExplorer";
 import StatsSection from "@/components/StatsSection";
-import MeetRusso from "@/components/MeetRusso";
 import HistoriasMudanza from "@/components/HistoriasMudanza";
 import FeaturedOpportunities from "@/components/FeaturedOpportunities";
 import {
@@ -93,15 +90,12 @@ export default function Home() {
       <Suspense fallback={<FeaturedPropertiesSkeleton />}>
         <FeaturedPropertiesLoader />
       </Suspense>
-      <MeetRusso />
       <Suspense fallback={<NewListingsSkeleton />}>
         <NewListingsLoader />
       </Suspense>
       <Suspense fallback={<FeaturedOpportunitiesSkeleton />}>
         <FeaturedOpportunitiesLoader />
       </Suspense>
-      <BarrioDestacado />
-      <NeighborhoodGrid />
       <MarketExplorer />
       <FeaturedDevelopments />
       <HistoriasMudanza />

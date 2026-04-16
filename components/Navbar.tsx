@@ -7,10 +7,11 @@ import { usePathname } from "next/navigation";
 import { Phone, Mail, Menu, X, Heart } from "lucide-react";
 
 const navLinks = [
-  { href: "/", label: "Inicio" },
   { href: "/ventas", label: "Ventas" },
   { href: "/alquileres", label: "Alquileres" },
   { href: "/emprendimientos", label: "Emprendimientos" },
+  { href: "/barrios", label: "Barrios" },
+  { href: "/nosotros", label: "Nosotros" },
   { href: "/tasaciones", label: "Tasaciones" },
   { href: "/contacto", label: "Contacto" },
 ];
@@ -116,10 +117,10 @@ export default function Navbar() {
               <Phone className="h-4 w-4" />
               <span>+54 11 4651 4024</span>
             </a>
-            <span className="text-navy-200">|</span>
+            <span className="hidden xl:inline text-navy-200">|</span>
             <a
               href="mailto:info@russopropiedades.com.ar"
-              className="flex items-center gap-1.5 hover:text-magenta transition-colors"
+              className="hidden xl:flex items-center gap-1.5 hover:text-magenta transition-colors"
             >
               <Mail className="h-4 w-4" />
               <span>info@russopropiedades.com.ar</span>
