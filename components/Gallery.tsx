@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
 import { ChevronLeft, ChevronRight, X, Camera, Play } from "lucide-react";
+import { toEmbedUrl } from "@/lib/utils";
 
 interface GalleryProps {
   images: string[];
@@ -180,7 +181,7 @@ export default function Gallery({ images, videoUrl, title }: GalleryProps) {
       return (
         <div className="w-full aspect-video rounded-lg overflow-hidden">
           <iframe
-            src={videoUrl}
+            src={toEmbedUrl(videoUrl)}
             title={`${title} - video`}
             className="w-full h-full"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
