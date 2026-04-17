@@ -67,7 +67,9 @@ export async function captureSnapshot(): Promise<SnapshotResult> {
   let updated = 0;
   let skipped = 0;
 
-  for (let page = 1; page <= 30; page++) {
+  // Russo has ~800 listings today (2026); cap at 60 pages (1200) for
+  // room to grow. We break as soon as hasMore is false anyway.
+  for (let page = 1; page <= 60; page++) {
     const { properties, hasMore } = await fetchProperties({ page });
     pages++;
     if (!properties.length) break;
