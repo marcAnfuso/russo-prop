@@ -39,6 +39,8 @@ export interface Property {
   title: string;
   operation: OperationType;
   type: PropertyType;
+  /** Xintel's `in_tpr` — a finer-grained category ("Dúplex", "Semipiso", "Monoambiente") when present. Title-cased. */
+  subtype?: string;
   price: number;
   currency: "USD" | "ARS";
   address: string;

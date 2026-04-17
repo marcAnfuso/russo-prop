@@ -111,10 +111,9 @@ export default function SearchBar({
       params.set("zones", selectedZones.join(","));
     }
     if (selectedTypes.length > 0) {
-      // PropertyListWithMap expects a single "type" currently; if multiple are
-      // selected we pass the first and leave the rest to be re-applied by the
-      // filter bar once the user lands on /ventas.
-      params.set("type", selectedTypes[0].toLowerCase());
+      // FilterBar reads `type` as comma-separated values so multi-type
+      // selections from the hero survive the navigation.
+      params.set("type", selectedTypes.map((t) => t.toLowerCase()).join(","));
     }
     const qs = params.toString();
     router.push(qs ? `${basePath}?${qs}` : basePath);
