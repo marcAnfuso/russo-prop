@@ -51,10 +51,10 @@ export default function SearchBar({
   }, [query]);
 
   // Filter + rank localities (prefix > word-start > substring)
-  const suggestions = useMemo(() => {
-    if (!debouncedQuery.trim()) return [];
-    return rankLocalityMatches(localities, debouncedQuery, selectedZones);
-  }, [debouncedQuery, selectedZones, localities]);
+  const suggestions = useMemo(
+    () => rankLocalityMatches(localities, debouncedQuery, selectedZones),
+    [debouncedQuery, selectedZones, localities]
+  );
 
   // Close dropdowns on click outside
   useEffect(() => {
@@ -78,9 +78,8 @@ export default function SearchBar({
 
   // Show autocomplete when there are suggestions
   useEffect(() => {
-    setShowAutocomplete(suggestions.length > 0 && query.trim().length > 0);
     setActiveIndex(-1);
-  }, [suggestions, query]);
+  }, [suggestions]);
 
   const selectZone = useCallback(
     (zone: string) => {
@@ -230,11 +229,12 @@ export default function SearchBar({
             aria-autocomplete="list"
             placeholder="¿Dónde querés mudarte?"
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            onKeyDown={handleInputKeyDown}
-            onFocus={() => {
-              if (suggestions.length > 0) setShowAutocomplete(true);
+            onChange={(e) => {
+              setQuery(e.target.value);
+              setShowAutocomplete(true);
             }}
+            onKeyDown={handleInputKeyDown}
+            onFocus={() => setShowAutocomplete(true)}
             className={`w-full bg-transparent outline-none text-navy placeholder-navy-300 ${
               isHero
                 ? "px-4 py-3 text-base sm:text-lg"
