@@ -504,6 +504,19 @@ export interface LocalityCount {
   count: number;
 }
 
+export interface MarketBucket {
+  count: number;
+  priceFrom: number;   // USD
+  priceTo: number;     // USD
+  pricePerSqM: number; // USD — median
+}
+
+/** locality -> propertyType -> roomsBucket("1"|"2"|"3"|"4") -> MarketBucket */
+export type MarketAggregate = Record<
+  string,
+  Record<string, Record<string, MarketBucket>>
+>;
+
 /**
  * Fetch the list of localities (barrios) that Russo actually has listings in,
  * with a count of how many active listings each one has.
@@ -529,4 +542,84 @@ export async function fetchAvailableLocalities(
   return Array.from(counts.entries())
     .map(([name, count]) => ({ name, count }))
     .sort((a, b) => a.name.localeCompare(b.name, "es"));
+}
+
+/**
+ * Aggregate venta (USD) listings into barrio × tipo × ambientes buckets.
+ * Only buckets with at least MIN_SAMPLES listings are returned; anything
+ * thinner is noise and we'd rather show "sin datos suficientes" than fake it.
+ */
+export async function fetchMarketAggregate(
+  maxPages = 20
+): Promise<MarketAggregate> {
+  const MIN_SAMPLES = 2;
+  const buckets = new Map<string, { prices: number[]; sqms: number[] }>();
+
+  for (let page = 1; page <= maxPages; page++) {
+    try {
+      const { properties, hasMore } = await fetchProperties({
+        operation: "venta",
+        page,
+      });
+      for (const p of properties) {
+        if (p.currency !== "USD") continue;
+        // Ambientes only make sense for residential units.
+        if (p.type !== "casa" && p.type !== "departamento" && p.type !== "ph") {
+          continue;
+        }
+        // Sanity bounds: Xintel uses 9999999 as a "Consultar" sentinel, and some
+        // tests have 1/100 USD placeholders. Residential zona oeste stays well
+        // under 3M.
+        if (p.price < 5000 || p.price > 3_000_000) continue;
+        if (!p.locality) continue;
+        const rooms = p.features.rooms ?? 0;
+        if (rooms <= 0) continue;
+        const roomsBucket = rooms >= 4 ? "4" : String(rooms);
+        const area = p.features.coveredArea ?? p.features.totalArea ?? 0;
+        const k = `${p.locality}|${p.type}|${roomsBucket}`;
+        const entry = buckets.get(k) ?? { prices: [], sqms: [] };
+        entry.prices.push(p.price);
+        // Drop absurd m² values — typos in Xintel occasionally produce 1m² lots.
+        if (area >= 20 && area <= 2000) {
+          const sqm = p.price / area;
+          if (sqm >= 200 && sqm <= 10_000) entry.sqms.push(sqm);
+        }
+        buckets.set(k, entry);
+      }
+      if (!hasMore) break;
+    } catch {
+      break;
+    }
+  }
+
+  const percentile = (arr: number[], p: number): number => {
+    if (!arr.length) return 0;
+    const sorted = [...arr].sort((a, b) => a - b);
+    if (sorted.length === 1) return sorted[0];
+    const idx = (p / 100) * (sorted.length - 1);
+    const lo = Math.floor(idx);
+    const hi = Math.ceil(idx);
+    if (lo === hi) return sorted[lo];
+    return sorted[lo] + (sorted[hi] - sorted[lo]) * (idx - lo);
+  };
+
+  const agg: MarketAggregate = {};
+  buckets.forEach((v, k) => {
+    if (v.prices.length < MIN_SAMPLES) return;
+    const [loc, type, rooms] = k.split("|");
+    agg[loc] = agg[loc] ?? {};
+    agg[loc][type] = agg[loc][type] ?? {};
+    agg[loc][type][rooms] = {
+      count: v.prices.length,
+      // P10-P90 trims outliers (Xintel data has a long tail of test/placeholder
+      // listings). Range stays honest: most listings sit inside this band.
+      priceFrom: Math.round(percentile(v.prices, 10)),
+      priceTo: Math.round(percentile(v.prices, 90)),
+      pricePerSqM: v.sqms.length
+        ? Math.round(percentile(v.sqms, 50))
+        : 0,
+    };
+  });
+
+  return agg;
 }
