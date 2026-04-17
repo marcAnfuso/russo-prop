@@ -152,10 +152,11 @@ export default function Footer() {
               <Facebook className="h-5 w-5" />
             </a>
             <a
-              href="https://instagram.com"
+              href="https://instagram.com/russopropiedadesok"
               target="_blank"
               rel="noopener noreferrer"
-              aria-label="Seguinos en Instagram"
+              aria-label="Seguinos en Instagram — @russopropiedadesok"
+              title="@russopropiedadesok"
               className="text-gray-400 hover:text-magenta transition-colors"
             >
               <Instagram className="h-5 w-5" />

@@ -4,7 +4,8 @@ import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { Phone, Mail, Menu, X, Heart } from "lucide-react";
+import { Phone, Mail, Menu, X, Heart, Instagram } from "lucide-react";
+import NavbarContactPopover from "./NavbarContactPopover";
 
 const navLinks = [
   { href: "/ventas", label: "Ventas" },
@@ -72,7 +73,7 @@ export default function Navbar() {
           </Link>
 
           {/* Desktop nav links */}
-          <ul className="hidden lg:flex items-center gap-1">
+          <ul className="hidden lg:flex items-center gap-0.5 xl:gap-1">
             {navLinks.map(({ href, label }) => {
               const isActive =
                 href === "/" ? pathname === "/" : pathname.startsWith(href);
@@ -80,7 +81,7 @@ export default function Navbar() {
                 <li key={href}>
                   <Link
                     href={href}
-                    className={`relative px-3 py-2 text-sm font-medium transition-colors group/nav ${
+                    className={`relative px-2 xl:px-3 py-2 text-sm font-medium whitespace-nowrap transition-colors group/nav ${
                       isActive
                         ? "text-magenta"
                         : "text-navy hover:text-magenta"
@@ -101,29 +102,39 @@ export default function Navbar() {
           </ul>
 
           {/* Desktop contact info */}
-          <div className="hidden lg:flex items-center gap-4 text-sm text-navy">
+          <div className="hidden lg:flex items-center gap-1 text-sm text-navy">
             <Link
               href="/favoritos"
-              className="flex items-center gap-1.5 hover:text-magenta transition-colors"
+              className="flex items-center p-1.5 rounded-md hover:text-magenta hover:bg-navy-50 transition-colors"
               aria-label="Favoritos"
+              title="Favoritos"
             >
               <Heart className="h-4 w-4" />
             </Link>
-            <span className="text-navy-200">|</span>
-            <a
+            <NavbarContactPopover
+              icon={Phone}
+              label="Teléfono"
+              value="+541146514024"
+              displayValue="+54 11 4651 4024"
               href="tel:+541146514024"
-              className="flex items-center gap-1.5 hover:text-magenta transition-colors"
-            >
-              <Phone className="h-4 w-4" />
-              <span>+54 11 4651 4024</span>
-            </a>
-            <span className="hidden xl:inline text-navy-200">|</span>
-            <a
+              actionLabel="Llamar"
+            />
+            <NavbarContactPopover
+              icon={Mail}
+              label="Email"
+              value="info@russopropiedades.com.ar"
               href="mailto:info@russopropiedades.com.ar"
-              className="hidden xl:flex items-center gap-1.5 hover:text-magenta transition-colors"
+              actionLabel="Escribir"
+            />
+            <a
+              href="https://instagram.com/russopropiedadesok"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center p-1.5 rounded-md hover:text-magenta hover:bg-navy-50 transition-colors"
+              aria-label="Instagram de Russo Propiedades"
+              title="@russopropiedadesok"
             >
-              <Mail className="h-4 w-4" />
-              <span>info@russopropiedades.com.ar</span>
+              <Instagram className="h-4 w-4" />
             </a>
           </div>
 
@@ -224,6 +235,15 @@ export default function Navbar() {
           >
             <Mail className="h-4 w-4" />
             <span>info@russopropiedades.com.ar</span>
+          </a>
+          <a
+            href="https://instagram.com/russopropiedadesok"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 hover:text-magenta transition-colors"
+          >
+            <Instagram className="h-4 w-4" />
+            <span>@russopropiedadesok</span>
           </a>
         </div>
       </div>
