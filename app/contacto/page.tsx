@@ -178,7 +178,7 @@ export default function ContactoPage() {
                       htmlFor="nombre"
                       className="block text-sm font-medium mb-1"
                     >
-                      Nombre y apellido <span className="text-red-500">*</span>
+                      Nombre y apellido <span className="text-magenta font-medium" aria-hidden="true">*</span>
                     </label>
                     <input
                       id="nombre"
@@ -187,7 +187,7 @@ export default function ContactoPage() {
                       required
                       value={form.nombre}
                       onChange={handleChange}
-                      className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-magenta focus:outline-none focus:ring-1 focus:ring-magenta/30"
+                      className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-magenta focus:outline-none focus:ring-2 focus:ring-magenta/30"
                     />
                   </div>
 
@@ -197,7 +197,7 @@ export default function ContactoPage() {
                       htmlFor="email"
                       className="block text-sm font-medium mb-1"
                     >
-                      Email <span className="text-red-500">*</span>
+                      Email <span className="text-magenta font-medium" aria-hidden="true">*</span>
                     </label>
                     <input
                       id="email"
@@ -206,7 +206,7 @@ export default function ContactoPage() {
                       required
                       value={form.email}
                       onChange={handleChange}
-                      className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-magenta focus:outline-none focus:ring-1 focus:ring-magenta/30"
+                      className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-magenta focus:outline-none focus:ring-2 focus:ring-magenta/30"
                     />
                   </div>
 
@@ -216,7 +216,7 @@ export default function ContactoPage() {
                       htmlFor="telefono"
                       className="block text-sm font-medium mb-1"
                     >
-                      Teléfono <span className="text-red-500">*</span>
+                      Teléfono <span className="text-magenta font-medium" aria-hidden="true">*</span>
                     </label>
                     <input
                       id="telefono"
@@ -225,7 +225,7 @@ export default function ContactoPage() {
                       required
                       value={form.telefono}
                       onChange={handleChange}
-                      className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-magenta focus:outline-none focus:ring-1 focus:ring-magenta/30"
+                      className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-magenta focus:outline-none focus:ring-2 focus:ring-magenta/30"
                     />
                   </div>
 
@@ -243,7 +243,7 @@ export default function ContactoPage() {
                       type="text"
                       value={form.direccion}
                       onChange={handleChange}
-                      className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-magenta focus:outline-none focus:ring-1 focus:ring-magenta/30"
+                      className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-magenta focus:outline-none focus:ring-2 focus:ring-magenta/30"
                     />
                   </div>
 
@@ -260,7 +260,7 @@ export default function ContactoPage() {
                       name="comoNosConociste"
                       value={form.comoNosConociste}
                       onChange={handleChange}
-                      className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-magenta focus:outline-none focus:ring-1 focus:ring-magenta/30"
+                      className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-magenta focus:outline-none focus:ring-2 focus:ring-magenta/30"
                     >
                       <option value="">Seleccioná una opción</option>
                       {HOW_OPTIONS.map((opt) => (
@@ -286,7 +286,7 @@ export default function ContactoPage() {
                       maxLength={250}
                       value={form.mensaje}
                       onChange={handleChange}
-                      className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-magenta focus:outline-none focus:ring-1 focus:ring-magenta/30 resize-none"
+                      className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-magenta focus:outline-none focus:ring-2 focus:ring-magenta/30 resize-none"
                     />
                     <p className="text-xs text-gray-400 text-right">
                       {form.mensaje.length}/250

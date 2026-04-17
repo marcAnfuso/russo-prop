@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
-import { useRouter } from "next/navigation";
 import { Search, X, ChevronDown, SlidersHorizontal } from "lucide-react";
 import type { Property } from "@/data/types";
 import { useLocalities, rankLocalityMatches } from "@/lib/useLocalities";
@@ -81,7 +80,9 @@ function Dropdown({
   }, []);
 
   const displayLabel = value
-    ? options.find((o) => o.value === value)?.label ?? label
+    ? value.includes(",")
+      ? `${value.split(",").filter(Boolean).length} tipos`
+      : options.find((o) => o.value === value)?.label ?? label
     : label;
 
   return (
@@ -190,14 +191,12 @@ export default function FilterBar({
   initialPropertyType = "",
   initialZones = [],
 }: FilterBarProps) {
-  const router = useRouter();
   const localities = useLocalities();
   /* ---- filter state ---- */
   const [zones, setZones] = useState<string[]>(initialZones);
   const [zoneQuery, setZoneQuery] = useState("");
   const [zoneDropdownOpen, setZoneDropdownOpen] = useState(false);
   const [propertyType, setPropertyType] = useState(initialPropertyType);
-  const [operation, setOperation] = useState("");
   const [priceRange, setPriceRange] = useState("");
   const [expanded, setExpanded] = useState(false);
 
@@ -249,12 +248,15 @@ export default function FilterBar({
 
     // property type
     if (propertyType) {
-      result = result.filter((p) => p.type === propertyType);
-    }
-
-    // operation
-    if (operation) {
-      result = result.filter((p) => p.operation === operation);
+      // SearchBar may pass comma-separated types (e.g. "casa,departamento"),
+      // FilterBar's own dropdown only writes single values.
+      const allowed = propertyType.split(",").map((t) => t.trim()).filter(Boolean);
+      if (allowed.length === 1) {
+        result = result.filter((p) => p.type === allowed[0]);
+      } else if (allowed.length > 1) {
+        const set = new Set(allowed);
+        result = result.filter((p) => set.has(p.type));
+      }
     }
 
     // price range
@@ -326,7 +328,6 @@ export default function FilterBar({
     properties,
     zones,
     propertyType,
-    operation,
     priceRange,
     ambientes,
     banos,
@@ -365,7 +366,6 @@ export default function FilterBar({
     setZones([]);
     setZoneQuery("");
     setPropertyType("");
-    setOperation("");
     setPriceRange("");
     setExpanded(false);
     setAmbientes(null);
@@ -455,32 +455,6 @@ export default function FilterBar({
             }))}
             onChange={setPropertyType}
             onClear={() => setPropertyType("")}
-          />
-
-          {/* Operación dropdown */}
-          <Dropdown
-            label={
-              operationType === "venta"
-                ? "Comprar"
-                : operationType === "alquiler"
-                ? "Alquilar"
-                : "Operación"
-            }
-            value={operation}
-            options={[
-              { label: "Comprar", value: "venta" },
-              { label: "Alquilar", value: "alquiler" },
-            ]}
-            onChange={(val) => {
-              if (val === "alquiler" && operationType !== "alquiler") {
-                router.push("/alquileres");
-              } else if (val === "venta" && operationType !== "venta") {
-                router.push("/ventas");
-              } else {
-                setOperation(val);
-              }
-            }}
-            onClear={() => setOperation("")}
           />
 
           {/* Precio dropdown */}
@@ -612,7 +586,6 @@ export default function FilterBar({
 
             {(zones.length > 0 ||
               propertyType ||
-              operation ||
               priceRange ||
               ambientes ||
               banos ||

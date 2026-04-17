@@ -154,7 +154,7 @@ export default function TasacionesPage() {
                     className="block text-sm font-medium text-navy mb-1"
                   >
                     Nombre y apellido{" "}
-                    <span className="text-magenta" aria-hidden="true">
+                    <span className="text-magenta font-medium" aria-hidden="true">
                       *
                     </span>
                   </label>
@@ -187,7 +187,7 @@ export default function TasacionesPage() {
                     className="block text-sm font-medium text-navy mb-1"
                   >
                     Email{" "}
-                    <span className="text-magenta" aria-hidden="true">
+                    <span className="text-magenta font-medium" aria-hidden="true">
                       *
                     </span>
                   </label>
@@ -218,7 +218,7 @@ export default function TasacionesPage() {
                     className="block text-sm font-medium text-navy mb-1"
                   >
                     Teléfono{" "}
-                    <span className="text-magenta" aria-hidden="true">
+                    <span className="text-magenta font-medium" aria-hidden="true">
                       *
                     </span>
                   </label>
@@ -258,7 +258,7 @@ export default function TasacionesPage() {
                     className="block text-sm font-medium text-navy mb-1"
                   >
                     Dirección de la propiedad{" "}
-                    <span className="text-magenta" aria-hidden="true">
+                    <span className="text-magenta font-medium" aria-hidden="true">
                       *
                     </span>
                   </label>

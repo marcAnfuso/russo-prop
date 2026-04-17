@@ -96,8 +96,8 @@ export default function PropertyDetailsTable({ property }: { property: Property 
   if (f.age != null && f.age > 0) especificaciones.push({ icon: CalendarClock, label: "Antigüedad", value: `${f.age} años` });
 
   const costos: DetailRow[] = [];
-  if (d.expenses) costos.push({ icon: Receipt, label: "Expensas", value: `$ ${formatPrice(d.expenses)}`, accent: true });
-  if (d.tax) costos.push({ icon: Banknote, label: "Impuesto", value: `$ ${formatPrice(d.tax)}`, accent: true });
+  if (d.expenses) costos.push({ icon: Receipt, label: "Expensas", value: `$ ${formatPrice(d.expenses)} /mes`, accent: true });
+  if (d.tax) costos.push({ icon: Banknote, label: "ABL / Imp.", value: `$ ${formatPrice(d.tax)} /mes`, accent: true });
 
   const groups: Group[] = [];
   if (ubicacion.length) groups.push({ title: "Ubicación", rows: ubicacion });

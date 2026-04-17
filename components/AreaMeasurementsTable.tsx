@@ -20,7 +20,10 @@ export default function AreaMeasurementsTable({ areas }: Props) {
 
   return (
     <section>
-      <h2 className="text-xl font-bold text-navy mb-4">Medidas</h2>
+      <h2 className="flex items-center gap-3 font-display text-2xl font-semibold text-navy mb-4">
+        <span className="h-6 w-1 rounded-full bg-magenta" aria-hidden="true" />
+        Medidas
+      </h2>
       <div className="overflow-hidden rounded-xl border border-gray-200">
         <table className="w-full text-sm">
           <tbody>

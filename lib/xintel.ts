@@ -109,6 +109,32 @@ function decodeHtml(s?: string): string {
   return s.replace(/&[a-zA-Z0-9#]+;/g, (e) => HTML_ENTITIES[e] ?? e);
 }
 
+/**
+ * Turn Xintel's uppercase `in_tpr` codes into user-facing subtype labels.
+ * Returns undefined when the value matches the parent type (e.g. "DEPARTAMENTO"
+ * for a Departamento is redundant) or when it's not a recognized residential
+ * subtype.
+ */
+function mapSubtype(in_tpr: string | undefined, tipo: string | undefined): string | undefined {
+  const key = in_tpr?.toLowerCase().trim();
+  if (!key) return undefined;
+  const tipoKey = tipo?.toLowerCase().trim();
+  // Skip when subtype is just the parent type echoed back.
+  if (key === tipoKey) return undefined;
+  if (key === "casa" || key === "departamento" || key === "depto") return undefined;
+  const labels: Record<string, string> = {
+    duplex: "Dúplex",
+    dúplex: "Dúplex",
+    semipiso: "Semipiso",
+    piso: "Piso",
+    monoambiente: "Monoambiente",
+    ph: "PH",
+    loft: "Loft",
+    triplex: "Tríplex",
+  };
+  return labels[key];
+}
+
 /** Normalize locality casing: "MORÓN" → "Morón", "de" / "del" stay lowercase. */
 function normalizeLocality(s?: string): string {
   if (!s) return "";
@@ -146,24 +172,33 @@ function parsePrecio(precio?: string): number {
 }
 
 function parseCoords(coo?: string): { lat: number; lng: number } {
-  if (!coo) return { lat: -34.68, lng: -58.56 };
+  const fallback = { lat: -34.68, lng: -58.56 };
+  if (!coo) return fallback;
   const [lat, lng] = coo.split(",").map(parseFloat);
-  return { lat: lat || -34.68, lng: lng || -58.56 };
+  if (!lat || !lng || isNaN(lat) || isNaN(lng)) return fallback;
+  // Argentina roughly spans lat -55 to -21 and lng -74 to -53. Any point
+  // outside this box is bad data (we've seen Madrid coords leak in from
+  // Xintel) and would warp the map bounds to show Europe.
+  if (lat < -56 || lat > -21 || lng < -75 || lng > -53) return fallback;
+  return { lat, lng };
 }
 
 function mapOperation(op?: string): OperationType {
   return op?.toLowerCase().includes("alquiler") ? "alquiler" : "venta";
 }
 
-function mapCurrency(moneda?: string): "USD" | "ARS" {
-  if (!moneda) return "USD";
+function mapCurrency(moneda: string | undefined, op: OperationType): "USD" | "ARS" {
+  // Xintel sends "$" for ARS and "U$S" for USD. When the field is empty we
+  // fall back by operation: alquileres in zona oeste are almost always ARS,
+  // ventas are almost always USD. This matches the legacy russo site.
+  if (!moneda || !moneda.trim()) return op === "alquiler" ? "ARS" : "USD";
   const m = moneda.toLowerCase();
   if (m.includes("u$s") || m.includes("usd") || m.includes("dolar") || m.includes("dólar")) return "USD";
   return "ARS";
 }
 
 const TYPE_MAP: Record<string, PropertyType> = {
-  // Xintel single-letter codes
+  // Xintel single-letter codes (in_tip)
   c: "casa",
   d: "departamento",
   e: "edificio",
@@ -175,7 +210,7 @@ const TYPE_MAP: Record<string, PropertyType> = {
   p: "terreno",  // Campo
   q: "terreno",  // Quinta
   t: "terreno",  // Lote
-  // full names (fallback)
+  // tipo display names
   casa: "casa",
   departamento: "departamento",
   depto: "departamento",
@@ -190,7 +225,16 @@ const TYPE_MAP: Record<string, PropertyType> = {
   negocio: "local",
   oficina: "oficina",
   galpon: "local",
+  galpón: "local",
   edificio: "edificio",
+  // in_tpr subtypes (Xintel internal codes)
+  duplex: "departamento",
+  dúplex: "departamento",
+  semipiso: "departamento",
+  piso: "departamento",
+  monoambiente: "departamento",
+  tinglado: "local",
+  fondo: "terreno",
 };
 
 // Reverse mapping: PropertyType display value → Xintel single-letter code
@@ -205,9 +249,15 @@ const TYPE_TO_XINTEL_CODE: Record<PropertyType, string> = {
   terreno: "T",
 };
 
-function mapType(t?: string): PropertyType {
-  const key = t?.toLowerCase().trim() ?? "";
-  return TYPE_MAP[key] ?? "casa";
+function mapType(...candidates: (string | undefined)[]): PropertyType {
+  // Try each candidate in order — first match wins. Fall back to the single-
+  // letter code (in_tip) which Xintel always populates; we only default to
+  // "casa" if nothing resolves.
+  for (const raw of candidates) {
+    const key = raw?.toLowerCase().trim();
+    if (key && TYPE_MAP[key]) return TYPE_MAP[key];
+  }
+  return "casa";
 }
 
 /** Extracts the first image URL from the img[] entry (can be string or array) */
@@ -224,7 +274,7 @@ function mapListFicha(ficha: XintelListFicha, imgs: string | string[], amenities
       : num(ficha.venta_precio);
   // fichas.destacadas returns venta_precio/alquiler_precio as null — fallback to parsed precio
   const price = rawPrice || num(ficha.in_val) || parsePrecio(ficha.precio);
-  const currency = mapCurrency(op === "alquiler" ? ficha.alquiler_moneda : ficha.venta_moneda);
+  const currency = mapCurrency(op === "alquiler" ? ficha.alquiler_moneda : ficha.venta_moneda, op);
 
   const imageList = Array.isArray(imgs) ? imgs.filter(Boolean) : [imgs].filter(Boolean);
   const mainImg = ficha.img_princ ?? firstImg(imgs);
@@ -235,7 +285,8 @@ function mapListFicha(ficha: XintelListFicha, imgs: string | string[], amenities
     code: `RUS${ficha.in_num}`,
     title: decodeHtml(ficha.titulo) || `Propiedad ${ficha.in_num}`,
     operation: op,
-    type: mapType(ficha.in_tpr || ficha.tipo || ficha.in_tip),
+    type: mapType(ficha.tipo, ficha.in_tpr, ficha.in_tip),
+    subtype: mapSubtype(ficha.in_tpr, ficha.tipo),
     price,
     currency,
     address: decodeHtml(ficha.direccion_completa) || `${ficha.in_cal ?? ""} ${ficha.in_nro ?? ""}`.trim(),
@@ -322,6 +373,51 @@ export async function fetchProperties(
   } catch {
     return { properties: [], hasMore: false, total: null };
   }
+}
+
+/**
+ * Fetch EVERY property for an operation in one shot. Xintel paginates at
+ * 20/page; this walks until hasMore goes false. Each page fetch is cached
+ * by Next for REVALIDATE seconds, so after the first hit the walk is free.
+ * The list endpoint doesn't support server-side locality/rooms filtering,
+ * so filter-by-barrio has to happen client-side over the full set.
+ */
+export async function fetchAllProperties(
+  operation?: OperationType,
+  maxPages = 60
+): Promise<Property[]> {
+  // First page gives us the total so we can parallelize the rest.
+  const firstUrl = buildListUrl({ operation }, 1);
+  const first = await fetchPage(firstUrl);
+  const firstProps = first.fichas.map((f, i) =>
+    mapListFicha(f, first.imgs[i] ?? [], first.caracteristicas[f.in_num])
+  );
+
+  const pagesToFetch: number[] = [];
+  if (first.total && first.total > PER_PAGE) {
+    const last = Math.min(Math.ceil(first.total / PER_PAGE), maxPages);
+    for (let p = 2; p <= last; p++) pagesToFetch.push(p);
+  } else if (first.fichas.length === PER_PAGE) {
+    // No total reported — fall back to sequential until a short page.
+    for (let p = 2; p <= maxPages; p++) pagesToFetch.push(p);
+  }
+
+  if (!pagesToFetch.length) return firstProps;
+
+  const rest = await Promise.all(
+    pagesToFetch.map(async (page) => {
+      try {
+        const r = await fetchPage(buildListUrl({ operation }, page));
+        return r.fichas.map((f, i) =>
+          mapListFicha(f, r.imgs[i] ?? [], r.caracteristicas[f.in_num])
+        );
+      } catch {
+        return [];
+      }
+    })
+  );
+
+  return firstProps.concat(...rest);
 }
 
 /**
@@ -427,14 +523,15 @@ export async function fetchProperty(id: string): Promise<Property | null> {
         ? num(ficha.alquiler_precio)
         : num(ficha.venta_precio);
     const price = rawPrice || num(ficha.in_val) || parsePrecio(ficha.precio);
-    const currency = mapCurrency(op === "alquiler" ? ficha.alquiler_moneda : ficha.venta_moneda);
+    const currency = mapCurrency(op === "alquiler" ? ficha.alquiler_moneda : ficha.venta_moneda, op);
 
     return {
       id: String(ficha.in_num),
       code: `RUS${ficha.in_num}`,
       title: decodeHtml(ficha.titulo) || `Propiedad ${ficha.in_num}`,
       operation: op,
-      type: mapType(ficha.tipo),
+      type: mapType(ficha.tipo, ficha.in_tpr, ficha.in_tip),
+      subtype: mapSubtype(ficha.in_tpr, ficha.tipo),
       price,
       currency,
       address: decodeHtml(ficha.direccion_completa) || `${ficha.in_cal ?? ""} ${ficha.in_nro ?? ""}`.trim(),

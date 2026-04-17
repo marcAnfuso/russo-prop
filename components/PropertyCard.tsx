@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { Maximize2, Home, Droplets, Car } from "lucide-react";
+import { Maximize2, Home, Droplets, Car, BedDouble } from "lucide-react";
 import type { Property } from "@/data/types";
 import ContactButtons from "@/components/ContactButtons";
 import FavoriteButton from "@/components/FavoriteButton";
+import { formatPrice } from "@/lib/utils";
 
 interface PropertyCardProps {
   property: Property;
@@ -14,12 +15,8 @@ interface PropertyCardProps {
   compact?: boolean;
 }
 
-function formatPrice(price: number): string {
-  return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-}
-
 export default function PropertyCard({ property, onHover, onQuickView, compact = false }: PropertyCardProps) {
-  const { id, code, operation, price, currency, address, locality, district, images, features } = property;
+  const { id, code, operation, subtype, price, currency, address, locality, district, images, features } = property;
 
   const isAlquiler = operation === "alquiler";
   const currencyLabel = currency === "ARS" ? "$" : "USD";
@@ -29,11 +26,22 @@ export default function PropertyCard({ property, onHover, onQuickView, compact =
       : `${currencyLabel} ${formatPrice(price)}${isAlquiler ? "/mes" : ""}`;
   const imageSrc = images.length > 0 ? images[0] : null;
 
-  const featureItems: { icon: React.ReactNode; value: number; label: string }[] = [];
-  if (features.totalArea)  featureItems.push({ icon: <Maximize2 className="w-3.5 h-3.5" />, value: features.totalArea, label: "m²" });
-  if (features.rooms)      featureItems.push({ icon: <Home className="w-3.5 h-3.5" />, value: features.rooms, label: "amb." });
-  if (features.bathrooms)  featureItems.push({ icon: <Droplets className="w-3.5 h-3.5" />, value: features.bathrooms, label: "baños" });
-  if (features.garage)     featureItems.push({ icon: <Car className="w-3.5 h-3.5" />, value: features.garage, label: "coch." });
+  // Xintel often leaves in_sup (total) at 0 while populating in_cub (covered).
+  // Prefer covered area so the chip isn't silently missing.
+  const area = features.coveredArea || features.totalArea;
+  // Hide bedrooms chip when it's identical to or greater than ambientes —
+  // keeps the row informative instead of redundant.
+  const showBedrooms =
+    !!features.bedrooms &&
+    features.bedrooms > 0 &&
+    (features.rooms == null || features.bedrooms < features.rooms);
+
+  const featureItems: { icon: React.ReactNode; value: string; key: string }[] = [];
+  if (area)                featureItems.push({ icon: <Maximize2 className="w-3.5 h-3.5" />, value: `${area} m²`, key: "area" });
+  if (features.rooms)      featureItems.push({ icon: <Home className="w-3.5 h-3.5" />, value: `${features.rooms} amb.`, key: "rooms" });
+  if (showBedrooms)        featureItems.push({ icon: <BedDouble className="w-3.5 h-3.5" />, value: `${features.bedrooms} dorm.`, key: "bed" });
+  if (features.bathrooms)  featureItems.push({ icon: <Droplets className="w-3.5 h-3.5" />, value: `${features.bathrooms} baños`, key: "bath" });
+  if (features.garage)     featureItems.push({ icon: <Car className="w-3.5 h-3.5" />, value: `${features.garage} coch.`, key: "garage" });
 
   return (
     <article
@@ -85,7 +93,14 @@ export default function PropertyCard({ property, onHover, onQuickView, compact =
       {/* Content */}
       <div className="flex flex-col justify-between gap-3 p-5 w-full flex-1">
         <div className="space-y-1">
-          <p className="text-2xl font-bold tracking-tight text-gray-900">{priceLabel}</p>
+          <div className="flex items-center gap-2 flex-wrap">
+            <p className="text-2xl font-bold tracking-tight text-gray-900">{priceLabel}</p>
+            {subtype && (
+              <span className="inline-flex items-center rounded-full bg-magenta-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-magenta">
+                {subtype}
+              </span>
+            )}
+          </div>
           <p className="text-sm font-medium text-gray-700">{address}</p>
           {(locality || district) && (
             <p className="text-xs text-gray-400">
@@ -95,11 +110,11 @@ export default function PropertyCard({ property, onHover, onQuickView, compact =
         </div>
 
         {featureItems.length > 0 && (
-          <ul className="flex flex-wrap gap-4">
-            {featureItems.map((item, idx) => (
-              <li key={idx} className="flex items-center gap-1.5 text-xs text-gray-500">
+          <ul className="flex flex-wrap gap-x-4 gap-y-1.5">
+            {featureItems.map((item) => (
+              <li key={item.key} className="flex items-center gap-1.5 text-xs text-gray-500">
                 <span className="text-navy-300">{item.icon}</span>
-                <span>{item.value} {item.label}</span>
+                <span>{item.value}</span>
               </li>
             ))}
           </ul>

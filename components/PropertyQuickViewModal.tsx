@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight, X, Maximize2, Home, Droplets, Car } from "lucide-react";
 import type { Property } from "@/data/types";
 import ContactButtons from "@/components/ContactButtons";
+import { formatPrice } from "@/lib/utils";
 
 interface PropertyQuickViewModalProps {
   property: Property | null;
@@ -46,7 +47,7 @@ export default function PropertyQuickViewModal({
   const priceLabel =
     price === 9999999
       ? "Reservado"
-      : `${currencyLabel} ${price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}`;
+      : `${currencyLabel} ${formatPrice(price)}`;
 
   const currentImage = images[currentImageIndex] || images[0];
 

@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { Suspense } from "react";
 import Hero from "@/components/Hero";
 import FeaturedProperties from "@/components/FeaturedProperties";
@@ -11,6 +12,13 @@ import {
   fetchLatestProperties,
 } from "@/lib/xintel";
 import { fetchOpportunityProperties } from "@/lib/opportunities";
+
+export const metadata: Metadata = {
+  title: "Compra, alquilá y tasá en zona oeste",
+  description:
+    "Más de 700 propiedades en San Justo, Ramos Mejía, Haedo, Morón y toda zona oeste. Russo Propiedades: 30 años haciendo las cosas distinto.",
+  alternates: { canonical: "https://russo-prop.vercel.app" },
+};
 
 async function FeaturedPropertiesLoader() {
   const featured = await fetchFeaturedProperties();
