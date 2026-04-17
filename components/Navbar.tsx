@@ -49,6 +49,7 @@ export default function Navbar() {
   }, [pathname]);
 
   return (
+    <>
     <nav
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         scrolled
@@ -154,11 +155,17 @@ export default function Navbar() {
           </button>
         </div>
       </div>
+      </nav>
 
-      {/* Mobile slide-in menu */}
-      {/* Overlay */}
+      {/*
+       * Mobile slide-in menu lives OUTSIDE the <nav> wrapper on purpose.
+       * The nav has backdrop-blur-*, which creates a new containing block
+       * for fixed descendants — so `h-full` on the panel resolved to the
+       * nav's height (≈72px) instead of the viewport, and the menu
+       * rendered as a thin white strip with items bleeding over the page.
+       */}
       <div
-        className={`fixed inset-0 bg-black/40 transition-opacity duration-300 lg:hidden ${
+        className={`fixed inset-0 z-[60] bg-black/40 transition-opacity duration-300 lg:hidden ${
           menuOpen
             ? "opacity-100 pointer-events-auto"
             : "opacity-0 pointer-events-none"
@@ -167,14 +174,13 @@ export default function Navbar() {
         onClick={() => setMenuOpen(false)}
       />
 
-      {/* Slide-in panel */}
       <div
-        className={`fixed top-0 right-0 h-full w-72 bg-white shadow-xl transition-transform duration-300 ease-in-out lg:hidden ${
+        className={`fixed inset-y-0 right-0 z-[61] w-72 max-w-[85vw] bg-white shadow-xl transition-transform duration-300 ease-in-out overflow-y-auto lg:hidden ${
           menuOpen ? "translate-x-0" : "translate-x-full"
         }`}
         role="dialog"
         aria-modal="true"
-        aria-label="Menu de navegacion"
+        aria-label="Menu de navegación"
       >
         <div className="flex items-center justify-between p-4 border-b border-navy-100">
           <span className="text-navy font-semibold text-lg">Menu</span>
@@ -247,6 +253,6 @@ export default function Navbar() {
           </a>
         </div>
       </div>
-    </nav>
+    </>
   );
 }
