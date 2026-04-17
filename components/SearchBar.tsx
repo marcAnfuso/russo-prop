@@ -368,7 +368,7 @@ export default function SearchBar({
           type="button"
           onClick={handleSearch}
           aria-label="Buscar propiedades"
-          className={`bg-magenta text-white flex items-center justify-center transition-colors hover:bg-magenta-600 ${
+          className={`bg-magenta text-white flex items-center justify-center transition-colors hover:bg-magenta-600 rounded-r-2xl ${
             isHero ? "px-5 py-3" : "px-4 py-2.5"
           }`}
         >
