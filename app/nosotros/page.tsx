@@ -7,7 +7,7 @@ import { Home, Handshake, Compass, ShieldCheck } from "lucide-react";
 export const metadata: Metadata = {
   title: "Nosotros · Russo Propiedades",
   description:
-    "Russo Propiedades es una inmobiliaria familiar de zona oeste. Tres generaciones trabajando el mismo territorio desde San Justo.",
+    "Russo Propiedades es una inmobiliaria familiar de zona oeste. Dos generaciones trabajando el mismo territorio desde San Justo.",
 };
 
 const values = [

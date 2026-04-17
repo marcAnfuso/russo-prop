@@ -53,7 +53,7 @@ export default function MeetRusso() {
                   Franco Russo
                 </p>
                 <p className="text-sm text-white/60">
-                  Director · 3ra generación
+                  Director · 2da generación
                 </p>
               </div>
             </div>
@@ -95,7 +95,7 @@ export default function MeetRusso() {
                   </div>
                 </div>
                 <div className="flex items-start gap-4 pb-4 border-b border-white/10">
-                  <span className="font-display text-4xl font-semibold text-magenta leading-none">3</span>
+                  <span className="font-display text-4xl font-semibold text-magenta leading-none">2</span>
                   <div>
                     <p className="text-sm font-semibold text-white">generaciones Russo</p>
                     <p className="text-xs text-white/50">Tradición familiar intacta</p>

@@ -68,7 +68,7 @@ export default function HeroSplit() {
                     <div>
                       <p className="text-sm font-semibold">Franco Russo</p>
                       <p className="text-xs text-gray-500">
-                        Director · 3ra generación
+                        Director · 2da generación
                       </p>
                     </div>
                   </div>

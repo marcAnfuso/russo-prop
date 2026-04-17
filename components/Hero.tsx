@@ -18,13 +18,13 @@ export default function Hero() {
         <source src="/images/hero.mp4" type="video/mp4" />
       </video>
 
-      {/* Gradient overlay — darker on the left where the copy sits so the
-          subtitle is legible over the busy background video, softer on the
-          right so the video still reads as a scene. */}
-      <div className="absolute inset-0 bg-gradient-to-r from-navy/90 via-navy/75 to-navy/50" />
+      {/* Gradient overlay — darker at the top and bottom so the centered
+          copy is legible over the busy video, softer in the middle so the
+          video still reads as a scene. */}
+      <div className="absolute inset-0 bg-navy/65" />
       <div className="absolute inset-0 bg-gradient-to-b from-navy/40 via-transparent to-navy/60" />
 
-      <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:items-start md:text-left items-center text-center">
+      <div className="relative z-10 flex flex-col items-center text-center px-4 sm:px-6 lg:px-8 w-full max-w-4xl mx-auto">
         <motion.p
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
@@ -39,7 +39,7 @@ export default function Hero() {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, ease: "easeOut" }}
-          className="font-display text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-semibold text-white leading-[1.05] tracking-tight mb-5 max-w-3xl"
+          className="font-display text-4xl sm:text-5xl lg:text-6xl font-semibold text-white leading-[1.05] tracking-tight mb-5"
         >
           Tu próximo hogar <span className="italic text-magenta">empieza acá</span>
         </motion.h1>
@@ -50,7 +50,7 @@ export default function Hero() {
           transition={{ duration: 0.7, delay: 0.15, ease: "easeOut" }}
           className="text-base sm:text-lg text-white/85 mb-8 max-w-xl leading-relaxed"
         >
-          Inmobiliaria familiar con tres generaciones conociendo cada cuadra
+          Inmobiliaria familiar con dos generaciones conociendo cada cuadra
           de zona oeste.
         </motion.p>
 
@@ -58,7 +58,7 @@ export default function Hero() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.3, ease: "easeOut" }}
-          className="w-full md:w-auto"
+          className="w-full flex justify-center"
         >
           <SearchBar variant="hero" />
         </motion.div>
