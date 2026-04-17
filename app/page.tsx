@@ -3,7 +3,6 @@ import Hero from "@/components/Hero";
 import FeaturedProperties from "@/components/FeaturedProperties";
 import NewListings from "@/components/NewListings";
 import FeaturedDevelopments from "@/components/FeaturedDevelopments";
-import MarketExplorer from "@/components/MarketExplorer";
 import StatsSection from "@/components/StatsSection";
 import HistoriasMudanza from "@/components/HistoriasMudanza";
 import FeaturedOpportunities from "@/components/FeaturedOpportunities";
@@ -96,7 +95,6 @@ export default function Home() {
       <Suspense fallback={<FeaturedOpportunitiesSkeleton />}>
         <FeaturedOpportunitiesLoader />
       </Suspense>
-      <MarketExplorer />
       <FeaturedDevelopments />
       <HistoriasMudanza />
     </>
