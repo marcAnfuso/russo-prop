@@ -11,6 +11,7 @@ import {
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import type { MapViewProps } from "./MapView";
+import { formatPrice } from "@/lib/utils";
 
 /* ------------------------------------------------------------------ */
 /*  Constants                                                          */
@@ -49,14 +50,6 @@ function createIcon(highlighted = false): L.DivIcon {
 
 const defaultIcon = createIcon(false);
 const highlightedIcon = createIcon(true);
-
-/* ------------------------------------------------------------------ */
-/*  Helper: format price                                               */
-/* ------------------------------------------------------------------ */
-
-function formatPrice(price: number): string {
-  return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-}
 
 /* ------------------------------------------------------------------ */
 /*  Sub-component: auto-fit bounds when properties change              */

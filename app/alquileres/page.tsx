@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import PropertyListWithMap from "@/components/PropertyListWithMap";
-import { fetchProperties } from "@/lib/xintel";
+import PropertyListSkeleton from "@/components/PropertyListSkeleton";
+import { fetchAllProperties } from "@/lib/xintel";
 
 export const metadata = {
   title: "Propiedades en Alquiler | Russo Propiedades",
@@ -12,13 +13,20 @@ export const metadata = {
 };
 
 async function AlquileresContent() {
-  const { properties, hasMore, total } = await fetchProperties({ operation: "alquiler", page: 1 });
-  return <PropertyListWithMap operationType="alquiler" initialProperties={properties} initialHasMore={hasMore} totalCount={total} />;
+  const properties = await fetchAllProperties("alquiler");
+  return (
+    <PropertyListWithMap
+      operationType="alquiler"
+      initialProperties={properties}
+      initialHasMore={false}
+      totalCount={properties.length}
+    />
+  );
 }
 
 export default function AlquileresPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Cargando...</div>}>
+    <Suspense fallback={<PropertyListSkeleton operation="alquiler" />}>
       <AlquileresContent />
     </Suspense>
   );

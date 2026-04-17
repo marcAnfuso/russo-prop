@@ -143,10 +143,11 @@ export default function Footer() {
           </p>
           <div className="flex items-center gap-4">
             <a
-              href="https://facebook.com"
+              href="https://www.facebook.com/russopropiedadesok"
               target="_blank"
               rel="noopener noreferrer"
-              aria-label="Seguinos en Facebook"
+              aria-label="Seguinos en Facebook — Russo Propiedades"
+              title="Russo Propiedades en Facebook"
               className="text-gray-400 hover:text-magenta transition-colors"
             >
               <Facebook className="h-5 w-5" />

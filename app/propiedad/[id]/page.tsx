@@ -36,7 +36,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 
   const priceLabel = property.price === 9999999
     ? "Reservado"
-    : `${property.currency === "ARS" ? "$" : "USD"} ${property.price.toLocaleString("es-AR")}`;
+    : `${property.currency === "ARS" ? "$" : "USD"} ${formatPrice(property.price)}`;
 
   const title = `${property.type.charAt(0).toUpperCase() + property.type.slice(1)} en ${property.operation === "alquiler" ? "Alquiler" : "Venta"} — ${priceLabel} | Russo Propiedades`;
   const description = `${property.address}, ${property.locality}. ${property.features.rooms ? property.features.rooms + " amb." : ""} ${property.features.totalArea ? property.features.totalArea + " m²" : ""}`.trim();
@@ -269,7 +269,10 @@ export default async function PropertyDetailPage({ params }: PageProps) {
           {/* Description */}
           {property.description && (
             <section>
-              <h2 className="text-xl font-bold text-navy mb-3">Descripción</h2>
+              <h2 className="flex items-center gap-3 font-display text-2xl font-semibold text-navy mb-3">
+                <span className="h-6 w-1 rounded-full bg-magenta" aria-hidden="true" />
+                Descripción
+              </h2>
               <div
                 className="description-html text-gray-700 leading-relaxed"
                 dangerouslySetInnerHTML={{ __html: property.description }}
@@ -283,7 +286,8 @@ export default async function PropertyDetailPage({ params }: PageProps) {
           {/* Amenities */}
           {property.amenities.length > 0 && (
             <section>
-              <h2 className="text-xl font-bold text-navy mb-6">
+              <h2 className="flex items-center gap-3 font-display text-2xl font-semibold text-navy mb-6">
+                <span className="h-6 w-1 rounded-full bg-magenta" aria-hidden="true" />
                 Características
               </h2>
               <AmenityList items={property.amenities} />
@@ -297,7 +301,10 @@ export default async function PropertyDetailPage({ params }: PageProps) {
 
           {/* Location / Map */}
           <section>
-            <h2 className="text-xl font-bold text-navy mb-3">Ubicación</h2>
+            <h2 className="flex items-center gap-3 font-display text-2xl font-semibold text-navy mb-3">
+              <span className="h-6 w-1 rounded-full bg-magenta" aria-hidden="true" />
+              Ubicación
+            </h2>
             <p className="text-gray-700 mb-4">
               {property.address}
               {property.locality ? `, ${property.locality}` : ""}

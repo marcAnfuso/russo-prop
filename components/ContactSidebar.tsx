@@ -90,7 +90,7 @@ export default function ContactSidebar({
   const shareTitle = propertyTitle ?? `Propiedad ${propertyCode}`;
 
   return (
-    <aside className="sticky top-24 rounded-lg border border-gray-200 bg-white shadow-sm">
+    <aside className="lg:sticky lg:top-24 rounded-lg border border-gray-200 bg-white shadow-sm">
       {/* Contact buttons */}
       <div className="flex justify-center p-5">
         <ContactButtons propertyCode={propertyCode} size="md" />
@@ -158,7 +158,7 @@ export default function ContactSidebar({
               placeholder="Nombre y apellido *"
               value={formData.name}
               onChange={handleChange}
-              className={`w-full rounded border px-3 py-2 text-sm outline-none transition-colors focus:border-magenta ${
+              className={`w-full rounded border px-3 py-2 text-sm outline-none transition-colors focus:border-magenta focus:ring-2 focus:ring-magenta/30 ${
                 errors.name ? "border-red-500" : "border-gray-300"
               }`}
             />
@@ -179,7 +179,7 @@ export default function ContactSidebar({
               placeholder="Teléfono *"
               value={formData.phone}
               onChange={handleChange}
-              className={`w-full rounded border px-3 py-2 text-sm outline-none transition-colors focus:border-magenta ${
+              className={`w-full rounded border px-3 py-2 text-sm outline-none transition-colors focus:border-magenta focus:ring-2 focus:ring-magenta/30 ${
                 errors.phone ? "border-red-500" : "border-gray-300"
               }`}
             />
@@ -200,7 +200,7 @@ export default function ContactSidebar({
               placeholder="Email *"
               value={formData.email}
               onChange={handleChange}
-              className={`w-full rounded border px-3 py-2 text-sm outline-none transition-colors focus:border-magenta ${
+              className={`w-full rounded border px-3 py-2 text-sm outline-none transition-colors focus:border-magenta focus:ring-2 focus:ring-magenta/30 ${
                 errors.email ? "border-red-500" : "border-gray-300"
               }`}
             />

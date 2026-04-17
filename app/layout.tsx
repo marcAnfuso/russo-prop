@@ -4,10 +4,54 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import WhatsAppFAB from "@/components/WhatsAppFAB";
 
+const SITE_URL = "https://russo-prop.vercel.app";
+
 export const metadata: Metadata = {
-  title: "Russo Propiedades",
-  description: "Tu hogar ideal te espera",
-  icons: { icon: "/images/logo-icon.webp" },
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: "Russo Propiedades — Inmobiliaria en zona oeste",
+    template: "%s · Russo Propiedades",
+  },
+  description:
+    "Inmobiliaria familiar de zona oeste. Propiedades en venta y alquiler en San Justo, Ramos Mejía, Villa Luzuriaga, Haedo, Morón y más. Desde 1994.",
+  keywords: [
+    "Russo Propiedades",
+    "inmobiliaria zona oeste",
+    "propiedades San Justo",
+    "propiedades La Matanza",
+    "casas en venta zona oeste",
+    "alquileres zona oeste",
+    "tasación gratuita",
+  ],
+  icons: {
+    icon: "/images/logo-icon.webp",
+    apple: "/images/logo-icon.webp",
+  },
+  openGraph: {
+    type: "website",
+    locale: "es_AR",
+    url: SITE_URL,
+    siteName: "Russo Propiedades",
+    title: "Russo Propiedades — Inmobiliaria en zona oeste",
+    description:
+      "Propiedades en venta y alquiler en San Justo y zona oeste. 30 años acompañando familias.",
+    images: [
+      {
+        url: "/images/logo.webp",
+        width: 1200,
+        height: 630,
+        alt: "Russo Propiedades",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Russo Propiedades — Inmobiliaria en zona oeste",
+    description:
+      "Propiedades en venta y alquiler en San Justo y zona oeste. 30 años acompañando familias.",
+    images: ["/images/logo.webp"],
+  },
+  alternates: { canonical: SITE_URL },
 };
 
 export default function RootLayout({
@@ -62,8 +106,8 @@ export default function RootLayout({
               description:
                 "Servicios inmobiliarios en San Justo, La Matanza y zona oeste. Más de 30 años de experiencia.",
               sameAs: [
-                "https://www.instagram.com/russopropiedades",
-                "https://www.facebook.com/russopropiedades",
+                "https://www.instagram.com/russopropiedadesok",
+                "https://www.facebook.com/russopropiedadesok",
               ],
             }),
           }}

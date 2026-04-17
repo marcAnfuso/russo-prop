@@ -2,26 +2,28 @@
 
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Map, EyeOff, X, ChevronLeft, ChevronRight } from "lucide-react";
+import { Map, EyeOff, X, ChevronLeft, ChevronRight, SearchX } from "lucide-react";
 import FilterBar from "@/components/FilterBar";
 import PropertyCard from "@/components/PropertyCard";
 import PropertyQuickViewModal from "@/components/PropertyQuickViewModal";
 import MapView from "@/components/MapView";
 import type { Property } from "@/data/types";
-import type { FetchPropertiesResult } from "@/lib/xintel";
 
 interface PropertyListWithMapProps {
   operationType: "venta" | "alquiler";
+  /** Full inventory for the operation — filter + paginate client-side. */
   initialProperties: Property[];
-  initialHasMore: boolean;
-  totalCount: number | null;
+  /** Kept for backwards compat; ignored now that we load everything upfront. */
+  initialHasMore?: boolean;
+  /** Kept for backwards compat; derived from initialProperties.length. */
+  totalCount?: number | null;
 }
+
+const PAGE_SIZE = 20;
 
 export default function PropertyListWithMap({
   operationType,
   initialProperties,
-  initialHasMore,
-  totalCount,
 }: PropertyListWithMapProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -31,91 +33,56 @@ export default function PropertyListWithMap({
   const initialZonesParam = searchParams.get("zones");
   const initialZones = initialZonesParam ? initialZonesParam.split(",") : [];
 
-  const [pages, setPages] = useState<Property[][]>([initialProperties]);
-  const [hasMore, setHasMore] = useState(initialHasMore);
-  const [currentPage, setCurrentPage] = useState(0); // 0-indexed into pages[]
-  const [loadingPage, setLoadingPage] = useState(false);
+  const [currentPage, setCurrentPage] = useState(0); // 0-indexed
   const [highlightedId, setHighlightedId] = useState<string | null>(null);
   const [showMobileMap, setShowMobileMap] = useState(false);
   const [desktopMapVisible, setDesktopMapVisible] = useState(true);
-  const [selectedPropertyType, setSelectedPropertyType] = useState<string | undefined>(undefined);
   const [quickViewProperty, setQuickViewProperty] = useState<Property | null>(null);
   const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
 
-  const displayed = pages[currentPage] ?? [];
-
-  // FilterBar only sees the current page — keeps filter options and results consistent
-  const baseProperties = displayed;
+  // FilterBar sees the ENTIRE inventory so filters apply across all pages.
   const [filtered, setFiltered] = useState<Property[] | null>(null);
+  const activeSet = filtered ?? initialProperties;
+  const totalPages = Math.max(1, Math.ceil(activeSet.length / PAGE_SIZE));
+  const safePage = Math.min(currentPage, totalPages - 1);
+  const pageStart = safePage * PAGE_SIZE;
+  const visibleProperties = activeSet.slice(pageStart, pageStart + PAGE_SIZE);
+  const showingFiltered =
+    filtered !== null && filtered.length !== initialProperties.length;
 
   const handleFilterChange = useCallback((result: Property[]) => {
     setFiltered(result);
+    setCurrentPage(0);
   }, []);
 
-  const handleFilterStateChange = useCallback((filters: { propertyType?: string; zones: string[] }) => {
-    // Reset pages when property type filter changes so we fetch fresh results from API
-    if (filters.propertyType !== selectedPropertyType) {
-      setPages([initialProperties]);
-      setCurrentPage(0);
-      setFiltered(null);
-    }
-    setSelectedPropertyType(filters.propertyType);
+  const handleFilterStateChange = useCallback(
+    (filters: { propertyType?: string; zones: string[] }) => {
+      const basePath = operationType === "alquiler" ? "/alquileres" : "/ventas";
+      const params = new URLSearchParams();
+      if (filters.propertyType) {
+        params.set("type", filters.propertyType);
+      }
+      if (filters.zones.length > 0) {
+        params.set("zones", filters.zones.join(","));
+      }
+      const newUrl = params.toString() ? `${basePath}?${params.toString()}` : basePath;
+      const currentUrl = window.location.pathname + window.location.search;
+      if (currentUrl !== newUrl) {
+        router.replace(newUrl);
+      }
+    },
+    [router, operationType]
+  );
 
-    // Update URL with current filters, preserving the current section (ventas or alquileres)
-    const basePath = operationType === "alquiler" ? "/alquileres" : "/ventas";
-    const params = new URLSearchParams();
-    if (filters.propertyType) {
-      params.set("type", filters.propertyType);
-    }
-    if (filters.zones.length > 0) {
-      params.set("zones", filters.zones.join(","));
-    }
-    const newUrl = params.toString() ? `${basePath}?${params.toString()}` : basePath;
-
-    // Skip navigation if nothing actually changed — avoids a bogus push on mount
-    const currentUrl = window.location.pathname + window.location.search;
-    if (currentUrl !== newUrl) {
-      router.replace(newUrl);
-    }
-  }, [selectedPropertyType, initialProperties, router, operationType]);
-
-  // A filter is "active" if the result differs from the full current page
-  const showingFiltered =
-    filtered !== null && filtered.length !== displayed.length;
-  const visibleProperties = filtered !== null ? filtered : displayed;
-
-  async function goToPage(pageIndex: number) {
-    // Page already loaded
-    if (pages[pageIndex]) {
-      setCurrentPage(pageIndex);
-      setFiltered(null);
-      window.scrollTo({ top: 0, behavior: "smooth" });
-      return;
-    }
-    // Fetch from API
-    setLoadingPage(true);
-    try {
-      const res = await fetch(
-        `/api/properties?operation=${operationType}&page=${pageIndex + 1}`
-      );
-      const data: FetchPropertiesResult = await res.json();
-      setPages((prev) => {
-        const next = [...prev];
-        next[pageIndex] = data.properties;
-        return next;
-      });
-      setHasMore(data.hasMore);
-      setCurrentPage(pageIndex);
-      setFiltered(null);
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    } finally {
-      setLoadingPage(false);
-    }
+  function goToPage(pageIndex: number) {
+    if (pageIndex < 0 || pageIndex >= totalPages) return;
+    setCurrentPage(pageIndex);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   const mapProperties = useMemo(
     () =>
-      visibleProperties.map((p) => ({
+      activeSet.map((p) => ({
         id: p.id,
         title: p.title,
         price: p.price,
@@ -125,20 +92,20 @@ export default function PropertyListWithMap({
         images: p.images,
         operation: p.operation,
       })),
-    [visibleProperties]
+    [activeSet]
   );
 
   const mapCenter = useMemo<[number, number]>(() => {
-    if (visibleProperties.length === 0) return [-34.6855, -58.5567];
-    const avgLat = visibleProperties.reduce((s, p) => s + p.location.lat, 0) / visibleProperties.length;
-    const avgLng = visibleProperties.reduce((s, p) => s + p.location.lng, 0) / visibleProperties.length;
+    if (activeSet.length === 0) return [-34.6855, -58.5567];
+    const avgLat = activeSet.reduce((s, p) => s + p.location.lat, 0) / activeSet.length;
+    const avgLng = activeSet.reduce((s, p) => s + p.location.lng, 0) / activeSet.length;
     return [avgLat, avgLng];
-  }, [visibleProperties]);
+  }, [activeSet]);
 
   return (
     <div className="min-h-screen bg-gray-50">
       <FilterBar
-        properties={baseProperties}
+        properties={initialProperties}
         onFilterChange={handleFilterChange}
         onFilterStateChange={handleFilterStateChange}
         operationType={operationType}
@@ -153,13 +120,9 @@ export default function PropertyListWithMap({
             <div className="flex items-center justify-between mb-4 gap-3">
               <p className="text-sm text-gray-500">
                 {showingFiltered ? (
-                  <>{visibleProperties.length} {visibleProperties.length === 1 ? "propiedad" : "propiedades"} (filtradas)</>
-                ) : totalCount !== null ? (
-                  <>Mostrando {visibleProperties.length} de {totalCount} propiedades</>
-                ) : hasMore ? (
-                  <>Mostrando {visibleProperties.length} propiedades…</>
+                  <>{activeSet.length} {activeSet.length === 1 ? "propiedad" : "propiedades"} · filtradas</>
                 ) : (
-                  <>{visibleProperties.length} {visibleProperties.length === 1 ? "propiedad" : "propiedades"}</>
+                  <>{activeSet.length} {activeSet.length === 1 ? "propiedad" : "propiedades"} en total</>
                 )}
               </p>
 
@@ -191,27 +154,37 @@ export default function PropertyListWithMap({
             {visibleProperties.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-20 text-center">
                 <div className="max-w-md">
-                  <p className="text-lg font-semibold text-navy mb-4">
-                    No encontramos propiedades con esos filtros
-                  </p>
-                  <p className="text-sm text-gray-600 mb-6">
-                    Intenta ajustar tu búsqueda para encontrar más opciones
+                  <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-magenta-50 text-magenta">
+                    <SearchX className="h-6 w-6" />
+                  </div>
+                  <h3 className="font-display text-2xl font-semibold text-navy mb-2">
+                    No encontramos lo que buscás
+                  </h3>
+                  <p className="text-sm text-gray-600 mb-6 leading-relaxed">
+                    Con los filtros actuales no hay propiedades para mostrar.
+                    Probá ampliar la zona o quitar algún filtro — a veces lo
+                    que buscás está a una cuadra.
                   </p>
                   <div className="space-y-3">
                     <button
                       onClick={() => {
-                        // Scroll to filter bar
                         document.querySelector("[data-testid='filter-bar']")?.scrollIntoView({ behavior: "smooth" });
                       }}
                       className="block w-full rounded-lg border-2 border-magenta px-4 py-2 text-sm font-semibold text-magenta hover:bg-magenta hover:text-white transition-colors"
                     >
-                      Cambiar filtros
+                      Ajustar filtros
                     </button>
                     <a
                       href={`/${operationType === 'alquiler' ? 'alquileres' : 'ventas'}`}
                       className="block w-full rounded-lg border-2 border-navy px-4 py-2 text-sm font-semibold text-navy hover:bg-navy hover:text-white transition-colors"
                     >
                       Ver todas las propiedades
+                    </a>
+                    <a
+                      href="/contacto"
+                      className="block text-xs text-gray-400 hover:text-magenta transition-colors"
+                    >
+                      ¿No encontrás lo que necesitás? Contactanos
                     </a>
                   </div>
                 </div>
@@ -239,27 +212,26 @@ export default function PropertyListWithMap({
                   ))}
                 </div>
 
-                {/* Pagination — only when not filtering */}
-                {!showingFiltered && (
+                {totalPages > 1 && (
                   <div className="flex items-center justify-center gap-2 mt-8">
                     <button
-                      onClick={() => goToPage(currentPage - 1)}
-                      disabled={currentPage === 0 || loadingPage}
+                      onClick={() => goToPage(safePage - 1)}
+                      disabled={safePage === 0}
                       className="flex items-center gap-1 rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 disabled:opacity-40 hover:bg-gray-50 transition-colors"
                     >
                       <ChevronLeft className="h-4 w-4" /> Anterior
                     </button>
 
-                    <span className="text-sm text-gray-600 px-2">
-                      Página {currentPage + 1}{totalCount ? ` de ${Math.ceil(totalCount / 20)}` : ""}
+                    <span className="text-sm text-gray-600 px-2 tabular-nums">
+                      Página {safePage + 1} de {totalPages}
                     </span>
 
                     <button
-                      onClick={() => goToPage(currentPage + 1)}
-                      disabled={!hasMore && !pages[currentPage + 1] || loadingPage}
+                      onClick={() => goToPage(safePage + 1)}
+                      disabled={safePage >= totalPages - 1}
                       className="flex items-center gap-1 rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 disabled:opacity-40 hover:bg-gray-50 transition-colors"
                     >
-                      {loadingPage ? "Cargando…" : <>Siguiente <ChevronRight className="h-4 w-4" /></>}
+                      Siguiente <ChevronRight className="h-4 w-4" />
                     </button>
                   </div>
                 )}

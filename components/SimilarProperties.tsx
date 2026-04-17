@@ -35,7 +35,8 @@ export default function SimilarProperties({
 
   return (
     <section>
-      <h2 className="text-2xl font-bold text-navy mb-6">
+      <h2 className="flex items-center gap-3 font-display text-2xl font-semibold text-navy mb-6">
+        <span className="h-6 w-1 rounded-full bg-magenta" aria-hidden="true" />
         Propiedades similares
       </h2>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

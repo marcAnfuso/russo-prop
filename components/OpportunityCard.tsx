@@ -4,13 +4,10 @@ import Link from "next/link";
 import Image from "next/image";
 import { TrendingDown, Flame } from "lucide-react";
 import type { Property, PriceHistoryEntry } from "@/data/types";
+import { formatPrice } from "@/lib/utils";
 
 interface OpportunityCardProps {
   property: Property;
-}
-
-function formatPrice(price: number): string {
-  return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 }
 
 function formatRelativeDate(iso: string): string {
@@ -76,8 +73,8 @@ export default function OpportunityCard({ property }: OpportunityCardProps) {
           </p>
         </div>
 
-        <div className="flex items-baseline gap-2">
-          <span className="text-xl font-bold text-navy">
+        <div className="flex items-baseline gap-2 flex-wrap">
+          <span className="text-2xl font-bold tracking-tight text-navy">
             {currencyLabel} {formatPrice(current.price)}
           </span>
           <span className="inline-flex items-center gap-0.5 text-sm font-semibold text-emerald-600">
