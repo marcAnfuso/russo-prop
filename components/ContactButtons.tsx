@@ -19,7 +19,9 @@ export default function ContactButtons({
   size = "sm",
   compact = false,
 }: ContactButtonsProps) {
-  const whatsappUrl = `https://wa.me/541146514024?text=Hola!%20Consulto%20por%20la%20propiedad%20${propertyCode}`;
+  // Argentina mobile numbers need the "9" after the country code (54) for
+  // WhatsApp to resolve them — otherwise it says "no existe en WhatsApp".
+  const whatsappUrl = `https://wa.me/5491146514024?text=Hola!%20Consulto%20por%20la%20propiedad%20${propertyCode}`;
   const phoneUrl = "tel:+541146514024";
   const emailUrl = `mailto:info@russopropiedades.com.ar?subject=Consulta%20propiedad%20${propertyCode}`;
 

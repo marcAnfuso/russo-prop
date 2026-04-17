@@ -2,8 +2,10 @@
 
 import { useState } from "react";
 
+// Argentina mobile numbers need the "9" after the country code (54) for
+// WhatsApp to resolve — otherwise the link says "no existe en WhatsApp".
 const WHATSAPP_URL =
-  "https://wa.me/541146514024?text=Hola!%20Vi%20su%20sitio%20web%20y%20me%20gustar%C3%ADa%20consultar%20sobre%20una%20propiedad.";
+  "https://wa.me/5491146514024?text=Hola!%20Vi%20su%20sitio%20web%20y%20me%20gustar%C3%ADa%20consultar%20sobre%20una%20propiedad.";
 
 export default function WhatsAppFAB() {
   const [hovered, setHovered] = useState(false);

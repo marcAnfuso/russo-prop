@@ -128,7 +128,7 @@ export default function ContactSidebar({
       {/* Contact form */}
       <div className="p-5">
         <h3 className="mb-4 text-sm font-semibold text-navy">
-          Enviános un mensaje
+          Envianos un mensaje
         </h3>
         {success ? (
           <div className="text-center py-4">

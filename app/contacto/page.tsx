@@ -164,7 +164,7 @@ export default function ContactoPage() {
             ) : (
               <>
                 <h2 className="text-2xl font-bold mb-2">
-                  Enviános un mensaje
+                  Envianos un mensaje
                 </h2>
                 <p className="text-gray-600 mb-6 text-sm">
                   Completá el formulario y nos pondremos en contacto con vos

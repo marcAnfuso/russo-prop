@@ -61,7 +61,7 @@ function AnimatedNumber({ stat }: { stat: Stat }) {
   return (
     <span
       ref={ref}
-      className="font-display text-6xl lg:text-7xl font-semibold tabular-nums text-white"
+      className="font-display text-5xl sm:text-6xl lg:text-7xl font-semibold tabular-nums text-white"
     >
       {stat.prefix ?? ""}
       {formatted}
