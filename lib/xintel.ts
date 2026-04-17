@@ -172,14 +172,15 @@ function parsePrecio(precio?: string): number {
 }
 
 function parseCoords(coo?: string): { lat: number; lng: number } {
-  const fallback = { lat: -34.68, lng: -58.56 };
+  const fallback = { lat: -34.68, lng: -58.56 }; // San Justo, Russo HQ
   if (!coo) return fallback;
   const [lat, lng] = coo.split(",").map(parseFloat);
   if (!lat || !lng || isNaN(lat) || isNaN(lng)) return fallback;
-  // Argentina roughly spans lat -55 to -21 and lng -74 to -53. Any point
-  // outside this box is bad data (we've seen Madrid coords leak in from
-  // Xintel) and would warp the map bounds to show Europe.
-  if (lat < -56 || lat > -21 || lng < -75 || lng > -53) return fallback;
+  // Russo operates in Greater Buenos Aires — zona oeste. Anything outside
+  // this box is bad data (we've seen Madrid coords and stray Córdoba/
+  // Corrientes coords leak in), and a single outlier spreads the map bounds
+  // across half of Argentina.
+  if (lat < -36 || lat > -34 || lng < -60 || lng > -57) return fallback;
   return { lat, lng };
 }
 
