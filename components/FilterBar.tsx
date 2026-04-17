@@ -4,36 +4,7 @@ import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Search, X, ChevronDown, SlidersHorizontal } from "lucide-react";
 import type { Property } from "@/data/types";
-
-/* ------------------------------------------------------------------ */
-/*  Constants                                                         */
-/* ------------------------------------------------------------------ */
-
-const LOCALITIES = [
-  "San Justo",
-  "Villa Luzuriaga",
-  "Ramos Mejía",
-  "Ciudadela",
-  "Haedo",
-  "Morón",
-  "Isidro Casanova",
-  "González Catán",
-  "Gregorio de Laferrere",
-  "Villa Madero",
-  "Villa Lugano",
-  "Villa Sarmiento",
-  "Rafael Castillo",
-  "Ciudad Evita",
-  "Aldo Bonzi",
-  "La Tablada",
-  "Lomas del Mirador",
-  "El Palomar",
-  "Mataderos",
-  "Virrey del Pino",
-  "9 de Abril",
-  "Canning",
-  "Laguna Azul",
-] as const;
+import { useLocalities } from "@/lib/useLocalities";
 
 const PROPERTY_TYPES: { label: string; value: Property["type"] }[] = [
   { label: "Departamento", value: "departamento" },
@@ -220,6 +191,7 @@ export default function FilterBar({
   initialZones = [],
 }: FilterBarProps) {
   const router = useRouter();
+  const localities = useLocalities();
   /* ---- filter state ---- */
   const [zones, setZones] = useState<string[]>(initialZones);
   const [zoneQuery, setZoneQuery] = useState("");
@@ -373,12 +345,12 @@ export default function FilterBar({
 
   /* ---- zone suggestions ---- */
   const zoneSuggestions = useMemo(() => {
-    if (!zoneQuery.trim()) return LOCALITIES.filter((l) => !zones.includes(l));
+    if (!zoneQuery.trim()) return localities.filter((l) => !zones.includes(l));
     const q = zoneQuery.toLowerCase();
-    return LOCALITIES.filter(
+    return localities.filter(
       (l) => l.toLowerCase().includes(q) && !zones.includes(l)
     );
-  }, [zoneQuery, zones]);
+  }, [zoneQuery, zones, localities]);
 
   const addZone = (z: string) => {
     if (!zones.includes(z)) {

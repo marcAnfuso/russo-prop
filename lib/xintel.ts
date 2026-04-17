@@ -109,6 +109,23 @@ function decodeHtml(s?: string): string {
   return s.replace(/&[a-zA-Z0-9#]+;/g, (e) => HTML_ENTITIES[e] ?? e);
 }
 
+/** Normalize locality casing: "MORÓN" → "Morón", "de" / "del" stay lowercase. */
+function normalizeLocality(s?: string): string {
+  if (!s) return "";
+  const decoded = decodeHtml(s).trim();
+  if (!decoded) return "";
+  const lower = decoded.toLowerCase();
+  return lower
+    .split(/\s+/)
+    .map((word, i) => {
+      if (i > 0 && (word === "de" || word === "del" || word === "la" || word === "las" || word === "los")) {
+        return word;
+      }
+      return word.charAt(0).toLocaleUpperCase("es") + word.slice(1);
+    })
+    .join(" ");
+}
+
 function num(v: string | number | null | undefined): number {
   if (v == null || v === "") return 0;
   if (typeof v === "number") return isNaN(v) ? 0 : v;
@@ -222,7 +239,7 @@ function mapListFicha(ficha: XintelListFicha, imgs: string | string[], amenities
     price,
     currency,
     address: decodeHtml(ficha.direccion_completa) || `${ficha.in_cal ?? ""} ${ficha.in_nro ?? ""}`.trim(),
-    locality: decodeHtml(ficha.in_bar),
+    locality: normalizeLocality(ficha.in_bar),
     district: decodeHtml(ficha.in_loc),
     description: decodeHtml(ficha.in_obs?.trim()),
     features: {
@@ -421,7 +438,7 @@ export async function fetchProperty(id: string): Promise<Property | null> {
       price,
       currency,
       address: decodeHtml(ficha.direccion_completa) || `${ficha.in_cal ?? ""} ${ficha.in_nro ?? ""}`.trim(),
-      locality: decodeHtml(ficha.in_bar),
+      locality: normalizeLocality(ficha.in_bar),
       district: decodeHtml(ficha.in_loc),
       description: decodeHtml(ficha.in_obs?.trim()),
       features: {
@@ -480,4 +497,26 @@ export async function fetchFeaturedProperties(): Promise<Property[]> {
 export async function fetchLatestProperties(): Promise<Property[]> {
   const { properties } = await fetchProperties({ page: 1 });
   return properties.slice(0, 6);
+}
+
+/**
+ * Fetch the list of localities (barrios) that Russo actually has listings in.
+ * Walks up to 12 pages and aggregates unique normalized `in_bar` values.
+ * Pages are cached by Next's fetch layer (REVALIDATE = 30 min).
+ */
+export async function fetchAvailableLocalities(maxPages = 12): Promise<string[]> {
+  const seen = new Set<string>();
+  for (let page = 1; page <= maxPages; page++) {
+    try {
+      const { fichas } = await fetchPage(buildListUrl({}, page));
+      for (const f of fichas) {
+        const loc = normalizeLocality(f.in_bar);
+        if (loc) seen.add(loc);
+      }
+      if (fichas.length < PER_PAGE) break;
+    } catch {
+      break;
+    }
+  }
+  return Array.from(seen).sort((a, b) => a.localeCompare(b, "es"));
 }

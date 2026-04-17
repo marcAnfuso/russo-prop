@@ -3,37 +3,12 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Search, X, ChevronDown, Check } from "lucide-react";
+import { useLocalities } from "@/lib/useLocalities";
 
 interface SearchBarProps {
   variant?: "hero" | "compact";
   defaultOperation?: "comprar" | "alquilar";
 }
-
-const LOCALITIES = [
-  "San Justo",
-  "Villa Luzuriaga",
-  "Ramos Mejía",
-  "Ciudadela",
-  "Haedo",
-  "Morón",
-  "Isidro Casanova",
-  "González Catán",
-  "Gregorio de Laferrere",
-  "Villa Madero",
-  "Villa Lugano",
-  "Villa Sarmiento",
-  "Rafael Castillo",
-  "Ciudad Evita",
-  "Aldo Bonzi",
-  "La Tablada",
-  "Lomas del Mirador",
-  "El Palomar",
-  "Mataderos",
-  "Virrey del Pino",
-  "9 de Abril",
-  "Canning",
-  "Laguna Azul",
-];
 
 const PROPERTY_TYPES = [
   "Departamento",
@@ -52,6 +27,7 @@ export default function SearchBar({
   defaultOperation = "comprar",
 }: SearchBarProps) {
   const router = useRouter();
+  const localities = useLocalities();
   const [operation, setOperation] = useState<Operation>(defaultOperation);
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
@@ -78,11 +54,11 @@ export default function SearchBar({
   const suggestions = useMemo(() => {
     if (!debouncedQuery.trim()) return [];
     const lower = debouncedQuery.toLowerCase();
-    return LOCALITIES.filter(
+    return localities.filter(
       (loc) =>
         loc.toLowerCase().includes(lower) && !selectedZones.includes(loc)
     );
-  }, [debouncedQuery, selectedZones]);
+  }, [debouncedQuery, selectedZones, localities]);
 
   // Close dropdowns on click outside
   useEffect(() => {
