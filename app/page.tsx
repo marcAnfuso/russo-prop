@@ -7,10 +7,7 @@ import FeaturedDevelopments from "@/components/FeaturedDevelopments";
 import StatsSection from "@/components/StatsSection";
 import HistoriasMudanza from "@/components/HistoriasMudanza";
 import FeaturedOpportunities from "@/components/FeaturedOpportunities";
-import {
-  fetchFeaturedProperties,
-  fetchLatestProperties,
-} from "@/lib/xintel";
+import { getHomeFeatured, getHomeNewListings } from "@/lib/homepage-lists";
 import { fetchOpportunityProperties } from "@/lib/opportunities";
 
 export const metadata: Metadata = {
@@ -21,7 +18,7 @@ export const metadata: Metadata = {
 };
 
 async function FeaturedPropertiesLoader() {
-  const featured = await fetchFeaturedProperties();
+  const featured = await getHomeFeatured(4);
   return <FeaturedProperties properties={featured} />;
 }
 
@@ -44,7 +41,7 @@ function FeaturedPropertiesSkeleton() {
 }
 
 async function NewListingsLoader() {
-  const latest = await fetchLatestProperties();
+  const latest = await getHomeNewListings(6);
   return <NewListings properties={latest} />;
 }
 
