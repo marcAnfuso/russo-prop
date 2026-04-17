@@ -15,8 +15,16 @@ interface PropertyCardProps {
   compact?: boolean;
 }
 
+const COMMERCIAL_TYPE_LABEL: Partial<Record<string, string>> = {
+  local: "Local",
+  oficina: "Oficina",
+  terreno: "Terreno",
+  cochera: "Cochera",
+  edificio: "Edificio",
+};
+
 export default function PropertyCard({ property, onHover, onQuickView, compact = false }: PropertyCardProps) {
-  const { id, code, operation, subtype, price, currency, address, locality, district, images, features } = property;
+  const { id, code, operation, type, subtype, price, currency, address, locality, district, images, features } = property;
 
   const isAlquiler = operation === "alquiler";
   const currencyLabel = currency === "ARS" ? "$" : "USD";
@@ -25,6 +33,11 @@ export default function PropertyCard({ property, onHover, onQuickView, compact =
       ? "Reservado"
       : `${currencyLabel} ${formatPrice(price)}${isAlquiler ? "/mes" : ""}`;
   const imageSrc = images.length > 0 ? images[0] : null;
+
+  // Show finer-grained subtype for residential (Dúplex, Semipiso…); fall back
+  // to the high-level type label for commercial so a Local doesn't look like
+  // a bare price with no context.
+  const badgeLabel = subtype ?? COMMERCIAL_TYPE_LABEL[type];
 
   // Xintel often leaves in_sup (total) at 0 while populating in_cub (covered).
   // Prefer covered area so the chip isn't silently missing.
@@ -95,9 +108,9 @@ export default function PropertyCard({ property, onHover, onQuickView, compact =
         <div className="space-y-1">
           <div className="flex items-center gap-2 flex-wrap">
             <p className="text-2xl font-bold tracking-tight text-gray-900">{priceLabel}</p>
-            {subtype && (
+            {badgeLabel && (
               <span className="inline-flex items-center rounded-full bg-magenta-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-magenta">
-                {subtype}
+                {badgeLabel}
               </span>
             )}
           </div>
