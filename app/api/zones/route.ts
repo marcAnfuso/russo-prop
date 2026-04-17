@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
-import { fetchAvailableLocalities, REVALIDATE } from "@/lib/xintel";
+import { fetchAvailableLocalities } from "@/lib/xintel";
 
-export const revalidate = REVALIDATE;
+// Match lib/xintel.ts REVALIDATE (30 min). Must be a literal for Next's
+// segment-config static analysis.
+export const revalidate = 1800;
 
 export async function GET() {
   const localities = await fetchAvailableLocalities();
