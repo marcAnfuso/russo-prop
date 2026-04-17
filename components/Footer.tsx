@@ -33,10 +33,10 @@ export default function Footer() {
               />
             </Link>
             <p className="text-sm leading-relaxed text-gray-500">
-              Hemos agregado a nuestra amplia experiencia, toda la tecnologia
-              hoy disponible, sumada a nuestro mas importante capital, que es la
-              gente joven, rigurosamente seleccionada por su capacidad,
-              idoneidad y honestidad
+              Hemos agregado a nuestra amplia experiencia, toda la tecnología
+              hoy disponible, sumada a nuestro más importante capital, que es
+              la gente joven, rigurosamente seleccionada por su capacidad,
+              idoneidad y honestidad.
             </p>
           </div>
 
@@ -92,10 +92,10 @@ export default function Footer() {
             </nav>
           </div>
 
-          {/* Column 4 - Ultimas Propiedades */}
+          {/* Column 4 - Últimas Propiedades */}
           <div>
             <h3 className="mb-4 text-lg font-semibold text-navy">
-              Ultimas Propiedades
+              Últimas Propiedades
             </h3>
             <ul className="space-y-3">
               {latestProperties.map((property) => (
@@ -133,7 +133,13 @@ export default function Footer() {
       <div className="border-t border-gray-200 bg-white">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-4 py-4 sm:flex-row sm:px-6 lg:px-8">
           <p className="text-sm text-gray-500">
-            &copy; 2026 Russo Propiedades. Todos los derechos reservados.
+            &copy; 2026 Russo Propiedades. Todos los derechos reservados. ·{" "}
+            <Link
+              href="/creditos"
+              className="hover:text-magenta transition-colors"
+            >
+              Créditos
+            </Link>
           </p>
           <div className="flex items-center gap-4">
             <a
@@ -146,10 +152,11 @@ export default function Footer() {
               <Facebook className="h-5 w-5" />
             </a>
             <a
-              href="https://instagram.com"
+              href="https://instagram.com/russopropiedadesok"
               target="_blank"
               rel="noopener noreferrer"
-              aria-label="Seguinos en Instagram"
+              aria-label="Seguinos en Instagram — @russopropiedadesok"
+              title="@russopropiedadesok"
               className="text-gray-400 hover:text-magenta transition-colors"
             >
               <Instagram className="h-5 w-5" />

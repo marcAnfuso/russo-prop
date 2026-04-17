@@ -1,8 +1,7 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
-  Heart,
-  Share2,
   Maximize2,
   LandPlot,
   Home,
@@ -15,6 +14,10 @@ import { fetchProperty, fetchPropertyIds } from "@/lib/xintel";
 import type { Property } from "@/data/types";
 import { formatPrice } from "@/lib/utils";
 import Gallery from "@/components/Gallery";
+import AmenityList from "@/components/AmenityList";
+import PropertyDetailsTable from "@/components/PropertyDetailsTable";
+import AreaMeasurementsTable from "@/components/AreaMeasurementsTable";
+import DetailHeaderActions from "@/components/DetailHeaderActions";
 import ContactSidebar from "@/components/ContactSidebar";
 import MapView from "@/components/MapView";
 import Breadcrumb from "@/components/Breadcrumb";
@@ -26,16 +29,41 @@ export async function generateStaticParams() {
   return ids.map((id) => ({ id }));
 }
 
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params;
+  const property = await fetchProperty(id);
+  if (!property) return { title: "Propiedad no encontrada | Russo Propiedades" };
+
+  const priceLabel = property.price === 9999999
+    ? "Reservado"
+    : `${property.currency === "ARS" ? "$" : "USD"} ${property.price.toLocaleString("es-AR")}`;
+
+  const title = `${property.type.charAt(0).toUpperCase() + property.type.slice(1)} en ${property.operation === "alquiler" ? "Alquiler" : "Venta"} — ${priceLabel} | Russo Propiedades`;
+  const description = `${property.address}, ${property.locality}. ${property.features.rooms ? property.features.rooms + " amb." : ""} ${property.features.totalArea ? property.features.totalArea + " m²" : ""}`.trim();
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title: `${priceLabel} — ${property.address}`,
+      description: description.slice(0, 160),
+      images: property.images[0] ? [{ url: property.images[0], width: 1200, height: 630 }] : [],
+      type: "website",
+    },
+  };
+}
+
 interface PageProps {
   params: Promise<{ id: string }>;
 }
 
 export default async function PropertyDetailPage({ params }: PageProps) {
   const { id } = await params;
-  const [property, { properties: allProperties }] = await Promise.all([
-    fetchProperty(id),
-    fetchProperties({ page: 1 }),
-  ]);
+  const property = await fetchProperty(id);
+  const { properties: allProperties } = await fetchProperties({
+    operation: property?.operation ?? "venta",
+    page: 1,
+  });
 
   if (!property) {
     return (
@@ -44,7 +72,7 @@ export default async function PropertyDetailPage({ params }: PageProps) {
           Propiedad no encontrada
         </h1>
         <p className="text-gray-500">
-          La propiedad que buscas no existe o fue removida.
+          La propiedad que buscás no existe o fue removida.
         </p>
         <Link
           href="/ventas"
@@ -110,7 +138,7 @@ export default async function PropertyDetailPage({ params }: PageProps) {
     featureItems.push({
       icon: <Bath className="h-5 w-5 text-magenta" />,
       value: `${property.features.bathrooms}`,
-      label: "Banos",
+      label: "Baños",
     });
   }
   if (property.features.bedrooms) {
@@ -131,7 +159,7 @@ export default async function PropertyDetailPage({ params }: PageProps) {
     featureItems.push({
       icon: <Calendar className="h-5 w-5 text-magenta" />,
       value: `${property.features.age}`,
-      label: "Antiguedad",
+      label: "Antigüedad",
     });
   }
 
@@ -146,7 +174,37 @@ export default async function PropertyDetailPage({ params }: PageProps) {
   };
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8">
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "RealEstateListing",
+            name: property.title,
+            description: property.description,
+            url: `https://russopropiedades.com.ar/propiedad/${property.id}`,
+            image: property.images[0],
+            address: {
+              "@type": "PostalAddress",
+              streetAddress: property.address,
+              addressLocality: property.locality,
+              addressRegion: property.district,
+              addressCountry: "AR",
+            },
+            offers: {
+              "@type": "Offer",
+              price: property.price === 9999999 ? undefined : property.price,
+              priceCurrency: property.currency,
+              availability:
+                property.price === 9999999
+                  ? "https://schema.org/SoldOut"
+                  : "https://schema.org/InStock",
+            },
+          }),
+        }}
+      />
+      <div className="mx-auto max-w-7xl px-4 py-8">
       {/* Two-column layout */}
       <div className="flex flex-col lg:flex-row gap-8">
         {/* Left column */}
@@ -159,20 +217,10 @@ export default async function PropertyDetailPage({ params }: PageProps) {
             <h1 className="text-2xl font-bold text-navy md:text-3xl">
               {property.title}
             </h1>
-            <div className="flex items-center gap-2 flex-shrink-0">
-              <button
-                aria-label="Agregar a favoritos"
-                className="rounded-full border border-gray-300 p-2 text-gray-500 transition-colors hover:border-magenta hover:text-magenta"
-              >
-                <Heart className="h-5 w-5" />
-              </button>
-              <button
-                aria-label="Compartir"
-                className="rounded-full border border-gray-300 p-2 text-gray-500 transition-colors hover:border-magenta hover:text-magenta"
-              >
-                <Share2 className="h-5 w-5" />
-              </button>
-            </div>
+            <DetailHeaderActions
+              propertyId={property.id}
+              title={property.title}
+            />
           </div>
 
           {/* Gallery */}
@@ -221,7 +269,7 @@ export default async function PropertyDetailPage({ params }: PageProps) {
           {/* Description */}
           {property.description && (
             <section>
-              <h2 className="text-xl font-bold text-navy mb-3">Descripcion</h2>
+              <h2 className="text-xl font-bold text-navy mb-3">Descripción</h2>
               <div
                 className="description-html text-gray-700 leading-relaxed"
                 dangerouslySetInnerHTML={{ __html: property.description }}
@@ -229,28 +277,27 @@ export default async function PropertyDetailPage({ params }: PageProps) {
             </section>
           )}
 
+          {/* Detalles de la propiedad */}
+          <PropertyDetailsTable property={property} />
+
           {/* Amenities */}
           {property.amenities.length > 0 && (
             <section>
-              <h2 className="text-xl font-bold text-navy mb-3">
-                Caracteristicas
+              <h2 className="text-xl font-bold text-navy mb-6">
+                Características
               </h2>
-              <div className="flex flex-wrap gap-2">
-                {property.amenities.map((amenity) => (
-                  <span
-                    key={amenity}
-                    className="rounded-full border border-gray-300 bg-gray-50 px-4 py-1.5 text-sm text-gray-700"
-                  >
-                    {amenity}
-                  </span>
-                ))}
-              </div>
+              <AmenityList items={property.amenities} />
             </section>
+          )}
+
+          {/* Medidas */}
+          {property.areas && property.areas.length > 0 && (
+            <AreaMeasurementsTable areas={property.areas} />
           )}
 
           {/* Location / Map */}
           <section>
-            <h2 className="text-xl font-bold text-navy mb-3">Ubicacion</h2>
+            <h2 className="text-xl font-bold text-navy mb-3">Ubicación</h2>
             <p className="text-gray-700 mb-4">
               {property.address}
               {property.locality ? `, ${property.locality}` : ""}
@@ -285,5 +332,6 @@ export default async function PropertyDetailPage({ params }: PageProps) {
         />
       </div>
     </div>
+    </>
   );
 }

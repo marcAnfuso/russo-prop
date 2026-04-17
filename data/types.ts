@@ -2,6 +2,37 @@ export type OperationType = "venta" | "alquiler";
 export type PropertyType = "casa" | "departamento" | "ph" | "terreno" | "cochera" | "local" | "oficina" | "edificio";
 export type DevelopmentStatus = "pre-venta" | "pozo" | "en-construccion" | "terminado";
 
+export interface PriceHistoryEntry {
+  price: number;
+  currency: "USD" | "ARS";
+  date: string; // ISO 8601
+}
+
+/** A row from Xintel's `superficie` table: label + value (e.g. "Cubierta" / "62.00m2"). */
+export interface AreaMeasurement {
+  label: string;
+  value: string;
+}
+
+/**
+ * Extra ficha details only populated by fetchProperty() (detail endpoint).
+ * Everything optional — Xintel fields are inconsistent across listings.
+ */
+export interface PropertyDetails {
+  floor?: string;            // in_pis — piso
+  aptNumber?: string;        // in_dto — departamento letra/número
+  condition?: string;        // in_esa — estado (Muy Bueno, A estrenar, …)
+  category?: string;         // in_eco — categoría
+  orientation?: string;      // ubicacion — frente/contrafrente/…
+  elevators?: number;        // in_asc
+  expenses?: number;         // in_exp — expensas (ARS)
+  tax?: number;              // in_imp — impuesto (ARS)
+  apartmentType?: string;    // in_tip + tipo
+  hasBaulera?: boolean;      // derived
+  hasHotWater?: boolean;     // in_agu / in_ale derived
+  hasAC?: boolean;           // in_aire / derived
+}
+
 export interface Property {
   id: string;
   code: string;
@@ -25,10 +56,13 @@ export interface Property {
     age?: number;
   };
   amenities: string[];
+  areas?: AreaMeasurement[];  // full `superficie` table
+  details?: PropertyDetails;  // extra ficha details (detail page only)
   images: string[];
   videoUrl?: string;
   location: { lat: number; lng: number };
   featured: boolean;
+  priceHistory?: PriceHistoryEntry[];
 }
 
 export interface Development {

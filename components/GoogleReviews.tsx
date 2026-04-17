@@ -85,7 +85,7 @@ export default function GoogleReviews() {
             rel="noopener noreferrer"
             className="btn-outline-magenta text-sm"
           >
-            Dejanos tu opinion
+            Dejanos tu opinión
           </a>
         </div>
       </div>

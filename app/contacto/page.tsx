@@ -10,7 +10,7 @@ const OFFICE_ADDRESS = "Av. Pte J. D. Peron 3501, San Justo, Buenos Aires";
 const HOW_OPTIONS = [
   "Buscador web",
   "Redes sociales",
-  "Recomendacion",
+  "Recomendación",
   "Cartel en la calle",
   "Otro",
 ];
@@ -18,7 +18,7 @@ const HOW_OPTIONS = [
 const infoCards = [
   {
     icon: MapPin,
-    heading: "Nuestra ubicacion",
+    heading: "Nuestra ubicación",
     text: OFFICE_ADDRESS,
     href: undefined as string | undefined,
   },
@@ -30,7 +30,7 @@ const infoCards = [
   },
   {
     icon: Phone,
-    heading: "Lineas rotativas",
+    heading: "Líneas rotativas",
     text: "+54 11 4651 4024",
     href: "tel:+541146514024",
   },
@@ -48,6 +48,7 @@ export default function ContactoPage() {
   });
   const [submitted, setSubmitted] = useState(false);
   const [sending, setSending] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   function handleChange(
     e: React.ChangeEvent<
@@ -65,10 +66,32 @@ export default function ContactoPage() {
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setSending(true);
-    // Simulate send
-    await new Promise((r) => setTimeout(r, 1000));
-    setSending(false);
-    setSubmitted(true);
+    setSubmitError(null);
+
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: form.nombre,
+          email: form.email,
+          phone: form.telefono,
+          message: [
+            form.mensaje,
+            form.direccion ? `Dirección: ${form.direccion}` : "",
+            form.comoNosConociste ? `Cómo nos conoció: ${form.comoNosConociste}` : "",
+          ].filter(Boolean).join("\n"),
+          type: "contacto",
+        }),
+      });
+
+      if (!res.ok) throw new Error("Error al enviar");
+      setSubmitted(true);
+    } catch {
+      setSubmitError("No se pudo enviar el mensaje. Intentá de nuevo.");
+    } finally {
+      setSending(false);
+    }
   }
 
   return (
@@ -141,12 +164,11 @@ export default function ContactoPage() {
             ) : (
               <>
                 <h2 className="text-2xl font-bold mb-2">
-                  Envianos un mensaje
+                  Enviános un mensaje
                 </h2>
                 <p className="text-gray-600 mb-6 text-sm">
-                  Completa el formulario para contactarnos sobre cualquier
-                  pregunta o comentario que tengas y nos contactaremos a la
-                  brevedad.
+                  Completá el formulario y nos pondremos en contacto con vos
+                  a la brevedad.
                 </p>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
@@ -194,7 +216,7 @@ export default function ContactoPage() {
                       htmlFor="telefono"
                       className="block text-sm font-medium mb-1"
                     >
-                      Telefono <span className="text-red-500">*</span>
+                      Teléfono <span className="text-red-500">*</span>
                     </label>
                     <input
                       id="telefono"
@@ -213,7 +235,7 @@ export default function ContactoPage() {
                       htmlFor="direccion"
                       className="block text-sm font-medium mb-1"
                     >
-                      Direccion
+                      Dirección
                     </label>
                     <input
                       id="direccion"
@@ -231,7 +253,7 @@ export default function ContactoPage() {
                       htmlFor="comoNosConociste"
                       className="block text-sm font-medium mb-1"
                     >
-                      Como nos conociste?
+                      ¿Cómo nos conociste?
                     </label>
                     <select
                       id="comoNosConociste"
@@ -240,7 +262,7 @@ export default function ContactoPage() {
                       onChange={handleChange}
                       className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-magenta focus:outline-none focus:ring-1 focus:ring-magenta/30"
                     >
-                      <option value="">Seleccionar...</option>
+                      <option value="">Seleccioná una opción</option>
                       {HOW_OPTIONS.map((opt) => (
                         <option key={opt} value={opt}>
                           {opt}
@@ -286,13 +308,17 @@ export default function ContactoPage() {
                     </label>
                   </div>
 
+                  {submitError && (
+                    <p className="text-sm text-red-500 text-center">{submitError}</p>
+                  )}
+
                   {/* Submit */}
                   <button
                     type="submit"
                     disabled={sending}
                     className="w-full rounded-md bg-magenta px-4 py-3 text-sm font-semibold text-white transition hover:opacity-90 disabled:opacity-50 btn-magenta"
                   >
-                    {sending ? "Enviando..." : "Enviar"}
+                    {sending ? "Enviando…" : "Enviar"}
                   </button>
                 </form>
               </>

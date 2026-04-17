@@ -4,29 +4,13 @@ import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Search, X, ChevronDown, SlidersHorizontal } from "lucide-react";
 import type { Property } from "@/data/types";
-
-/* ------------------------------------------------------------------ */
-/*  Constants                                                         */
-/* ------------------------------------------------------------------ */
-
-const LOCALITIES = [
-  "San Justo",
-  "Ciudadela",
-  "Haedo",
-  "Ramos Mejia",
-  "Moron",
-  "La Matanza",
-  "Tres de Febrero",
-  "Isidro Casanova",
-  "Gonzalez Catan",
-  "Laferrere",
-] as const;
+import { useLocalities, rankLocalityMatches } from "@/lib/useLocalities";
 
 const PROPERTY_TYPES: { label: string; value: Property["type"] }[] = [
   { label: "Departamento", value: "departamento" },
   { label: "Casa", value: "casa" },
   { label: "PH", value: "ph" },
-  { label: "Terrenos", value: "terreno" },
+  { label: "Terreno", value: "terreno" },
   { label: "Cochera", value: "cochera" },
   { label: "Local", value: "local" },
   { label: "Oficina", value: "oficina" },
@@ -37,20 +21,20 @@ const PRICE_RANGES: { label: string; min: number; max: number }[] = [
   { label: "50.000 - 100.000", min: 50_000, max: 100_000 },
   { label: "100.000 - 200.000", min: 100_000, max: 200_000 },
   { label: "200.000 - 500.000", min: 200_000, max: 500_000 },
-  { label: "Mas de 500.000", min: 500_000, max: Infinity },
+  { label: "Más de 500.000", min: 500_000, max: Infinity },
 ];
 
 const SORT_OPTIONS = [
-  { label: "Mas recientes", value: "recent" },
+  { label: "Más recientes", value: "recent" },
   { label: "Menor precio", value: "price-asc" },
   { label: "Mayor precio", value: "price-desc" },
 ] as const;
 
 const AGE_RANGES: { label: string; min: number; max: number }[] = [
-  { label: "Hasta 5 anos", min: 0, max: 5 },
+  { label: "Hasta 5 años", min: 0, max: 5 },
   { label: "5 - 20", min: 5, max: 20 },
   { label: "20 - 50", min: 20, max: 50 },
-  { label: "Mas de 50", min: 50, max: Infinity },
+  { label: "Más de 50", min: 50, max: Infinity },
 ];
 
 /* ------------------------------------------------------------------ */
@@ -60,7 +44,10 @@ const AGE_RANGES: { label: string; min: number; max: number }[] = [
 interface FilterBarProps {
   properties: Property[];
   onFilterChange: (filtered: Property[]) => void;
+  onFilterStateChange?: (filters: { propertyType?: string; zones: string[] }) => void;
   operationType?: "venta" | "alquiler";
+  initialPropertyType?: string;
+  initialZones?: string[];
 }
 
 /* ------------------------------------------------------------------ */
@@ -104,10 +91,10 @@ function Dropdown({
         onClick={() => setOpen((p) => !p)}
         aria-expanded={open}
         aria-haspopup="listbox"
-        className={`flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm transition-colors ${
+        className={`flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm transition-all duration-150 active:scale-[0.98] ${
           value
-            ? "border-magenta bg-magenta-50 text-magenta"
-            : "border-navy-100 bg-white text-navy hover:border-navy-200"
+            ? "border-magenta bg-magenta-50 text-magenta shadow-sm"
+            : "border-navy-100 bg-white text-navy hover:border-navy-300 hover:bg-gray-50"
         }`}
       >
         <span className="whitespace-nowrap">{displayLabel}</span>
@@ -177,10 +164,10 @@ function ToggleGroup({
             key={opt.value}
             type="button"
             onClick={() => onChange(value === opt.value ? null : opt.value)}
-            className={`rounded-lg border px-3 py-1.5 text-sm transition-colors ${
+            className={`rounded-lg border px-3 py-1.5 text-sm transition-all duration-150 active:scale-[0.97] ${
               value === opt.value
-                ? "border-magenta bg-magenta-50 text-magenta font-medium"
-                : "border-navy-100 text-navy hover:border-navy-200"
+                ? "border-magenta bg-magenta-50 text-magenta font-medium shadow-sm"
+                : "border-navy-100 text-navy hover:border-navy-300 hover:bg-navy-50"
             }`}
           >
             {opt.label}
@@ -198,14 +185,18 @@ function ToggleGroup({
 export default function FilterBar({
   properties,
   onFilterChange,
+  onFilterStateChange,
   operationType,
+  initialPropertyType = "",
+  initialZones = [],
 }: FilterBarProps) {
   const router = useRouter();
+  const localities = useLocalities();
   /* ---- filter state ---- */
-  const [zones, setZones] = useState<string[]>([]);
+  const [zones, setZones] = useState<string[]>(initialZones);
   const [zoneQuery, setZoneQuery] = useState("");
   const [zoneDropdownOpen, setZoneDropdownOpen] = useState(false);
-  const [propertyType, setPropertyType] = useState("");
+  const [propertyType, setPropertyType] = useState(initialPropertyType);
   const [operation, setOperation] = useState("");
   const [priceRange, setPriceRange] = useState("");
   const [expanded, setExpanded] = useState(false);
@@ -349,16 +340,14 @@ export default function FilterBar({
 
   useEffect(() => {
     applyFilters();
-  }, [applyFilters]);
+    onFilterStateChange?.({ propertyType, zones });
+  }, [applyFilters, propertyType, zones, onFilterStateChange]);
 
   /* ---- zone suggestions ---- */
-  const zoneSuggestions = useMemo(() => {
-    if (!zoneQuery.trim()) return LOCALITIES.filter((l) => !zones.includes(l));
-    const q = zoneQuery.toLowerCase();
-    return LOCALITIES.filter(
-      (l) => l.toLowerCase().includes(q) && !zones.includes(l)
-    );
-  }, [zoneQuery, zones]);
+  const zoneSuggestions = useMemo(
+    () => rankLocalityMatches(localities, zoneQuery, zones),
+    [zoneQuery, zones, localities]
+  );
 
   const addZone = (z: string) => {
     if (!zones.includes(z)) {
@@ -372,11 +361,26 @@ export default function FilterBar({
     setZones((prev) => prev.filter((zone) => zone !== z));
   };
 
+  const clearAllFilters = () => {
+    setZones([]);
+    setZoneQuery("");
+    setPropertyType("");
+    setOperation("");
+    setPriceRange("");
+    setExpanded(false);
+    setAmbientes(null);
+    setBanos(null);
+    setSuperficieMin("");
+    setSuperficieMax("");
+    setCochera(null);
+    setAntiguedad(null);
+  };
+
   /* ---- zone display text ---- */
   const zoneLabel = zones.length > 0 ? zones.join(", ") : "Todas las zonas";
 
   return (
-    <div className="sticky top-[72px] z-30 bg-white border-b border-navy-100 shadow-sm">
+    <div className="sticky top-[72px] z-30 bg-white/80 backdrop-blur-md border-b border-white/50 shadow-[0_1px_0_rgba(26,34,81,0.04),0_8px_24px_-12px_rgba(26,34,81,0.08)]">
       {/* ---- Main filter row ---- */}
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-3">
         <div className="flex flex-wrap items-center gap-2">
@@ -404,7 +408,7 @@ export default function FilterBar({
               <Search className="h-4 w-4 text-navy-300" />
               <input
                 type="text"
-                placeholder="Donde queres mudarte?"
+                placeholder="¿Dónde querés mudarte?"
                 value={zoneQuery}
                 onChange={(e) => {
                   setZoneQuery(e.target.value);
@@ -423,13 +427,18 @@ export default function FilterBar({
               >
                 {zoneSuggestions.map((loc) => (
                   <li
-                    key={loc}
+                    key={loc.name}
                     role="option"
                     aria-selected={false}
-                    className="cursor-pointer px-3 py-2 text-sm text-navy transition-colors hover:bg-navy-50"
-                    onClick={() => addZone(loc)}
+                    className="flex items-center justify-between gap-3 cursor-pointer px-3 py-2 text-sm text-navy transition-colors hover:bg-navy-50"
+                    onClick={() => addZone(loc.name)}
                   >
-                    {loc}
+                    <span className="truncate">{loc.name}</span>
+                    {loc.count > 0 && (
+                      <span className="font-mono-price text-[11px] tabular-nums text-gray-400 flex-shrink-0">
+                        {loc.count}
+                      </span>
+                    )}
                   </li>
                 ))}
               </ul>
@@ -448,14 +457,14 @@ export default function FilterBar({
             onClear={() => setPropertyType("")}
           />
 
-          {/* Operacion dropdown */}
+          {/* Operación dropdown */}
           <Dropdown
             label={
               operationType === "venta"
                 ? "Comprar"
                 : operationType === "alquiler"
                 ? "Alquilar"
-                : "Operacion"
+                : "Operación"
             }
             value={operation}
             options={[
@@ -491,10 +500,10 @@ export default function FilterBar({
             type="button"
             onClick={() => setExpanded((p) => !p)}
             aria-expanded={expanded}
-            className={`flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm transition-colors ${
+            className={`flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm transition-all duration-150 active:scale-[0.98] ${
               expanded || expandedFilterCount > 0
-                ? "border-magenta bg-magenta-50 text-magenta"
-                : "border-navy-100 text-navy hover:border-navy-200"
+                ? "border-magenta bg-magenta-50 text-magenta shadow-sm"
+                : "border-navy-100 text-navy hover:border-navy-300 hover:bg-gray-50"
             }`}
           >
             <SlidersHorizontal className="h-4 w-4" />
@@ -530,9 +539,9 @@ export default function FilterBar({
               onChange={setAmbientes}
             />
 
-            {/* Banos */}
+            {/* Baños */}
             <ToggleGroup
-              label="Banos"
+              label="Baños"
               options={[
                 { label: "1", value: "1" },
                 { label: "2", value: "2" },
@@ -545,7 +554,7 @@ export default function FilterBar({
             {/* Superficie */}
             <div className="flex flex-col gap-1.5">
               <span className="text-xs font-medium text-navy-300">
-                Superficie (m2)
+                Superficie (m²)
               </span>
               <div className="flex items-center gap-2">
                 <input
@@ -553,7 +562,7 @@ export default function FilterBar({
                   placeholder="Min"
                   value={superficieMin}
                   onChange={(e) => setSuperficieMin(e.target.value)}
-                  aria-label="Superficie minima en metros cuadrados"
+                  aria-label="Superficie mínima en metros cuadrados"
                   className="w-20 rounded-lg border border-navy-100 px-2 py-1.5 text-sm text-navy outline-none focus:border-magenta focus:ring-1 focus:ring-magenta"
                 />
                 <span className="text-navy-200">-</span>
@@ -562,7 +571,7 @@ export default function FilterBar({
                   placeholder="Max"
                   value={superficieMax}
                   onChange={(e) => setSuperficieMax(e.target.value)}
-                  aria-label="Superficie maxima en metros cuadrados"
+                  aria-label="Superficie máxima en metros cuadrados"
                   className="w-20 rounded-lg border border-navy-100 px-2 py-1.5 text-sm text-navy outline-none focus:border-magenta focus:ring-1 focus:ring-magenta"
                 />
               </div>
@@ -572,16 +581,16 @@ export default function FilterBar({
             <ToggleGroup
               label="Cochera"
               options={[
-                { label: "Si", value: "si" },
+                { label: "Sí", value: "si" },
                 { label: "No", value: "no" },
               ]}
               value={cochera}
               onChange={setCochera}
             />
 
-            {/* Antiguedad */}
+            {/* Antigüedad */}
             <ToggleGroup
-              label="Antiguedad"
+              label="Antigüedad"
               options={AGE_RANGES.map((r, i) => ({
                 label: r.label,
                 value: String(i),
@@ -593,19 +602,32 @@ export default function FilterBar({
         </div>
       </div>
 
-      {/* ---- Results counter + sort ---- */}
+      {/* ---- Sort + clear (count shown by list below) ---- */}
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-2 border-t border-navy-100">
-        <div className="flex items-center justify-between">
-          <p className="text-sm text-navy">
-            <span className="font-semibold">
-              {properties.length > 0
-                ? `${properties.length} propiedades`
-                : "0 propiedades"}
-            </span>
+        <div className="flex items-center justify-between flex-wrap gap-3">
+          <div className="flex items-center gap-3">
             {zones.length > 0 && (
-              <span className="text-navy-300"> en {zoneLabel}</span>
+              <p className="text-sm text-navy-300">en {zoneLabel}</p>
             )}
-          </p>
+
+            {(zones.length > 0 ||
+              propertyType ||
+              operation ||
+              priceRange ||
+              ambientes ||
+              banos ||
+              superficieMin ||
+              superficieMax ||
+              cochera ||
+              antiguedad) && (
+              <button
+                onClick={clearAllFilters}
+                className="text-xs font-semibold text-magenta hover:text-magenta/80 transition-colors"
+              >
+                Limpiar filtros ×
+              </button>
+            )}
+          </div>
 
           <Dropdown
             label="Ordenar por"

@@ -1,9 +1,11 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
-import { Map, X, ChevronLeft, ChevronRight } from "lucide-react";
+import { useState, useMemo, useCallback, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Map, EyeOff, X, ChevronLeft, ChevronRight } from "lucide-react";
 import FilterBar from "@/components/FilterBar";
 import PropertyCard from "@/components/PropertyCard";
+import PropertyQuickViewModal from "@/components/PropertyQuickViewModal";
 import MapView from "@/components/MapView";
 import type { Property } from "@/data/types";
 import type { FetchPropertiesResult } from "@/lib/xintel";
@@ -21,12 +23,24 @@ export default function PropertyListWithMap({
   initialHasMore,
   totalCount,
 }: PropertyListWithMapProps) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Read initial filters from URL
+  const initialPropertyType = searchParams.get("type") || "";
+  const initialZonesParam = searchParams.get("zones");
+  const initialZones = initialZonesParam ? initialZonesParam.split(",") : [];
+
   const [pages, setPages] = useState<Property[][]>([initialProperties]);
   const [hasMore, setHasMore] = useState(initialHasMore);
   const [currentPage, setCurrentPage] = useState(0); // 0-indexed into pages[]
   const [loadingPage, setLoadingPage] = useState(false);
   const [highlightedId, setHighlightedId] = useState<string | null>(null);
   const [showMobileMap, setShowMobileMap] = useState(false);
+  const [desktopMapVisible, setDesktopMapVisible] = useState(true);
+  const [selectedPropertyType, setSelectedPropertyType] = useState<string | undefined>(undefined);
+  const [quickViewProperty, setQuickViewProperty] = useState<Property | null>(null);
+  const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
 
   const displayed = pages[currentPage] ?? [];
 
@@ -37,6 +51,33 @@ export default function PropertyListWithMap({
   const handleFilterChange = useCallback((result: Property[]) => {
     setFiltered(result);
   }, []);
+
+  const handleFilterStateChange = useCallback((filters: { propertyType?: string; zones: string[] }) => {
+    // Reset pages when property type filter changes so we fetch fresh results from API
+    if (filters.propertyType !== selectedPropertyType) {
+      setPages([initialProperties]);
+      setCurrentPage(0);
+      setFiltered(null);
+    }
+    setSelectedPropertyType(filters.propertyType);
+
+    // Update URL with current filters, preserving the current section (ventas or alquileres)
+    const basePath = operationType === "alquiler" ? "/alquileres" : "/ventas";
+    const params = new URLSearchParams();
+    if (filters.propertyType) {
+      params.set("type", filters.propertyType);
+    }
+    if (filters.zones.length > 0) {
+      params.set("zones", filters.zones.join(","));
+    }
+    const newUrl = params.toString() ? `${basePath}?${params.toString()}` : basePath;
+
+    // Skip navigation if nothing actually changed — avoids a bogus push on mount
+    const currentUrl = window.location.pathname + window.location.search;
+    if (currentUrl !== newUrl) {
+      router.replace(newUrl);
+    }
+  }, [selectedPropertyType, initialProperties, router, operationType]);
 
   // A filter is "active" if the result differs from the full current page
   const showingFiltered =
@@ -99,39 +140,101 @@ export default function PropertyListWithMap({
       <FilterBar
         properties={baseProperties}
         onFilterChange={handleFilterChange}
+        onFilterStateChange={handleFilterStateChange}
         operationType={operationType}
+        initialPropertyType={initialPropertyType}
+        initialZones={initialZones}
       />
 
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6">
         <div className="flex gap-6">
           {/* Left: property list */}
-          <div className="w-full lg:w-[60%]">
-            <p className="text-sm text-gray-500 mb-4">
-              {showingFiltered ? (
-                <>{visibleProperties.length} {visibleProperties.length === 1 ? "propiedad" : "propiedades"} (filtradas)</>
-              ) : totalCount !== null ? (
-                <>Mostrando {visibleProperties.length} de {totalCount} propiedades</>
-              ) : hasMore ? (
-                <>Mostrando {visibleProperties.length} propiedades…</>
-              ) : (
-                <>{visibleProperties.length} {visibleProperties.length === 1 ? "propiedad" : "propiedades"}</>
-              )}
-            </p>
+          <div className={`w-full transition-[width] duration-300 ease-out ${desktopMapVisible ? "lg:w-[60%]" : "lg:w-full"}`}>
+            <div className="flex items-center justify-between mb-4 gap-3">
+              <p className="text-sm text-gray-500">
+                {showingFiltered ? (
+                  <>{visibleProperties.length} {visibleProperties.length === 1 ? "propiedad" : "propiedades"} (filtradas)</>
+                ) : totalCount !== null ? (
+                  <>Mostrando {visibleProperties.length} de {totalCount} propiedades</>
+                ) : hasMore ? (
+                  <>Mostrando {visibleProperties.length} propiedades…</>
+                ) : (
+                  <>{visibleProperties.length} {visibleProperties.length === 1 ? "propiedad" : "propiedades"}</>
+                )}
+              </p>
+
+              {/* Desktop map toggle */}
+              <button
+                type="button"
+                onClick={() => setDesktopMapVisible((v) => !v)}
+                aria-pressed={desktopMapVisible}
+                className={`hidden lg:inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition-all duration-150 active:scale-[0.97] ${
+                  desktopMapVisible
+                    ? "border-magenta bg-magenta-50 text-magenta shadow-sm"
+                    : "border-navy-100 text-navy hover:border-navy-300 hover:bg-gray-50"
+                }`}
+              >
+                {desktopMapVisible ? (
+                  <>
+                    <EyeOff className="h-3.5 w-3.5" />
+                    Ocultar mapa
+                  </>
+                ) : (
+                  <>
+                    <Map className="h-3.5 w-3.5" />
+                    Mostrar mapa
+                  </>
+                )}
+              </button>
+            </div>
 
             {visibleProperties.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-20 text-center">
-                <p className="text-lg text-navy-300">
-                  No encontramos propiedades con esos filtros. Proba ajustando tu busqueda.
-                </p>
+                <div className="max-w-md">
+                  <p className="text-lg font-semibold text-navy mb-4">
+                    No encontramos propiedades con esos filtros
+                  </p>
+                  <p className="text-sm text-gray-600 mb-6">
+                    Intenta ajustar tu búsqueda para encontrar más opciones
+                  </p>
+                  <div className="space-y-3">
+                    <button
+                      onClick={() => {
+                        // Scroll to filter bar
+                        document.querySelector("[data-testid='filter-bar']")?.scrollIntoView({ behavior: "smooth" });
+                      }}
+                      className="block w-full rounded-lg border-2 border-magenta px-4 py-2 text-sm font-semibold text-magenta hover:bg-magenta hover:text-white transition-colors"
+                    >
+                      Cambiar filtros
+                    </button>
+                    <a
+                      href={`/${operationType === 'alquiler' ? 'alquileres' : 'ventas'}`}
+                      className="block w-full rounded-lg border-2 border-navy px-4 py-2 text-sm font-semibold text-navy hover:bg-navy hover:text-white transition-colors"
+                    >
+                      Ver todas las propiedades
+                    </a>
+                  </div>
+                </div>
               </div>
             ) : (
               <>
-                <div className="flex flex-col gap-4">
+                <div
+                  className={
+                    desktopMapVisible
+                      ? "flex flex-col gap-4"
+                      : "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4"
+                  }
+                >
                   {visibleProperties.map((property) => (
                     <PropertyCard
                       key={property.id}
                       property={property}
+                      compact={!desktopMapVisible}
                       onHover={setHighlightedId}
+                      onQuickView={(prop) => {
+                        setQuickViewProperty(prop);
+                        setIsQuickViewOpen(true);
+                      }}
                     />
                   ))}
                 </div>
@@ -165,7 +268,7 @@ export default function PropertyListWithMap({
           </div>
 
           {/* Right: sticky map (desktop) */}
-          <div className="hidden lg:block lg:w-[40%]">
+          <div className={`hidden lg:block lg:w-[40%] transition-all duration-300 ease-out ${desktopMapVisible ? "opacity-100" : "lg:hidden opacity-0"}`}>
             <div className="sticky top-[140px] h-[calc(100vh-160px)] rounded-xl overflow-hidden shadow-md">
               <MapView
                 properties={mapProperties}
@@ -208,6 +311,16 @@ export default function PropertyListWithMap({
           />
         </div>
       )}
+
+      {/* Quick View Modal */}
+      <PropertyQuickViewModal
+        property={quickViewProperty}
+        isOpen={isQuickViewOpen}
+        onClose={() => {
+          setIsQuickViewOpen(false);
+          setQuickViewProperty(null);
+        }}
+      />
     </div>
   );
 }

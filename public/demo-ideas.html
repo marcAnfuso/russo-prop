@@ -1,0 +1,718 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Russo · Ideas para salir del molde</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,600;9..144,700;9..144,900&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              navy: {
+                DEFAULT: "#1a2251",
+                50: "#f0f1f8",
+                100: "#d4d7eb",
+                300: "#7e87c3",
+                500: "#2d3a8c",
+                600: "#1a2251",
+                700: "#141a3d",
+                900: "#070914",
+              },
+              magenta: {
+                DEFAULT: "#e6007e",
+                50: "#fef0f7",
+                100: "#fdd1e8",
+                300: "#f975ba",
+                500: "#e6007e",
+                600: "#b80065",
+              },
+            },
+            fontFamily: {
+              display: ["Fraunces", "Georgia", "serif"],
+              sans: ["Inter", "system-ui", "sans-serif"],
+              mono: ["JetBrains Mono", "monospace"],
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      html { scroll-behavior: smooth; }
+      body { font-family: "Inter", system-ui, sans-serif; color: #1a2251; }
+      .display { font-family: "Fraunces", Georgia, serif; font-optical-sizing: auto; }
+      .mono { font-family: "JetBrains Mono", monospace; font-feature-settings: "tnum"; }
+
+      /* Section header */
+      .demo-tag {
+        display: inline-flex; align-items: center; gap: .5rem;
+        padding: .375rem .875rem; border-radius: 9999px;
+        background: rgba(230, 0, 126, .08); color: #e6007e;
+        font-size: .6875rem; font-weight: 700; text-transform: uppercase;
+        letter-spacing: .08em;
+      }
+      .demo-tag::before {
+        content: ""; width: 6px; height: 6px; border-radius: 50%;
+        background: #e6007e;
+      }
+
+      /* Animated gradient blob */
+      .blob {
+        position: absolute; border-radius: 50%; filter: blur(60px);
+        opacity: .35; pointer-events: none;
+      }
+
+      /* Counter reveal */
+      .counter { font-variant-numeric: tabular-nums; }
+
+      /* Card lift */
+      .lift { transition: transform .3s ease, box-shadow .3s ease; }
+      .lift:hover { transform: translateY(-4px); box-shadow: 0 20px 40px -15px rgba(26,34,81,.18); }
+
+      /* Magnetic neighborhood card */
+      .nbh-photo { transition: transform .8s cubic-bezier(.2,.8,.2,1); }
+      .nbh:hover .nbh-photo { transform: scale(1.05); }
+
+      /* Marquee */
+      @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+      .marquee-track { animation: marquee 40s linear infinite; }
+
+      /* Pulse dot */
+      @keyframes pulse-ring {
+        0% { transform: scale(.6); opacity: 1; }
+        80%,100% { transform: scale(2.2); opacity: 0; }
+      }
+      .pulse-dot::after {
+        content: ""; position: absolute; inset: 0; border-radius: 50%;
+        border: 2px solid #e6007e; animation: pulse-ring 2s ease-out infinite;
+      }
+    </style>
+  </head>
+  <body class="bg-white">
+    <!-- ─────────────────────── Top bar ─────────────────────── -->
+    <header class="sticky top-0 z-50 border-b border-gray-100 bg-white/85 backdrop-blur-md">
+      <div class="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+        <div class="flex items-center gap-3">
+          <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-navy text-white font-bold">R</div>
+          <div>
+            <p class="text-sm font-bold">Russo Propiedades</p>
+            <p class="text-[11px] text-gray-500">Ideas para salir del molde</p>
+          </div>
+        </div>
+        <nav class="hidden md:flex items-center gap-6 text-sm text-gray-600">
+          <a href="#stats" class="hover:text-magenta transition-colors">Stats</a>
+          <a href="#hero" class="hover:text-magenta transition-colors">Hero</a>
+          <a href="#barrios" class="hover:text-magenta transition-colors">Barrios</a>
+          <a href="#historias" class="hover:text-magenta transition-colors">Historias</a>
+          <a href="#typo" class="hover:text-magenta transition-colors">Tipografía</a>
+          <a href="#market" class="hover:text-magenta transition-colors">Market</a>
+        </nav>
+      </div>
+    </header>
+
+    <!-- Intro -->
+    <section class="mx-auto max-w-4xl px-6 py-20 text-center">
+      <span class="demo-tag mb-6">Demo · No afecta al sitio real</span>
+      <h1 class="display text-5xl sm:text-6xl font-semibold leading-[1.05] tracking-tight">
+        Seis ideas para que Russo<br>
+        <span class="italic text-magenta">no se parezca a nada más</span>
+      </h1>
+      <p class="mt-6 text-lg text-gray-500 max-w-xl mx-auto leading-relaxed">
+        Scrolleá para ver cada concepto en acción. Todo esto está pensado para convivir con lo que ya
+        tenés — no reemplaza el sitio, lo eleva.
+      </p>
+      <div class="mt-10 flex items-center justify-center gap-3 text-xs text-gray-400">
+        <span class="h-px w-8 bg-gray-300"></span>
+        ↓ scrolleá ↓
+        <span class="h-px w-8 bg-gray-300"></span>
+      </div>
+    </section>
+
+    <!-- ═════════════════════════════════════════════════════ -->
+    <!-- IDEA 1 · Stats animated                               -->
+    <!-- ═════════════════════════════════════════════════════ -->
+    <section id="stats" class="relative overflow-hidden border-y border-gray-100 bg-gradient-to-b from-white via-gray-50 to-white py-24">
+      <div class="blob bg-magenta left-[-100px] top-[-100px] h-[400px] w-[400px]"></div>
+      <div class="blob bg-navy right-[-120px] bottom-[-120px] h-[500px] w-[500px]"></div>
+
+      <div class="relative mx-auto max-w-6xl px-6">
+        <div class="mb-14 text-center">
+          <span class="demo-tag mb-4">01 · En vez de iconitos genéricos</span>
+          <h2 class="display text-4xl sm:text-5xl font-semibold leading-tight tracking-tight">
+            Conocemos cada cuadra<br>
+            <span class="italic text-gray-400">desde 1995</span>
+          </h2>
+        </div>
+
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-4 text-center">
+          <div class="flex flex-col gap-1 lift rounded-2xl p-6">
+            <span class="counter display text-6xl lg:text-7xl font-semibold text-magenta" data-target="30" data-suffix="">0</span>
+            <span class="text-sm font-medium text-gray-500">años en zona oeste</span>
+          </div>
+          <div class="flex flex-col gap-1 lift rounded-2xl p-6">
+            <span class="counter display text-6xl lg:text-7xl font-semibold text-navy" data-target="2000" data-prefix="+">0</span>
+            <span class="text-sm font-medium text-gray-500">operaciones cerradas</span>
+          </div>
+          <div class="flex flex-col gap-1 lift rounded-2xl p-6">
+            <span class="counter display text-6xl lg:text-7xl font-semibold text-magenta" data-target="8" data-suffix="">0</span>
+            <span class="text-sm font-medium text-gray-500">barrios que cubrimos</span>
+          </div>
+          <div class="flex flex-col gap-1 lift rounded-2xl p-6">
+            <span class="counter display text-6xl lg:text-7xl font-semibold text-navy" data-target="48" data-decimal="1">0</span>
+            <span class="text-sm font-medium text-gray-500">★ en Google (127 opiniones)</span>
+          </div>
+        </div>
+
+        <p class="mt-12 text-center text-sm text-gray-400 max-w-xl mx-auto leading-relaxed">
+          Los números cuentan cuando entran en pantalla. Reemplaza los 4 iconitos genéricos de
+          "Por qué elegirnos" sin perder la sección.
+        </p>
+      </div>
+    </section>
+
+    <!-- ═════════════════════════════════════════════════════ -->
+    <!-- IDEA 2 · Split hero                                    -->
+    <!-- ═════════════════════════════════════════════════════ -->
+    <section id="hero" class="relative overflow-hidden bg-navy text-white">
+      <div class="mx-auto max-w-7xl px-6 pt-20 pb-6">
+        <span class="demo-tag !bg-white/10 !text-white mb-4">02 · Hero más humano</span>
+      </div>
+
+      <div class="mx-auto max-w-7xl px-6 pb-24">
+        <div class="grid lg:grid-cols-12 gap-12 items-center">
+          <!-- Left: portrait + quote -->
+          <div class="lg:col-span-7 relative">
+            <div class="relative aspect-[4/5] rounded-3xl overflow-hidden bg-gradient-to-br from-navy-500 to-navy-700 shadow-2xl">
+              <!-- Fake portrait placeholder with gradient + initial -->
+              <div class="absolute inset-0 flex items-center justify-center">
+                <span class="display text-[14rem] font-bold text-white/5 select-none">FR</span>
+              </div>
+              <div class="absolute inset-0 bg-gradient-to-t from-navy via-transparent to-transparent"></div>
+
+              <!-- Floating quote card -->
+              <div class="absolute bottom-8 left-8 right-8 lg:right-auto lg:max-w-sm">
+                <div class="rounded-2xl bg-white/95 backdrop-blur-md p-6 text-navy shadow-xl">
+                  <p class="display text-lg italic leading-snug text-gray-700">
+                    "Nací en San Justo. Mi vieja vendía desde el living. Russo no es un negocio
+                    que armé — es la casa donde me crié."
+                  </p>
+                  <div class="mt-4 flex items-center gap-3 pt-4 border-t border-gray-100">
+                    <div class="h-10 w-10 rounded-full bg-magenta text-white flex items-center justify-center font-bold">
+                      FR
+                    </div>
+                    <div>
+                      <p class="text-sm font-semibold">Franco Russo</p>
+                      <p class="text-xs text-gray-500">Director · 3ra generación</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: headline + CTA -->
+          <div class="lg:col-span-5">
+            <h1 class="display text-5xl lg:text-6xl font-semibold leading-[1.05] tracking-tight mb-6">
+              Tu próximo hogar,<br>
+              <span class="italic text-magenta">sin vueltas</span>.
+            </h1>
+            <p class="text-lg text-white/70 mb-10 leading-relaxed">
+              30 años viviendo, vendiendo y caminando zona oeste. No somos un portal —
+              somos los que te abren la puerta.
+            </p>
+            <div class="flex flex-col sm:flex-row gap-3 mb-10">
+              <button class="px-6 py-3.5 rounded-full bg-magenta text-white font-semibold shadow-lg hover:bg-magenta-600 transition-colors">
+                Ver propiedades →
+              </button>
+              <button class="px-6 py-3.5 rounded-full border border-white/30 text-white font-semibold hover:bg-white/10 transition-colors">
+                Agendar visita
+              </button>
+            </div>
+            <!-- Mini stats -->
+            <div class="grid grid-cols-3 gap-4 pt-8 border-t border-white/10">
+              <div>
+                <p class="mono text-2xl font-bold text-white">676</p>
+                <p class="text-[11px] text-white/50 uppercase tracking-wider">propiedades</p>
+              </div>
+              <div>
+                <p class="mono text-2xl font-bold text-white">4.8<span class="text-sm">/5</span></p>
+                <p class="text-[11px] text-white/50 uppercase tracking-wider">google rating</p>
+              </div>
+              <div>
+                <p class="mono text-2xl font-bold text-white">30+</p>
+                <p class="text-[11px] text-white/50 uppercase tracking-wider">años</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Trust marquee -->
+      <div class="border-t border-white/10 py-6 overflow-hidden">
+        <div class="marquee-track flex gap-16 whitespace-nowrap">
+          <span class="text-white/40 text-sm">⭐⭐⭐⭐⭐ "Excelente atención" — María García</span>
+          <span class="text-white/40 text-sm">⭐⭐⭐⭐⭐ "Cerramos en tiempo récord" — Carlos Rodríguez</span>
+          <span class="text-white/40 text-sm">⭐⭐⭐⭐⭐ "La recomiendo mil veces" — Laura Fernández</span>
+          <span class="text-white/40 text-sm">⭐⭐⭐⭐⭐ "Profesionales y honestos" — Diego Martínez</span>
+          <!-- duplicated for seamless loop -->
+          <span class="text-white/40 text-sm">⭐⭐⭐⭐⭐ "Excelente atención" — María García</span>
+          <span class="text-white/40 text-sm">⭐⭐⭐⭐⭐ "Cerramos en tiempo récord" — Carlos Rodríguez</span>
+          <span class="text-white/40 text-sm">⭐⭐⭐⭐⭐ "La recomiendo mil veces" — Laura Fernández</span>
+          <span class="text-white/40 text-sm">⭐⭐⭐⭐⭐ "Profesionales y honestos" — Diego Martínez</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═════════════════════════════════════════════════════ -->
+    <!-- IDEA 3 · Vivir en San Justo editorial                 -->
+    <!-- ═════════════════════════════════════════════════════ -->
+    <section id="barrios" class="py-24 bg-white">
+      <div class="mx-auto max-w-6xl px-6">
+        <div class="mb-14">
+          <span class="demo-tag mb-4">03 · Barrios como guías editoriales</span>
+          <h2 class="display text-4xl sm:text-5xl font-semibold leading-tight tracking-tight max-w-2xl">
+            "Barrios" deja de ser una grilla.<br>
+            <span class="italic text-gray-400">Pasa a ser contenido.</span>
+          </h2>
+        </div>
+
+        <!-- Editorial barrio layout -->
+        <article class="grid lg:grid-cols-12 gap-10 items-start">
+          <!-- Left image -->
+          <div class="lg:col-span-5">
+            <div class="relative aspect-[3/4] overflow-hidden rounded-2xl bg-gradient-to-br from-amber-200 via-orange-300 to-pink-400 shadow-xl">
+              <div class="absolute inset-0 flex flex-col justify-end p-8 text-white">
+                <span class="text-xs font-semibold uppercase tracking-widest mb-2">Guía de barrio</span>
+                <h3 class="display text-5xl font-semibold leading-none">San Justo</h3>
+              </div>
+              <div class="absolute top-6 right-6 flex items-center gap-2 rounded-full bg-white/90 backdrop-blur-sm px-3 py-1.5 text-xs font-semibold text-navy">
+                <span class="relative flex h-2 w-2 pulse-dot">
+                  <span class="h-2 w-2 rounded-full bg-magenta"></span>
+                </span>
+                142 propiedades
+              </div>
+            </div>
+          </div>
+
+          <!-- Right content -->
+          <div class="lg:col-span-7 space-y-8">
+            <div>
+              <p class="demo-tag !mb-4">La Matanza · Centro</p>
+              <p class="text-lg leading-relaxed text-gray-600">
+                El corazón administrativo y comercial de La Matanza. Plaza principal, municipalidad,
+                estación del Sarmiento, y el Hospital Paroissien a pocas cuadras.
+                <span class="font-semibold text-navy">Russo tiene sede acá desde hace 30 años.</span>
+              </p>
+            </div>
+
+            <!-- Stats strip -->
+            <div class="grid grid-cols-3 gap-4 py-6 border-y border-gray-100">
+              <div>
+                <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">Precio m² promedio</p>
+                <p class="mono text-2xl font-semibold text-navy">USD <span class="text-magenta">1.850</span></p>
+                <p class="text-[11px] text-emerald-600 mt-0.5">↑ 3.2% este mes</p>
+              </div>
+              <div>
+                <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">Ticket promedio casa</p>
+                <p class="mono text-2xl font-semibold text-navy">USD <span class="text-magenta">128K</span></p>
+                <p class="text-[11px] text-gray-400 mt-0.5">3 amb. / 100m²</p>
+              </div>
+              <div>
+                <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">Tiempo venta prom.</p>
+                <p class="mono text-2xl font-semibold text-navy"><span class="text-magenta">47</span> días</p>
+                <p class="text-[11px] text-gray-400 mt-0.5">-12% vs. 2024</p>
+              </div>
+            </div>
+
+            <!-- Highlights -->
+            <div>
+              <p class="text-xs text-gray-400 uppercase tracking-wider mb-3">Lo que lo hace especial</p>
+              <ul class="space-y-2 text-sm text-gray-700">
+                <li class="flex gap-3"><span class="text-magenta">→</span><span><span class="font-semibold">Conectividad total:</span> 3 líneas de colectivo y estación del Sarmiento en 5 minutos.</span></li>
+                <li class="flex gap-3"><span class="text-magenta">→</span><span><span class="font-semibold">Gastronomía en alza:</span> Av. Perón concentra los mejores lugares del oeste.</span></li>
+                <li class="flex gap-3"><span class="text-magenta">→</span><span><span class="font-semibold">Ideal para inversión:</span> el 70% de las propiedades son alquiler permanente.</span></li>
+              </ul>
+            </div>
+
+            <button class="inline-flex items-center gap-2 text-magenta font-semibold hover:gap-3 transition-all">
+              Explorar propiedades en San Justo →
+            </button>
+          </div>
+        </article>
+
+        <p class="mt-16 text-center text-sm text-gray-400 max-w-xl mx-auto">
+          Cada barrio se convierte en una página tipo revista con data real, no una cardcita con
+          3 líneas de descripción.
+        </p>
+      </div>
+    </section>
+
+    <!-- ═════════════════════════════════════════════════════ -->
+    <!-- IDEA 4 · Historias de mudanza                         -->
+    <!-- ═════════════════════════════════════════════════════ -->
+    <section id="historias" class="py-24 bg-gradient-to-b from-gray-50 to-white">
+      <div class="mx-auto max-w-6xl px-6">
+        <div class="mb-14 text-center">
+          <span class="demo-tag mb-4">04 · En vez de testimonios genéricos</span>
+          <h2 class="display text-4xl sm:text-5xl font-semibold leading-tight tracking-tight">
+            Historias de mudanza<br>
+            <span class="italic text-gray-400">reales</span>
+          </h2>
+        </div>
+
+        <div class="grid md:grid-cols-3 gap-6">
+          <!-- Story 1 -->
+          <article class="group relative overflow-hidden rounded-3xl bg-white shadow-lg lift">
+            <div class="aspect-[4/5] bg-gradient-to-br from-emerald-300 via-teal-400 to-cyan-500 relative">
+              <div class="absolute inset-0 flex items-center justify-center">
+                <span class="display text-8xl text-white/20 font-bold">GM</span>
+              </div>
+              <div class="absolute bottom-4 left-4 right-4">
+                <div class="inline-flex items-center gap-1.5 rounded-full bg-white/95 backdrop-blur-sm px-3 py-1 text-[11px] font-semibold text-navy">
+                  📍 Haedo → San Justo
+                </div>
+              </div>
+            </div>
+            <div class="p-6">
+              <p class="text-xs text-gray-400 uppercase tracking-wider mb-2">Familia Gómez · 2025</p>
+              <p class="display text-xl font-semibold leading-snug mb-3">
+                "Buscábamos casa con patio para los chicos. Franco nos acompañó a ver 8 propiedades en un mes."
+              </p>
+              <p class="text-sm text-gray-500 leading-relaxed">
+                Vendieron el depto en Haedo, compraron una casa de 4 ambientes en San Justo. Todo con
+                Russo de punta a punta.
+              </p>
+              <button class="mt-4 text-magenta text-sm font-semibold hover:underline">Leer historia completa →</button>
+            </div>
+          </article>
+
+          <!-- Story 2 -->
+          <article class="group relative overflow-hidden rounded-3xl bg-white shadow-lg lift">
+            <div class="aspect-[4/5] bg-gradient-to-br from-purple-400 via-fuchsia-400 to-pink-500 relative">
+              <div class="absolute inset-0 flex items-center justify-center">
+                <span class="display text-8xl text-white/20 font-bold">LP</span>
+              </div>
+              <div class="absolute bottom-4 left-4 right-4">
+                <div class="inline-flex items-center gap-1.5 rounded-full bg-white/95 backdrop-blur-sm px-3 py-1 text-[11px] font-semibold text-navy">
+                  📍 Capital Federal → Ramos Mejía
+                </div>
+              </div>
+            </div>
+            <div class="p-6">
+              <p class="text-xs text-gray-400 uppercase tracking-wider mb-2">Lucas Pérez · 2024</p>
+              <p class="display text-xl font-semibold leading-snug mb-3">
+                "Quería salir de Capital pero sin resignar la movida. Ramos fue el match perfecto."
+              </p>
+              <p class="text-sm text-gray-500 leading-relaxed">
+                Primera propiedad. Alquilaba hace 8 años y por fin se decidió. Russo lo guió con
+                tasación, crédito y escritura.
+              </p>
+              <button class="mt-4 text-magenta text-sm font-semibold hover:underline">Leer historia completa →</button>
+            </div>
+          </article>
+
+          <!-- Story 3 -->
+          <article class="group relative overflow-hidden rounded-3xl bg-white shadow-lg lift">
+            <div class="aspect-[4/5] bg-gradient-to-br from-amber-300 via-orange-400 to-rose-500 relative">
+              <div class="absolute inset-0 flex items-center justify-center">
+                <span class="display text-8xl text-white/20 font-bold">RA</span>
+              </div>
+              <div class="absolute bottom-4 left-4 right-4">
+                <div class="inline-flex items-center gap-1.5 rounded-full bg-white/95 backdrop-blur-sm px-3 py-1 text-[11px] font-semibold text-navy">
+                  📍 Morón · Inversor
+                </div>
+              </div>
+            </div>
+            <div class="p-6">
+              <p class="text-xs text-gray-400 uppercase tracking-wider mb-2">Roberto A. · 2025</p>
+              <p class="display text-xl font-semibold leading-snug mb-3">
+                "Compré 3 deptos chicos como inversión. Russo administra el alquiler desde entonces."
+              </p>
+              <p class="text-sm text-gray-500 leading-relaxed">
+                Empezó con uno. Hoy tiene 3. Los alquileres los maneja el equipo de Russo y cobra
+                todos los meses sin dolores de cabeza.
+              </p>
+              <button class="mt-4 text-magenta text-sm font-semibold hover:underline">Leer historia completa →</button>
+            </div>
+          </article>
+        </div>
+
+        <p class="mt-16 text-center text-sm text-gray-400 max-w-xl mx-auto">
+          Fotos reales, nombres reales, ruta del proceso. Esto es lo que convierte visitas en llamadas.
+        </p>
+      </div>
+    </section>
+
+    <!-- ═════════════════════════════════════════════════════ -->
+    <!-- IDEA 5 · Typography refresh                            -->
+    <!-- ═════════════════════════════════════════════════════ -->
+    <section id="typo" class="py-24 border-y border-gray-100 bg-white">
+      <div class="mx-auto max-w-6xl px-6">
+        <div class="mb-14">
+          <span class="demo-tag mb-4">05 · Tipografía con carácter</span>
+          <h2 class="display text-4xl sm:text-5xl font-semibold leading-tight tracking-tight max-w-2xl">
+            Pasamos de template<br>
+            <span class="italic text-gray-400">a revista editorial.</span>
+          </h2>
+        </div>
+
+        <div class="grid lg:grid-cols-2 gap-10">
+          <!-- Before -->
+          <div class="rounded-2xl border-2 border-dashed border-gray-200 p-8">
+            <p class="text-xs text-gray-400 uppercase tracking-wider mb-6">Antes · Libre Baskerville</p>
+            <h3 class="text-3xl font-bold tracking-tight mb-2" style="font-family: 'Libre Baskerville', Georgia, serif;">
+              Propiedades destacadas
+            </h3>
+            <p class="text-sm text-gray-500 mb-6">Lo que estás buscando, lo podés encontrar</p>
+            <div class="rounded-xl border border-gray-200 p-4 bg-gray-50">
+              <p class="text-2xl font-bold">USD 112.000</p>
+              <p class="text-sm text-gray-600 mt-1">Casa en San Justo · 3 amb.</p>
+            </div>
+          </div>
+
+          <!-- After -->
+          <div class="rounded-2xl bg-gradient-to-br from-navy to-navy-700 text-white p-8 relative overflow-hidden">
+            <div class="blob bg-magenta right-[-80px] top-[-80px] h-[200px] w-[200px] opacity-30"></div>
+            <p class="relative text-xs text-white/40 uppercase tracking-wider mb-6">Después · Fraunces + JetBrains Mono</p>
+            <h3 class="relative display text-5xl font-semibold tracking-tight leading-none mb-3">
+              Propiedades <span class="italic text-magenta">destacadas</span>
+            </h3>
+            <p class="relative text-sm text-white/60 mb-6">Lo que estás buscando, lo podés encontrar</p>
+            <div class="relative rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 p-4">
+              <p class="mono text-3xl font-bold text-white">USD <span class="text-magenta">112.000</span></p>
+              <p class="text-sm text-white/70 mt-1">Casa en San Justo · 3 amb.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Detail showcase -->
+        <div class="mt-16 text-center">
+          <p class="demo-tag !mb-6">Detalles que hacen la diferencia</p>
+          <div class="flex flex-wrap justify-center items-baseline gap-x-8 gap-y-4 text-center">
+            <div>
+              <p class="display text-6xl font-semibold">30 <span class="italic text-magenta font-normal">años</span></p>
+              <p class="text-xs text-gray-400 uppercase tracking-wider mt-2">Display: Fraunces 9pt</p>
+            </div>
+            <div>
+              <p class="mono text-5xl font-bold text-navy">USD 112.000</p>
+              <p class="text-xs text-gray-400 uppercase tracking-wider mt-2">Precios: JetBrains Mono</p>
+            </div>
+            <div>
+              <p class="text-4xl font-semibold text-navy">Mi hogar</p>
+              <p class="text-xs text-gray-400 uppercase tracking-wider mt-2">Body: Inter 600</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═════════════════════════════════════════════════════ -->
+    <!-- IDEA 6 · Market Explorer                               -->
+    <!-- ═════════════════════════════════════════════════════ -->
+    <section id="market" class="py-24 bg-gradient-to-b from-white to-gray-50">
+      <div class="mx-auto max-w-6xl px-6">
+        <div class="mb-14">
+          <span class="demo-tag mb-4">06 · Inteligencia de mercado como feature</span>
+          <h2 class="display text-4xl sm:text-5xl font-semibold leading-tight tracking-tight max-w-2xl">
+            ¿Cuánto sale vivir acá?<br>
+            <span class="italic text-gray-400">Preguntale al explorador.</span>
+          </h2>
+        </div>
+
+        <div class="rounded-3xl bg-white shadow-2xl overflow-hidden border border-gray-100">
+          <!-- Widget header -->
+          <div class="bg-navy text-white p-6 flex items-center justify-between">
+            <div>
+              <p class="text-xs text-white/50 uppercase tracking-wider mb-1">Market Explorer</p>
+              <h3 class="display text-2xl font-semibold">Explorá precios reales en zona oeste</h3>
+            </div>
+            <div class="hidden sm:flex items-center gap-2 text-xs text-white/60">
+              <span class="h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
+              Data actualizada hoy
+            </div>
+          </div>
+
+          <!-- Filters -->
+          <div class="p-6 border-b border-gray-100 flex flex-wrap gap-3">
+            <div class="flex flex-col gap-1.5">
+              <span class="text-[11px] text-gray-400 uppercase tracking-wider">Barrio</span>
+              <select class="rounded-lg border border-gray-200 px-3 py-2 text-sm bg-white">
+                <option>San Justo</option>
+                <option>Villa Luzuriaga</option>
+                <option>Ramos Mejía</option>
+                <option>Haedo</option>
+                <option>Morón</option>
+              </select>
+            </div>
+            <div class="flex flex-col gap-1.5">
+              <span class="text-[11px] text-gray-400 uppercase tracking-wider">Tipo</span>
+              <select class="rounded-lg border border-gray-200 px-3 py-2 text-sm bg-white">
+                <option>Casa</option>
+                <option>Departamento</option>
+                <option>PH</option>
+              </select>
+            </div>
+            <div class="flex flex-col gap-1.5">
+              <span class="text-[11px] text-gray-400 uppercase tracking-wider">Ambientes</span>
+              <div class="flex gap-1.5">
+                <button class="rounded-lg border border-gray-200 px-3 py-2 text-sm hover:border-navy-300 transition-colors">1</button>
+                <button class="rounded-lg border border-gray-200 px-3 py-2 text-sm hover:border-navy-300 transition-colors">2</button>
+                <button class="rounded-lg border-2 border-magenta bg-magenta-50 text-magenta font-semibold px-3 py-2 text-sm">3</button>
+                <button class="rounded-lg border border-gray-200 px-3 py-2 text-sm hover:border-navy-300 transition-colors">4+</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Result -->
+          <div class="p-8 grid lg:grid-cols-3 gap-8">
+            <!-- Price range -->
+            <div>
+              <p class="text-xs text-gray-400 uppercase tracking-wider mb-2">Rango de precio · Casa 3 amb · San Justo</p>
+              <p class="mono text-xl text-gray-400 mb-1">desde</p>
+              <p class="mono text-5xl font-bold text-navy mb-2">USD <span class="text-magenta">80K</span></p>
+              <p class="mono text-xl text-gray-400 mb-1">hasta</p>
+              <p class="mono text-5xl font-bold text-navy">USD <span class="text-magenta">140K</span></p>
+            </div>
+
+            <!-- Price trend chart -->
+            <div class="lg:col-span-2">
+              <div class="flex items-center justify-between mb-3">
+                <p class="text-xs text-gray-400 uppercase tracking-wider">Tendencia · últimos 12 meses</p>
+                <span class="text-xs font-semibold text-emerald-600">↑ +8.4%</span>
+              </div>
+              <!-- Simple SVG sparkline -->
+              <svg viewBox="0 0 600 200" class="w-full h-48">
+                <defs>
+                  <linearGradient id="grad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#e6007e" stop-opacity="0.3" />
+                    <stop offset="100%" stop-color="#e6007e" stop-opacity="0" />
+                  </linearGradient>
+                </defs>
+                <!-- grid -->
+                <line x1="0" y1="50" x2="600" y2="50" stroke="#f3f4f6" />
+                <line x1="0" y1="100" x2="600" y2="100" stroke="#f3f4f6" />
+                <line x1="0" y1="150" x2="600" y2="150" stroke="#f3f4f6" />
+                <!-- area -->
+                <path d="M 0 140 L 50 135 L 100 120 L 150 130 L 200 110 L 250 100 L 300 105 L 350 85 L 400 75 L 450 70 L 500 60 L 550 55 L 600 50 L 600 200 L 0 200 Z" fill="url(#grad)" />
+                <!-- line -->
+                <path d="M 0 140 L 50 135 L 100 120 L 150 130 L 200 110 L 250 100 L 300 105 L 350 85 L 400 75 L 450 70 L 500 60 L 550 55 L 600 50" fill="none" stroke="#e6007e" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+                <!-- endpoint -->
+                <circle cx="600" cy="50" r="6" fill="#e6007e" />
+                <circle cx="600" cy="50" r="12" fill="#e6007e" opacity="0.2" />
+              </svg>
+              <div class="flex justify-between text-[11px] text-gray-400 mt-2">
+                <span>Abr 2025</span><span>Jul</span><span>Oct</span><span>Ene 2026</span><span>Abr 2026</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bottom stats -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 border-t border-gray-100 divide-x divide-gray-100">
+            <div class="p-5 text-center">
+              <p class="mono text-2xl font-bold text-navy">47</p>
+              <p class="text-[11px] text-gray-400 uppercase tracking-wider mt-1">días venta prom.</p>
+            </div>
+            <div class="p-5 text-center">
+              <p class="mono text-2xl font-bold text-navy">USD 1.850</p>
+              <p class="text-[11px] text-gray-400 uppercase tracking-wider mt-1">por m²</p>
+            </div>
+            <div class="p-5 text-center">
+              <p class="mono text-2xl font-bold text-navy">23</p>
+              <p class="text-[11px] text-gray-400 uppercase tracking-wider mt-1">en venta hoy</p>
+            </div>
+            <div class="p-5 text-center">
+              <p class="mono text-2xl font-bold text-emerald-600">+8.4%</p>
+              <p class="text-[11px] text-gray-400 uppercase tracking-wider mt-1">últimos 12m</p>
+            </div>
+          </div>
+        </div>
+
+        <p class="mt-12 text-center text-sm text-gray-400 max-w-xl mx-auto">
+          Esto se alimenta de Xintel + tracking histórico. Ningún competidor de zona oeste lo tiene.
+          Posiciona a Russo como el que sabe.
+        </p>
+      </div>
+    </section>
+
+    <!-- ═════════════════════════════════════════════════════ -->
+    <!-- Outro                                                  -->
+    <!-- ═════════════════════════════════════════════════════ -->
+    <section class="py-24 bg-navy text-white text-center">
+      <div class="mx-auto max-w-3xl px-6">
+        <span class="demo-tag !bg-white/10 !text-white mb-6">Fin del tour</span>
+        <h2 class="display text-4xl sm:text-5xl font-semibold leading-tight tracking-tight mb-6">
+          Estas ideas conviven<br>
+          <span class="italic text-magenta">con todo lo que ya tenés.</span>
+        </h2>
+        <p class="text-lg text-white/70 leading-relaxed mb-10">
+          No hay que romper nada. Se agregan como secciones nuevas o reemplazan las que hoy se
+          sienten genéricas. Elegís cuáles, en qué orden, y cuándo.
+        </p>
+        <div class="flex flex-col sm:flex-row gap-3 justify-center text-sm">
+          <div class="rounded-full bg-white/10 px-5 py-2.5">1 · Stats animadas</div>
+          <div class="rounded-full bg-white/10 px-5 py-2.5">2 · Hero humano</div>
+          <div class="rounded-full bg-white/10 px-5 py-2.5">3 · Barrios editoriales</div>
+        </div>
+        <div class="flex flex-col sm:flex-row gap-3 justify-center text-sm mt-3">
+          <div class="rounded-full bg-white/10 px-5 py-2.5">4 · Historias reales</div>
+          <div class="rounded-full bg-white/10 px-5 py-2.5">5 · Tipografía editorial</div>
+          <div class="rounded-full bg-white/10 px-5 py-2.5">6 · Market Explorer</div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="py-8 text-center text-xs text-gray-400 border-t border-gray-100">
+      Demo standalone · <code class="mono">public/demo-ideas.html</code> · No afecta al sitio real
+    </footer>
+
+    <script>
+      // Counter animation on intersection
+      const counters = document.querySelectorAll(".counter");
+      const animate = (el) => {
+        const target = parseFloat(el.dataset.target);
+        const prefix = el.dataset.prefix || "";
+        const suffix = el.dataset.suffix || "";
+        const decimal = parseInt(el.dataset.decimal || "0");
+        const duration = 1500;
+        const start = performance.now();
+
+        const formatNum = (n) => {
+          if (decimal > 0) return (n / Math.pow(10, decimal)).toFixed(decimal);
+          if (target >= 1000) return Math.floor(n).toLocaleString("es-AR");
+          return Math.floor(n).toString();
+        };
+
+        const step = (now) => {
+          const elapsed = now - start;
+          const t = Math.min(elapsed / duration, 1);
+          const eased = 1 - Math.pow(1 - t, 3);
+          const val = decimal > 0 ? target * 10 * eased : target * eased;
+          el.textContent = prefix + formatNum(val) + suffix;
+          if (t < 1) requestAnimationFrame(step);
+          else el.textContent = prefix + (decimal > 0 ? target.toFixed(decimal) : target.toLocaleString("es-AR")) + suffix;
+        };
+        requestAnimationFrame(step);
+      };
+
+      const obs = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((e) => {
+            if (e.isIntersecting && !e.target.dataset.done) {
+              e.target.dataset.done = "1";
+              animate(e.target);
+            }
+          });
+        },
+        { threshold: 0.4 }
+      );
+      counters.forEach((c) => obs.observe(c));
+    </script>
+  </body>
+</html>

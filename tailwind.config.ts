@@ -37,6 +37,7 @@ const config: Config = {
       },
       fontFamily: {
         sans: ["Inter", "system-ui", "sans-serif"],
+        serif: ["Libre Baskerville", "Georgia", "serif"],
       },
       boxShadow: {
         card: "0 1px 3px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.07)",

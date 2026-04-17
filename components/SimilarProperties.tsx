@@ -10,7 +10,10 @@ export default function SimilarProperties({
   currentProperty,
   allProperties,
 }: SimilarPropertiesProps) {
-  const others = allProperties.filter((p) => p.id !== currentProperty.id);
+  // Only show properties with the same operation (venta with venta, alquiler with alquiler)
+  const others = allProperties.filter(
+    (p) => p.id !== currentProperty.id && p.operation === currentProperty.operation
+  );
 
   // Prefer same locality, then same type, then any
   const sameLocality = others.filter(

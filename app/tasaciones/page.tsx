@@ -23,6 +23,8 @@ export default function TasacionesPage() {
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitted, setSubmitted] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   function validate(): Record<string, string> {
     const errs: Record<string, string> = {};
@@ -30,13 +32,13 @@ export default function TasacionesPage() {
     if (!formData.email.trim()) {
       errs.email = "El email es obligatorio.";
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      errs.email = "Ingresa un email valido.";
+      errs.email = "Ingresá un email válido.";
     }
     if (!formData.telefono.trim()) {
-      errs.telefono = "El telefono es obligatorio.";
+      errs.telefono = "El teléfono es obligatorio.";
     }
     if (!formData.direccion.trim()) {
-      errs.direccion = "La direccion es obligatoria.";
+      errs.direccion = "La dirección es obligatoria.";
     }
     return errs;
   }
@@ -57,14 +59,41 @@ export default function TasacionesPage() {
     }
   }
 
-  function handleSubmit(e: FormEvent) {
+  async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     const errs = validate();
     if (Object.keys(errs).length > 0) {
       setErrors(errs);
       return;
     }
-    setSubmitted(true);
+
+    setSending(true);
+    setSubmitError(null);
+
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: formData.nombre,
+          email: formData.email,
+          phone: formData.telefono,
+          message: [
+            formData.comentarios,
+            `Dirección: ${formData.direccion}`,
+            formData.tipo ? `Tipo: ${formData.tipo}` : "",
+          ].filter(Boolean).join("\n"),
+          type: "tasacion",
+        }),
+      });
+
+      if (!res.ok) throw new Error("Error al enviar");
+      setSubmitted(true);
+    } catch {
+      setSubmitError("No se pudo enviar la solicitud. Intentá de nuevo.");
+    } finally {
+      setSending(false);
+    }
   }
 
   return (
@@ -101,20 +130,20 @@ export default function TasacionesPage() {
                 </svg>
               </div>
               <h2 className="text-2xl font-bold text-navy mb-2">
-                Gracias! Nos pondremos en contacto.
+                ¡Gracias! Nos pondremos en contacto.
               </h2>
               <p className="text-navy-400">
-                Un asesor de Russo Propiedades te contactara a la brevedad.
+                Un asesor de Russo Propiedades te contactará a la brevedad.
               </p>
             </div>
           ) : (
             <>
               <h1 className="text-3xl lg:text-4xl font-bold text-navy mb-3">
-                Vende tu propiedad
+                Vendé tu propiedad
               </h1>
               <p className="text-navy-400 mb-8 leading-relaxed">
-                Completa el formulario y un asesor de Russo Propiedades se
-                pondra en contacto con vos para continuar con el proceso.
+                Completá el formulario y un asesor de Russo Propiedades se
+                pondrá en contacto con vos para continuar con el proceso.
               </p>
 
               <form onSubmit={handleSubmit} noValidate className="space-y-5">
@@ -188,7 +217,7 @@ export default function TasacionesPage() {
                     htmlFor="telefono"
                     className="block text-sm font-medium text-navy mb-1"
                   >
-                    Telefono{" "}
+                    Teléfono{" "}
                     <span className="text-magenta" aria-hidden="true">
                       *
                     </span>
@@ -210,7 +239,7 @@ export default function TasacionesPage() {
                     id="telefono-helper"
                     className="mt-1 text-xs text-navy-300"
                   >
-                    N° con codigo de area. Ej: 1123456789
+                    N° con código de área. Ej: 1123456789
                   </p>
                   {errors.telefono && (
                     <p
@@ -228,7 +257,7 @@ export default function TasacionesPage() {
                     htmlFor="direccion"
                     className="block text-sm font-medium text-navy mb-1"
                   >
-                    Direccion de la propiedad{" "}
+                    Dirección de la propiedad{" "}
                     <span className="text-magenta" aria-hidden="true">
                       *
                     </span>
@@ -273,7 +302,7 @@ export default function TasacionesPage() {
                     onChange={handleChange}
                     className="w-full rounded-lg border border-navy-200 px-4 py-2.5 text-sm outline-none transition-colors focus:ring-2 focus:ring-magenta/30 focus:border-magenta bg-white"
                   >
-                    <option value="">Selecciona una opcion</option>
+                    <option value="">Seleccioná una opción</option>
                     {PROPERTY_TYPES.map((t) => (
                       <option key={t} value={t}>
                         {t}
@@ -300,13 +329,21 @@ export default function TasacionesPage() {
                   />
                 </div>
 
+                {submitError && (
+                  <p className="text-sm text-red-500 text-center">{submitError}</p>
+                )}
+
                 {/* Submit */}
-                <button type="submit" className="btn-magenta w-full text-center">
-                  Solicitar tasacion gratuita
+                <button
+                  type="submit"
+                  disabled={sending}
+                  className="btn-magenta w-full text-center disabled:opacity-50"
+                >
+                  {sending ? "Enviando…" : "Solicitar tasación gratuita"}
                 </button>
 
                 <p className="text-xs text-navy-300 text-center">
-                  Al enviar estas aceptando nuestros Terminos y Condiciones
+                  Al enviar estás aceptando nuestros Términos y Condiciones
                 </p>
               </form>
             </>

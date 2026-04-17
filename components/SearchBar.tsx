@@ -3,30 +3,18 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Search, X, ChevronDown, Check } from "lucide-react";
+import { useLocalities, rankLocalityMatches } from "@/lib/useLocalities";
 
 interface SearchBarProps {
   variant?: "hero" | "compact";
   defaultOperation?: "comprar" | "alquilar";
 }
 
-const LOCALITIES = [
-  "San Justo",
-  "Ciudadela",
-  "Haedo",
-  "Ramos Mejia",
-  "Moron",
-  "La Matanza",
-  "Tres de Febrero",
-  "Isidro Casanova",
-  "Gonzalez Catan",
-  "Laferrere",
-];
-
 const PROPERTY_TYPES = [
   "Departamento",
   "Casa",
   "PH",
-  "Terrenos y lotes",
+  "Terreno",
   "Cochera",
   "Local",
   "Oficina",
@@ -39,6 +27,7 @@ export default function SearchBar({
   defaultOperation = "comprar",
 }: SearchBarProps) {
   const router = useRouter();
+  const localities = useLocalities();
   const [operation, setOperation] = useState<Operation>(defaultOperation);
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
@@ -61,15 +50,11 @@ export default function SearchBar({
     return () => clearTimeout(timer);
   }, [query]);
 
-  // Filter localities
+  // Filter + rank localities (prefix > word-start > substring)
   const suggestions = useMemo(() => {
     if (!debouncedQuery.trim()) return [];
-    const lower = debouncedQuery.toLowerCase();
-    return LOCALITIES.filter(
-      (loc) =>
-        loc.toLowerCase().includes(lower) && !selectedZones.includes(loc)
-    );
-  }, [debouncedQuery, selectedZones]);
+    return rankLocalityMatches(localities, debouncedQuery, selectedZones);
+  }, [debouncedQuery, selectedZones, localities]);
 
   // Close dropdowns on click outside
   useEffect(() => {
@@ -123,10 +108,13 @@ export default function SearchBar({
     const basePath = operation === "comprar" ? "/ventas" : "/alquileres";
     const params = new URLSearchParams();
     if (selectedZones.length > 0) {
-      params.set("zona", selectedZones.join(","));
+      params.set("zones", selectedZones.join(","));
     }
     if (selectedTypes.length > 0) {
-      params.set("tipo", selectedTypes.join(","));
+      // PropertyListWithMap expects a single "type" currently; if multiple are
+      // selected we pass the first and leave the rest to be re-applied by the
+      // filter bar once the user lands on /ventas.
+      params.set("type", selectedTypes[0].toLowerCase());
     }
     const qs = params.toString();
     router.push(qs ? `${basePath}?${qs}` : basePath);
@@ -152,7 +140,7 @@ export default function SearchBar({
     if (e.key === "Enter") {
       e.preventDefault();
       if (activeIndex >= 0 && activeIndex < suggestions.length) {
-        selectZone(suggestions[activeIndex]);
+        selectZone(suggestions[activeIndex].name);
       } else if (suggestions.length === 0 && query.trim() === "") {
         handleSearch();
       }
@@ -178,9 +166,10 @@ export default function SearchBar({
   const pillBase = `rounded-full px-5 py-2 font-semibold transition-all duration-200 ease-out cursor-pointer whitespace-nowrap active:scale-[0.97] ${
     isHero ? "text-sm" : "text-xs sm:text-sm"
   }`;
-  const pillSelected = "bg-magenta text-white shadow-soft";
-  const pillUnselected =
-    "bg-white/90 text-navy border border-white/40 hover:bg-white hover:shadow-soft";
+  const pillSelected = "bg-magenta text-white shadow-[0_8px_20px_-6px_rgba(230,0,126,0.55)]";
+  const pillUnselected = isHero
+    ? "bg-white/15 backdrop-blur-md text-white border border-white/25 hover:bg-white/25 hover:border-white/40"
+    : "bg-white/90 text-navy border border-white/40 hover:bg-white hover:shadow-soft";
 
   return (
     <div className={`w-full ${isHero ? "max-w-3xl" : "max-w-2xl"}`}>
@@ -222,10 +211,10 @@ export default function SearchBar({
 
       {/* Search bar row */}
       <div
-        className={`flex items-stretch rounded-lg overflow-visible shadow-lg ${
+        className={`flex items-stretch rounded-2xl overflow-visible ${
           isHero
-            ? "bg-white/95 backdrop-blur-sm"
-            : "bg-white border border-navy-100"
+            ? "bg-white/75 backdrop-blur-xl border border-white/40 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.45),0_8px_24px_-12px_rgba(230,0,126,0.25)]"
+            : "bg-white border border-navy-100 shadow-lg"
         }`}
       >
         {/* Zone input with autocomplete */}
@@ -240,7 +229,7 @@ export default function SearchBar({
               activeIndex >= 0 ? `zone-option-${activeIndex}` : undefined
             }
             aria-autocomplete="list"
-            placeholder="Donde queres mudarte?"
+            placeholder="¿Dónde querés mudarte?"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleInputKeyDown}
@@ -264,21 +253,30 @@ export default function SearchBar({
             >
               {suggestions.map((loc, index) => (
                 <li
-                  key={loc}
+                  key={loc.name}
                   id={`zone-option-${index}`}
                   role="option"
                   aria-selected={index === activeIndex}
-                  className={`px-4 py-2.5 text-sm cursor-pointer transition-colors ${
+                  className={`flex items-center justify-between gap-3 px-4 py-2.5 text-sm cursor-pointer transition-colors ${
                     index === activeIndex
                       ? "bg-magenta-50 text-magenta"
                       : "text-navy hover:bg-navy-50"
                   }`}
                   onMouseDown={(e) => {
                     e.preventDefault();
-                    selectZone(loc);
+                    selectZone(loc.name);
                   }}
                 >
-                  {loc}
+                  <span className="truncate">{loc.name}</span>
+                  {loc.count > 0 && (
+                    <span
+                      className={`font-mono-price text-[11px] tabular-nums flex-shrink-0 ${
+                        index === activeIndex ? "text-magenta" : "text-gray-400"
+                      }`}
+                    >
+                      {loc.count}
+                    </span>
+                  )}
                 </li>
               ))}
             </ul>
@@ -370,7 +368,7 @@ export default function SearchBar({
           type="button"
           onClick={handleSearch}
           aria-label="Buscar propiedades"
-          className={`bg-magenta text-white flex items-center justify-center transition-colors hover:bg-magenta-600 ${
+          className={`bg-magenta text-white flex items-center justify-center transition-colors hover:bg-magenta-600 rounded-r-2xl ${
             isHero ? "px-5 py-3" : "px-4 py-2.5"
           }`}
         >

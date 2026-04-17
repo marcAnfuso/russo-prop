@@ -24,7 +24,7 @@ export function generateStaticParams() {
 const statusLabels: Record<DevelopmentStatus, string> = {
   "pre-venta": "Pre-venta",
   pozo: "Pozo",
-  "en-construccion": "En construccion",
+  "en-construccion": "En construcción",
   terminado: "Terminado",
 };
 
@@ -50,7 +50,7 @@ export default async function DevelopmentDetailPage({
           Emprendimiento no encontrado
         </h1>
         <p className="text-gray-600 mb-6">
-          El emprendimiento que buscas no existe o fue removido.
+          El emprendimiento que buscás no existe o fue removido.
         </p>
         <Link
           href="/emprendimientos"
@@ -153,7 +153,7 @@ export default async function DevelopmentDetailPage({
             <FeatureItem
               icon={<Bath className="h-5 w-5" />}
               value={String(dev.bathrooms)}
-              label="Banos"
+              label="Baños"
             />
             {dev.elevators && (
               <FeatureItem
@@ -167,7 +167,7 @@ export default async function DevelopmentDetailPage({
           {/* Description */}
           <section>
             <h2 className="mb-3 text-xl font-semibold text-navy">
-              Descripcion
+              Descripción
             </h2>
             <p className="text-gray-700 leading-relaxed whitespace-pre-line">
               {dev.description}
@@ -212,7 +212,7 @@ export default async function DevelopmentDetailPage({
                       {dev.name}
                     </td>
                     <td className="bg-gray-50 px-4 py-2.5 font-medium text-gray-600 w-1/4">
-                      Categoria
+                      Categoría
                     </td>
                     <td className="px-4 py-2.5 text-gray-800 w-1/4">
                       {dev.category}
@@ -260,7 +260,7 @@ export default async function DevelopmentDetailPage({
                   </tr>
                   <tr>
                     <td className="bg-gray-50 px-4 py-2.5 font-medium text-gray-600">
-                      Direccion
+                      Dirección
                     </td>
                     <td className="px-4 py-2.5 text-gray-800">
                       {dev.address}
@@ -279,7 +279,7 @@ export default async function DevelopmentDetailPage({
 
           {/* Location / Map */}
           <section>
-            <h2 className="mb-4 text-xl font-semibold text-navy">Ubicacion</h2>
+            <h2 className="mb-4 text-xl font-semibold text-navy">Ubicación</h2>
             <div className="h-80 rounded-lg overflow-hidden border border-gray-200">
               <MapView
                 properties={mapProperties}

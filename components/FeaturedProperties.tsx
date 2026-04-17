@@ -18,7 +18,7 @@ const itemVariants = {
 };
 
 export default function FeaturedProperties({ properties }: { properties: Property[] }) {
-  const featured = properties.slice(0, 3);
+  const featured = properties.slice(0, 4);
 
   return (
     <section className="py-16 px-4 sm:px-6 lg:px-8 bg-white">
@@ -31,12 +31,12 @@ export default function FeaturedProperties({ properties }: { properties: Propert
           transition={{ duration: 0.5 }}
           className="text-center mb-14"
         >
-          <p className="section-label mb-3">Seleccion de propiedades</p>
+          <p className="section-label mb-3">Selección de propiedades</p>
           <h2 className="text-3xl sm:text-4xl font-bold text-navy">
             Propiedades <span className="text-magenta">destacadas</span>
           </h2>
           <p className="mt-3 text-gray-400 text-base max-w-md mx-auto">
-            Lo que estas buscando, lo podes encontrar
+            Lo que estás buscando, lo podés encontrar
           </p>
         </motion.div>
 
@@ -46,11 +46,11 @@ export default function FeaturedProperties({ properties }: { properties: Propert
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-60px" }}
-          className="grid grid-cols-1 gap-6 max-w-3xl mx-auto"
+          className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto"
         >
           {featured.map((property) => (
             <motion.div key={property.id} variants={itemVariants}>
-              <PropertyCard property={property} />
+              <PropertyCard property={property} compact />
             </motion.div>
           ))}
         </motion.div>

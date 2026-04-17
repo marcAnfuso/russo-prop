@@ -17,7 +17,57 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es">
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+
+        {/* Google Analytics - Replace GA_ID with actual ID */}
+        {process.env.NEXT_PUBLIC_GA_ID && (
+          <>
+            <script
+              async
+              src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA_ID}`}
+            />
+            <script
+              dangerouslySetInnerHTML={{
+                __html: `
+                  window.dataLayer = window.dataLayer || [];
+                  function gtag(){dataLayer.push(arguments);}
+                  gtag('js', new Date());
+                  gtag('config', '${process.env.NEXT_PUBLIC_GA_ID}');
+                `,
+              }}
+            />
+          </>
+        )}
+      </head>
       <body>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "RealEstateAgent",
+              name: "Russo Propiedades",
+              url: "https://russopropiedades.com.ar",
+              telephone: "+54 11 4651 4024",
+              email: "info@russopropiedades.com.ar",
+              address: {
+                "@type": "PostalAddress",
+                streetAddress: "Av. Pte J. D. Perón 3501",
+                addressLocality: "San Justo",
+                addressRegion: "Buenos Aires",
+                addressCountry: "AR",
+              },
+              description:
+                "Servicios inmobiliarios en San Justo, La Matanza y zona oeste. Más de 30 años de experiencia.",
+              sameAs: [
+                "https://www.instagram.com/russopropiedades",
+                "https://www.facebook.com/russopropiedades",
+              ],
+            }),
+          }}
+        />
         <Navbar />
         <div className="pt-[72px]">{children}</div>
         <Footer />

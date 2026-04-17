@@ -40,3 +40,18 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 .env.local
+
+# playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+junit.xml
+test-results.json
+
+# Playwright MCP screenshots & artifacts
+.playwright-mcp/
+*.jpg
+*.png
+!public/**/*.jpg
+!public/**/*.png

@@ -12,6 +12,7 @@ export default function Hero() {
         muted
         loop
         playsInline
+        preload="metadata"
         className="absolute inset-0 w-full h-full object-cover"
       >
         <source src="/images/hero.mp4" type="video/mp4" />
@@ -28,7 +29,7 @@ export default function Hero() {
           transition={{ duration: 0.7, ease: "easeOut" }}
           className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white leading-tight mb-4"
         >
-          Tu proximo hogar empieza aca
+          Tu próximo hogar empieza acá
         </motion.h1>
 
         <motion.p

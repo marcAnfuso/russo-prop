@@ -2,14 +2,8 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
-import {
-  ChevronLeft,
-  ChevronRight,
-  X,
-  Camera,
-  Play,
-  Map,
-} from "lucide-react";
+import { ChevronLeft, ChevronRight, X, Camera, Play } from "lucide-react";
+import { toEmbedUrl } from "@/lib/utils";
 
 interface GalleryProps {
   images: string[];
@@ -17,7 +11,7 @@ interface GalleryProps {
   title: string;
 }
 
-type Tab = "fotos" | "video" | "mapa";
+type Tab = "fotos" | "video";
 
 export default function Gallery({ images, videoUrl, title }: GalleryProps) {
   const [activeTab, setActiveTab] = useState<Tab>("fotos");
@@ -41,8 +35,9 @@ export default function Gallery({ images, videoUrl, title }: GalleryProps) {
 
   // ---------- Lightbox ----------
 
-  const openLightbox = () => {
+  const openLightbox = (index?: number) => {
     if (!hasImages) return;
+    if (index !== undefined) setCurrentIndex(index);
     setLightboxOpen(true);
   };
 
@@ -82,18 +77,21 @@ export default function Gallery({ images, videoUrl, title }: GalleryProps) {
   }, [currentIndex, hasImages, images]);
 
   // ---------- Tabs ----------
+  // Only include Video tab when the property actually has a video.
+  // Map was removed — the property map is already shown in its own section below.
 
   const tabs: { key: Tab; label: string; icon: React.ReactNode }[] = [
     { key: "fotos", label: "Fotos", icon: <Camera className="w-4 h-4" /> },
-    { key: "video", label: "Video", icon: <Play className="w-4 h-4" /> },
-    { key: "mapa", label: "Mapa", icon: <Map className="w-4 h-4" /> },
+    ...(videoUrl
+      ? [{ key: "video" as Tab, label: "Video", icon: <Play className="w-4 h-4" /> }]
+      : []),
   ];
 
   // ---------- Render helpers ----------
 
   const renderPlaceholder = () => (
     <div className="flex items-center justify-center w-full aspect-video bg-gradient-to-br from-navy-200 to-navy-400 rounded-lg">
-      <span className="text-white/80 text-lg font-medium">Sin imagenes</span>
+      <span className="text-white/80 text-lg font-medium">Sin imágenes</span>
     </div>
   );
 
@@ -103,7 +101,7 @@ export default function Gallery({ images, videoUrl, title }: GalleryProps) {
     return (
       <div
         className="relative w-full aspect-video rounded-lg overflow-hidden cursor-pointer group/main"
-        onClick={openLightbox}
+        onClick={() => openLightbox()}
       >
         <Image
           src={images[currentIndex]}
@@ -183,7 +181,7 @@ export default function Gallery({ images, videoUrl, title }: GalleryProps) {
       return (
         <div className="w-full aspect-video rounded-lg overflow-hidden">
           <iframe
-            src={videoUrl}
+            src={toEmbedUrl(videoUrl)}
             title={`${title} - video`}
             className="w-full h-full"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -193,22 +191,8 @@ export default function Gallery({ images, videoUrl, title }: GalleryProps) {
       );
     }
 
-    return (
-      <div className="flex flex-col items-center justify-center w-full aspect-video bg-gray-100 rounded-lg">
-        <Play className="w-12 h-12 text-gray-400 mb-2" />
-        <span className="text-gray-500 text-sm">Video no disponible</span>
-      </div>
-    );
+    return null;
   };
-
-  const renderMapTab = () => (
-    <div className="flex flex-col items-center justify-center w-full aspect-video bg-gray-100 rounded-lg">
-      <Map className="w-12 h-12 text-gray-400 mb-2" />
-      <span className="text-gray-500 text-sm">
-        Mapa disponible mas abajo en la pagina
-      </span>
-    </div>
-  );
 
   // ---------- Main render ----------
 
@@ -235,22 +219,109 @@ export default function Gallery({ images, videoUrl, title }: GalleryProps) {
 
         {/* Tab content */}
         {activeTab === "fotos" && (
-          <div className="flex flex-col gap-3 md:grid md:grid-cols-[3fr_1fr]">
-            {/* Main image — its aspect-video determines the grid row height */}
-            <div>{renderMainImage()}</div>
-            {/* Thumbnail column: outer stretches to grid row height; inner scrolls within */}
-            <div className="relative hidden md:block">
-              <div className="absolute inset-0 flex flex-col gap-2 overflow-y-auto">
-                {hasImages && thumbnailButtons}
+          <>
+            {/* Desktop: asymmetric grid (lg+) */}
+            <div className="hidden lg:block">
+              {!hasImages && renderPlaceholder()}
+              {images.length === 1 && (
+                <div
+                  className="relative w-full aspect-video rounded-2xl overflow-hidden cursor-pointer"
+                  onClick={() => openLightbox(0)}
+                >
+                  <Image
+                    src={images[0]}
+                    alt={`${title} - imagen 1`}
+                    fill
+                    sizes="100vw"
+                    className="object-cover"
+                    priority
+                  />
+                </div>
+              )}
+              {images.length === 2 && (
+                <div className="grid grid-cols-2 gap-2 rounded-2xl overflow-hidden aspect-[16/9]">
+                  {images.slice(0, 2).map((src, idx) => (
+                    <div
+                      key={idx}
+                      className="relative cursor-pointer"
+                      onClick={() => openLightbox(idx)}
+                    >
+                      <Image
+                        src={src}
+                        alt={`${title} - imagen ${idx + 1}`}
+                        fill
+                        sizes="50vw"
+                        className="object-cover"
+                        priority={idx === 0}
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
+              {images.length >= 3 && (
+                <div className="grid grid-cols-3 grid-rows-2 gap-2 rounded-2xl overflow-hidden aspect-[16/9]">
+                  {/* Main image - spans 2 cols and full height */}
+                  <div
+                    className="col-span-2 row-span-2 relative cursor-pointer"
+                    onClick={() => openLightbox(0)}
+                  >
+                    <Image
+                      src={images[0]}
+                      alt={`${title} - imagen 1`}
+                      fill
+                      sizes="66vw"
+                      className="object-cover"
+                      priority
+                    />
+                  </div>
+                  {/* Second image */}
+                  <div
+                    className="relative cursor-pointer"
+                    onClick={() => openLightbox(1)}
+                  >
+                    <Image
+                      src={images[1]}
+                      alt={`${title} - imagen 2`}
+                      fill
+                      sizes="33vw"
+                      className="object-cover"
+                    />
+                  </div>
+                  {/* Third image with "+N" overlay if more images exist */}
+                  <div
+                    className="relative cursor-pointer"
+                    onClick={() => openLightbox(2)}
+                  >
+                    <Image
+                      src={images[2]}
+                      alt={`${title} - imagen 3`}
+                      fill
+                      sizes="33vw"
+                      className="object-cover"
+                    />
+                    {images.length > 3 && (
+                      <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                        <span className="text-white text-lg font-bold">
+                          +{images.length - 3} fotos
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Mobile: main image with carousel + "Ver fotos" button */}
+            <div className="lg:hidden">
+              <div className="flex flex-col gap-3">
+                <div>{renderMainImage()}</div>
+                <div>{renderThumbnails()}</div>
               </div>
             </div>
-            {/* Mobile thumbnails (rendered by renderThumbnails) */}
-            <div className="md:hidden">{renderThumbnails()}</div>
-          </div>
+          </>
         )}
 
         {activeTab === "video" && renderVideoTab()}
-        {activeTab === "mapa" && renderMapTab()}
       </div>
 
       {/* Lightbox */}
@@ -258,7 +329,7 @@ export default function Gallery({ images, videoUrl, title }: GalleryProps) {
         <div
           ref={lightboxRef}
           role="dialog"
-          aria-label={`Galeria de imagenes - ${title}`}
+          aria-label={`Galería de imágenes - ${title}`}
           aria-modal="true"
           tabIndex={-1}
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 outline-none"
@@ -267,7 +338,7 @@ export default function Gallery({ images, videoUrl, title }: GalleryProps) {
           {/* Close button */}
           <button
             onClick={closeLightbox}
-            aria-label="Cerrar galeria"
+            aria-label="Cerrar galería"
             className="absolute top-4 right-4 text-white hover:text-magenta-300 transition-colors z-10"
           >
             <X className="w-7 h-7" />

@@ -1,4 +1,4 @@
-import type { Property, Development, OperationType, PropertyType } from "@/data/types";
+import type { Property, OperationType, PropertyType } from "@/data/types";
 
 // ─── Config ────────────────────────────────────────────────────────────────
 
@@ -23,7 +23,9 @@ interface XintelListFicha {
   in_fic: string;
   titulo?: string;
   operacion?: string; // "Venta" | "Alquiler"
-  tipo?: string;
+  tipo?: string;      // display string: "Casa", "Departamento", etc.
+  in_tip?: string;    // single-letter code: "C", "D", etc.
+  in_tpr?: string;    // internal type: "CASA", "PH", "DEPARTAMENTO", etc.
   venta_precio?: number | string | null;
   alquiler_precio?: number | string | null;
   alquiler_moneda?: string;
@@ -48,6 +50,18 @@ interface XintelListFicha {
   in_des?: string | boolean;
   video?: string;
   cantidad_dormitorios?: string | number;
+  // Detail-only fields (fichas.propiedades)
+  in_pis?: string | number;   // piso
+  in_dto?: string;            // depto letra/número
+  in_esa?: string;            // estado (Muy Bueno, A estrenar, etc)
+  in_eco?: string;            // categoría (Muy Buena, Standard, etc)
+  in_ant?: string | number;   // antigüedad en años
+  in_asc?: string | number;   // ascensores
+  in_exp?: string | number;   // expensas (ARS)
+  in_imp?: string | number;   // impuesto (ARS)
+  in_agu?: string;            // agua corriente (SI/NO)
+  in_ale?: string;            // agua caliente (SI/NO)
+  ubicacion?: string;         // frente/contrafrente/interno
 }
 
 interface XintelDetailFicha extends XintelListFicha {
@@ -61,6 +75,7 @@ interface XintelListResponse {
     total?: number;
     cantidadFichas?: number;
     paginas?: number;
+    caracteristicas?: Record<string, string[]>;
     datos?: {
       cantidadFichas?: number;
       paginas?: number;
@@ -94,9 +109,30 @@ function decodeHtml(s?: string): string {
   return s.replace(/&[a-zA-Z0-9#]+;/g, (e) => HTML_ENTITIES[e] ?? e);
 }
 
+/** Normalize locality casing: "MORÓN" → "Morón", "de" / "del" stay lowercase. */
+function normalizeLocality(s?: string): string {
+  if (!s) return "";
+  const decoded = decodeHtml(s).trim();
+  if (!decoded) return "";
+  const lower = decoded.toLowerCase();
+  return lower
+    .split(/\s+/)
+    .map((word, i) => {
+      if (i > 0 && (word === "de" || word === "del" || word === "la" || word === "las" || word === "los")) {
+        return word;
+      }
+      return word.charAt(0).toLocaleUpperCase("es") + word.slice(1);
+    })
+    .join(" ");
+}
+
 function num(v: string | number | null | undefined): number {
-  if (!v) return 0;
-  const n = parseFloat(String(v).replace(/[^0-9.]/g, ""));
+  if (v == null || v === "") return 0;
+  if (typeof v === "number") return isNaN(v) ? 0 : v;
+  // Extract the first numeric token so values like "85.00m2" don't end up as 85.002
+  const match = String(v).match(/-?\d+(?:[.,]\d+)?/);
+  if (!match) return 0;
+  const n = parseFloat(match[0].replace(",", "."));
   return isNaN(n) ? 0 : n;
 }
 
@@ -127,6 +163,19 @@ function mapCurrency(moneda?: string): "USD" | "ARS" {
 }
 
 const TYPE_MAP: Record<string, PropertyType> = {
+  // Xintel single-letter codes
+  c: "casa",
+  d: "departamento",
+  e: "edificio",
+  g: "local",    // Galpon
+  h: "cochera",
+  l: "local",
+  n: "local",    // Negocio
+  o: "oficina",
+  p: "terreno",  // Campo
+  q: "terreno",  // Quinta
+  t: "terreno",  // Lote
+  // full names (fallback)
   casa: "casa",
   departamento: "departamento",
   depto: "departamento",
@@ -134,11 +183,26 @@ const TYPE_MAP: Record<string, PropertyType> = {
   "p.h.": "ph",
   terreno: "terreno",
   lote: "terreno",
+  campo: "terreno",
+  quinta: "terreno",
   cochera: "cochera",
   local: "local",
+  negocio: "local",
   oficina: "oficina",
   galpon: "local",
   edificio: "edificio",
+};
+
+// Reverse mapping: PropertyType display value → Xintel single-letter code
+const TYPE_TO_XINTEL_CODE: Record<PropertyType, string> = {
+  casa: "C",
+  departamento: "D",
+  edificio: "E",
+  cochera: "H",
+  local: "L",
+  oficina: "O",
+  ph: "PH",
+  terreno: "T",
 };
 
 function mapType(t?: string): PropertyType {
@@ -152,7 +216,7 @@ function firstImg(entry: string | string[]): string {
   return entry ?? "";
 }
 
-function mapListFicha(ficha: XintelListFicha, imgs: string | string[]): Property {
+function mapListFicha(ficha: XintelListFicha, imgs: string | string[], amenities?: string[]): Property {
   const op = mapOperation(ficha.operacion);
   const rawPrice =
     op === "alquiler"
@@ -171,11 +235,11 @@ function mapListFicha(ficha: XintelListFicha, imgs: string | string[]): Property
     code: `RUS${ficha.in_num}`,
     title: decodeHtml(ficha.titulo) || `Propiedad ${ficha.in_num}`,
     operation: op,
-    type: mapType(ficha.tipo),
+    type: mapType(ficha.in_tpr || ficha.tipo || ficha.in_tip),
     price,
     currency,
     address: decodeHtml(ficha.direccion_completa) || `${ficha.in_cal ?? ""} ${ficha.in_nro ?? ""}`.trim(),
-    locality: decodeHtml(ficha.in_bar),
+    locality: normalizeLocality(ficha.in_bar),
     district: decodeHtml(ficha.in_loc),
     description: decodeHtml(ficha.in_obs?.trim()),
     features: {
@@ -186,7 +250,7 @@ function mapListFicha(ficha: XintelListFicha, imgs: string | string[]): Property
       bedrooms: num(ficha.cantidad_dormitorios),
       garage: num(ficha.in_coc) || num(ficha.garage),
     },
-    amenities: [],
+    amenities: amenities ?? [],
     images,
     videoUrl: ficha.video ?? undefined,
     location: parseCoords(ficha.in_coo),
@@ -198,7 +262,6 @@ function mapListFicha(ficha: XintelListFicha, imgs: string | string[]): Property
 
 interface FetchPropertiesParams {
   operation?: "venta" | "alquiler";
-  type?: string;
   page?: number;
 }
 
@@ -214,17 +277,16 @@ function buildListUrl(params: FetchPropertiesParams, page: number): string {
   if (params.operation) {
     url.searchParams.set("ope", params.operation === "venta" ? "V" : "A");
   }
-  if (params.type) {
-    url.searchParams.set("tip", params.type);
-  }
+  // Note: Xintel API does not support type filtering via 'tip' parameter
+  // Property type filtering is handled client-side by FilterBar component
   return url.toString();
 }
 
 async function fetchPage(
   urlStr: string
-): Promise<{ fichas: XintelListFicha[]; imgs: (string | string[])[]; total: number | null }> {
+): Promise<{ fichas: XintelListFicha[]; imgs: (string | string[])[]; total: number | null; caracteristicas: Record<string, string[]> }> {
   const res = await fetch(urlStr, { next: { revalidate: REVALIDATE } });
-  if (!res.ok) return { fichas: [], imgs: [], total: null };
+  if (!res.ok) return { fichas: [], imgs: [], total: null, caracteristicas: {} };
   const data: XintelListResponse = await res.json();
   const total =
     data?.resultado?.datos?.cantidadFichas ??
@@ -234,6 +296,7 @@ async function fetchPage(
   return {
     fichas: data?.resultado?.fichas ?? [],
     imgs: data?.resultado?.img ?? [],
+    caracteristicas: data?.resultado?.caracteristicas ?? {},
     total,
   };
 }
@@ -250,15 +313,37 @@ export async function fetchProperties(
 ): Promise<FetchPropertiesResult> {
   try {
     const page = params.page ?? 1;
-    const { fichas, imgs, total } = await fetchPage(buildListUrl(params, page));
+    const { fichas, imgs, total, caracteristicas } = await fetchPage(buildListUrl(params, page));
     return {
-      properties: fichas.map((f, i) => mapListFicha(f, imgs[i] ?? [])),
+      properties: fichas.map((f, i) => mapListFicha(f, imgs[i] ?? [], caracteristicas[f.in_num])),
       hasMore: fichas.length === PER_PAGE,
       total,
     };
   } catch {
     return { properties: [], hasMore: false, total: null };
   }
+}
+
+/**
+ * Look up the amenities array for a property by scanning list pages
+ * (Xintel only exposes `caracteristicas` keyed by id via the list endpoint —
+ * the `fichas.propiedades` detail doesn't include them). Each page fetch is
+ * cached for REVALIDATE seconds so repeat lookups are cheap.
+ */
+async function fetchAmenitiesForId(id: string, maxPages = 4): Promise<string[]> {
+  for (let page = 1; page <= maxPages; page++) {
+    try {
+      const { caracteristicas, fichas } = await fetchPage(
+        buildListUrl({}, page)
+      );
+      if (caracteristicas[id]) return caracteristicas[id];
+      // Stop early if we've reached the last page
+      if (fichas.length < PER_PAGE) break;
+    } catch {
+      break;
+    }
+  }
+  return [];
 }
 
 /** Fetch single property detail (full images, superficie, video) */
@@ -285,6 +370,47 @@ export async function fetchProperty(id: string): Promise<Property | null> {
     if (!ficha) return null;
 
     const imgs: string[] = Array.isArray(r.img) ? r.img.filter(Boolean) : [];
+    const amenities = await fetchAmenitiesForId(String(ficha.in_num));
+
+    // Build the `areas` list from superficie (title+dato pairs, skipping 0.00 values)
+    const areas: { label: string; value: string }[] = (() => {
+      const sup = r.superficie;
+      if (!sup?.title || !sup?.dato) return [];
+      return sup.title
+        .map((label, i) => ({ label, value: sup.dato![i] }))
+        .filter((a) => a.value && !/^0(?:[.,]0+)?\s*m?2?$/i.test(a.value));
+    })();
+
+    // Helpers to read optional string/numeric fields safely
+    const str = (v: string | number | undefined | null): string | undefined => {
+      if (v == null) return undefined;
+      const s = String(v).trim();
+      return s && s !== "0" && s !== "-" ? s : undefined;
+    };
+    const n = (v: string | number | undefined | null): number | undefined => {
+      const parsed = num(v);
+      return parsed > 0 ? parsed : undefined;
+    };
+    const bool = (v: string | undefined): boolean | undefined => {
+      if (!v) return undefined;
+      const up = v.toUpperCase().trim();
+      if (up === "SI" || up === "TRUE" || up === "S") return true;
+      if (up === "NO" || up === "FALSE" || up === "N") return false;
+      return undefined;
+    };
+
+    const details = {
+      floor: str(ficha.in_pis),
+      aptNumber: str(ficha.in_dto),
+      condition: str(ficha.in_esa),
+      category: str(ficha.in_eco),
+      orientation: decodeHtml(str(ficha.ubicacion)) || undefined,
+      elevators: n(ficha.in_asc),
+      expenses: n(ficha.in_exp),
+      tax: n(ficha.in_imp),
+      apartmentType: decodeHtml(str(ficha.in_tpr) || str(ficha.tipo)),
+      hasHotWater: bool(ficha.in_ale),
+    };
 
     // Get covered area from superficie if available
     const coveredArea = (() => {
@@ -312,7 +438,7 @@ export async function fetchProperty(id: string): Promise<Property | null> {
       price,
       currency,
       address: decodeHtml(ficha.direccion_completa) || `${ficha.in_cal ?? ""} ${ficha.in_nro ?? ""}`.trim(),
-      locality: decodeHtml(ficha.in_bar),
+      locality: normalizeLocality(ficha.in_bar),
       district: decodeHtml(ficha.in_loc),
       description: decodeHtml(ficha.in_obs?.trim()),
       features: {
@@ -323,7 +449,9 @@ export async function fetchProperty(id: string): Promise<Property | null> {
         bedrooms: num(ficha.cantidad_dormitorios),
         garage: num(ficha.in_coc) || num(ficha.garage),
       },
-      amenities: [],
+      amenities,
+      areas: areas.length > 0 ? areas : undefined,
+      details,
       images: imgs,
       videoUrl: r.videos?.[0]?.video_url ?? ficha.video ?? undefined,
       location: parseCoords(ficha.in_coo),
@@ -363,4 +491,42 @@ export async function fetchFeaturedProperties(): Promise<Property[]> {
     const { properties } = await fetchProperties();
     return properties.filter((p) => p.featured).slice(0, 6);
   }
+}
+
+/** Fetch latest properties (newest first) for home page */
+export async function fetchLatestProperties(): Promise<Property[]> {
+  const { properties } = await fetchProperties({ page: 1 });
+  return properties.slice(0, 6);
+}
+
+export interface LocalityCount {
+  name: string;
+  count: number;
+}
+
+/**
+ * Fetch the list of localities (barrios) that Russo actually has listings in,
+ * with a count of how many active listings each one has.
+ * Walks up to 12 pages and aggregates normalized `in_bar` values.
+ * Pages are cached by Next's fetch layer (REVALIDATE = 30 min).
+ */
+export async function fetchAvailableLocalities(
+  maxPages = 12
+): Promise<LocalityCount[]> {
+  const counts = new Map<string, number>();
+  for (let page = 1; page <= maxPages; page++) {
+    try {
+      const { fichas } = await fetchPage(buildListUrl({}, page));
+      for (const f of fichas) {
+        const loc = normalizeLocality(f.in_bar);
+        if (loc) counts.set(loc, (counts.get(loc) ?? 0) + 1);
+      }
+      if (fichas.length < PER_PAGE) break;
+    } catch {
+      break;
+    }
+  }
+  return Array.from(counts.entries())
+    .map(([name, count]) => ({ name, count }))
+    .sort((a, b) => a.name.localeCompare(b.name, "es"));
 }

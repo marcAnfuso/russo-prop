@@ -11,10 +11,10 @@ interface Reason {
 }
 
 const reasons: Reason[] = [
-  { icon: Building,    title: "Experiencia",   description: "Mas de 30 anos en el mercado inmobiliario de zona oeste" },
-  { icon: Monitor,     title: "Tecnologia",    description: "Herramientas digitales de ultima generacion para optimizar tu busqueda" },
+  { icon: Building,    title: "Experiencia",   description: "Más de 30 años en el mercado inmobiliario de zona oeste" },
+  { icon: Monitor,     title: "Tecnología",    description: "Herramientas digitales de última generación para optimizar tu búsqueda" },
   { icon: Users,       title: "Equipo joven",  description: "Capital humano rigurosamente seleccionado por su capacidad e idoneidad" },
-  { icon: ShieldCheck, title: "Honestidad",    description: "Transparencia y confianza en cada operacion" },
+  { icon: ShieldCheck, title: "Honestidad",    description: "Transparencia y confianza en cada operación" },
 ];
 
 const containerVariants = {
@@ -38,7 +38,7 @@ export default function WhyRusso() {
           className="text-center mb-14"
         >
           <p className="section-label mb-3">Nuestros valores</p>
-          <h2 className="text-3xl sm:text-4xl font-bold text-navy">Por que Russo?</h2>
+          <h2 className="text-3xl sm:text-4xl font-bold text-navy">¿Por qué elegirnos?</h2>
         </motion.div>
 
         <motion.div

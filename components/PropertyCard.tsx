@@ -5,17 +5,20 @@ import Image from "next/image";
 import { Maximize2, Home, Droplets, Car } from "lucide-react";
 import type { Property } from "@/data/types";
 import ContactButtons from "@/components/ContactButtons";
+import FavoriteButton from "@/components/FavoriteButton";
 
 interface PropertyCardProps {
   property: Property;
   onHover?: (id: string | null) => void;
+  onQuickView?: (property: Property) => void;
+  compact?: boolean;
 }
 
 function formatPrice(price: number): string {
   return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 }
 
-export default function PropertyCard({ property, onHover }: PropertyCardProps) {
+export default function PropertyCard({ property, onHover, onQuickView, compact = false }: PropertyCardProps) {
   const { id, code, operation, price, currency, address, locality, district, images, features } = property;
 
   const isAlquiler = operation === "alquiler";
@@ -34,14 +37,21 @@ export default function PropertyCard({ property, onHover }: PropertyCardProps) {
 
   return (
     <article
-      className="group relative flex flex-col sm:flex-row overflow-hidden rounded-2xl bg-white border border-gray-100 shadow-card hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-200 ease-out"
+      className={`group relative flex overflow-hidden rounded-2xl bg-white border border-gray-100 shadow-card hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-200 ease-out ${compact ? "flex-col h-full" : "flex-col sm:flex-row"}`}
       onMouseEnter={() => onHover?.(id)}
       onMouseLeave={() => onHover?.(null)}
     >
       <Link href={`/propiedad/${id}`} className="absolute inset-0 z-10" aria-label={`Ver propiedad ${code}`} />
 
       {/* Image */}
-      <div className="relative w-full sm:w-[38%] aspect-[4/3] sm:aspect-auto flex-shrink-0 overflow-hidden">
+      <div
+        className={`relative flex-shrink-0 overflow-hidden cursor-pointer ${compact ? "w-full aspect-[4/3]" : "w-full sm:w-[38%] aspect-[4/3] sm:aspect-auto"}`}
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          onQuickView?.(property);
+        }}
+      >
         {imageSrc ? (
           <Image
             src={imageSrc}
@@ -53,13 +63,27 @@ export default function PropertyCard({ property, onHover }: PropertyCardProps) {
         ) : (
           <div className="absolute inset-0 bg-gradient-to-br from-navy-100 to-navy-200" />
         )}
-        <span className={`absolute top-3 left-3 z-20 rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-white backdrop-blur-sm ${isAlquiler ? "bg-navy/90" : "bg-magenta/90"}`}>
-          {isAlquiler ? "Alquiler" : "Venta"}
-        </span>
+        {!compact && (
+          <span className={`absolute top-3 left-3 z-20 rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-white backdrop-blur-sm ${isAlquiler ? "bg-navy/90" : "bg-magenta/90"}`}>
+            {isAlquiler ? "Alquiler" : "Venta"}
+          </span>
+        )}
+        {price === 9999999 ? (
+          <span className="absolute top-3 right-3 z-20 rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-white bg-amber-500 backdrop-blur-sm">
+            Reservado
+          </span>
+        ) : (
+          <FavoriteButton propertyId={id} />
+        )}
+        <div className="absolute inset-0 z-[5] bg-black/0 group-hover:bg-black/25 transition-all duration-300 flex items-center justify-center pointer-events-none">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-white/95 px-4 py-1.5 text-xs font-semibold text-navy opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 shadow-lg">
+            Vista rápida
+          </span>
+        </div>
       </div>
 
       {/* Content */}
-      <div className="flex flex-col justify-between gap-3 p-5 w-full">
+      <div className="flex flex-col justify-between gap-3 p-5 w-full flex-1">
         <div className="space-y-1">
           <p className="text-2xl font-bold tracking-tight text-gray-900">{priceLabel}</p>
           <p className="text-sm font-medium text-gray-700">{address}</p>
@@ -82,7 +106,7 @@ export default function PropertyCard({ property, onHover }: PropertyCardProps) {
         )}
 
         <div className="relative z-20 flex justify-end pt-2 border-t border-gray-50">
-          <ContactButtons propertyCode={code} size="sm" />
+          <ContactButtons propertyCode={code} size="sm" compact={compact} />
         </div>
       </div>
     </article>

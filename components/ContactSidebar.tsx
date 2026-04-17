@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import { Facebook, Linkedin, Printer, Share2, Mail } from "lucide-react";
 import ContactButtons from "@/components/ContactButtons";
@@ -14,15 +14,23 @@ export default function ContactSidebar({
   propertyCode,
   propertyTitle,
 }: ContactSidebarProps) {
+  const [shareUrl, setShareUrl] = useState("");
+  useEffect(() => {
+    setShareUrl(window.location.href);
+  }, []);
+
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
     email: "",
     message:
-      "Vi esta propiedad y me gustaria que me contacten...",
+      "Vi esta propiedad y me gustaría que me contacten…",
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -38,7 +46,7 @@ export default function ContactSidebar({
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const newErrors: Record<string, string> = {};
 
@@ -47,14 +55,38 @@ export default function ContactSidebar({
     if (!formData.email.trim()) {
       newErrors.email = "Campo requerido";
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = "Email invalido";
+      newErrors.email = "Email inválido";
     }
 
     setErrors(newErrors);
+    if (Object.keys(newErrors).length > 0) return;
+
+    setLoading(true);
+    setSubmitError(null);
+
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          message: formData.message,
+          propertyCode,
+          type: "consulta",
+        }),
+      });
+
+      if (!res.ok) throw new Error("Error al enviar");
+      setSuccess(true);
+    } catch {
+      setSubmitError("No se pudo enviar el mensaje. Intentá de nuevo.");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const shareUrl =
-    typeof window !== "undefined" ? window.location.href : "";
   const shareTitle = propertyTitle ?? `Propiedad ${propertyCode}`;
 
   return (
@@ -96,8 +128,23 @@ export default function ContactSidebar({
       {/* Contact form */}
       <div className="p-5">
         <h3 className="mb-4 text-sm font-semibold text-navy">
-          Envianos un mensaje
+          Enviános un mensaje
         </h3>
+        {success ? (
+          <div className="text-center py-4">
+            <p className="text-sm text-green-600 font-medium mb-2">¡Mensaje enviado con éxito!</p>
+            <p className="text-xs text-gray-500">Nos comunicaremos a la brevedad.</p>
+            <button
+              onClick={() => {
+                setSuccess(false);
+                setFormData({ name: "", phone: "", email: "", message: "Vi esta propiedad y me gustaría que me contacten…" });
+              }}
+              className="mt-3 text-xs text-magenta underline"
+            >
+              Enviar otro mensaje
+            </button>
+          </div>
+        ) : (
         <form onSubmit={handleSubmit} noValidate className="space-y-3">
           <div>
             <label htmlFor="sidebar-name" className="sr-only">
@@ -122,14 +169,14 @@ export default function ContactSidebar({
 
           <div>
             <label htmlFor="sidebar-phone" className="sr-only">
-              Telefono
+              Teléfono
             </label>
             <input
               id="sidebar-phone"
               name="phone"
               type="tel"
               required
-              placeholder="Telefono *"
+              placeholder="Teléfono *"
               value={formData.phone}
               onChange={handleChange}
               className={`w-full rounded border px-3 py-2 text-sm outline-none transition-colors focus:border-magenta ${
@@ -177,13 +224,19 @@ export default function ContactSidebar({
             />
           </div>
 
+          {submitError && (
+            <p className="text-xs text-red-500">{submitError}</p>
+          )}
+
           <button
             type="submit"
-            className="w-full rounded bg-magenta py-2.5 text-sm font-semibold uppercase tracking-wide text-white transition-colors hover:bg-magenta-600"
+            disabled={loading}
+            className="w-full rounded bg-magenta py-2.5 text-sm font-semibold uppercase tracking-wide text-white transition-colors hover:bg-magenta-600 disabled:opacity-50"
           >
-            Contactarse
+            {loading ? "Enviando…" : "Contactarse"}
           </button>
         </form>
+        )}
       </div>
 
       <hr className="border-gray-200" />
