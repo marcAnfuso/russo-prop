@@ -1,86 +1,49 @@
 "use client";
 
-import { useEffect, useRef, useMemo, useCallback } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
-  MapContainer,
-  TileLayer,
+  APIProvider,
+  Map,
   Marker,
-  Popup,
+  InfoWindow,
   useMap,
-} from "react-leaflet";
-import L from "leaflet";
-import "leaflet/dist/leaflet.css";
+} from "@vis.gl/react-google-maps";
 import type { MapViewProps } from "./MapView";
 import { formatPrice } from "@/lib/utils";
 
-/* ------------------------------------------------------------------ */
-/*  Constants                                                          */
-/* ------------------------------------------------------------------ */
-
-const DEFAULT_CENTER: [number, number] = [-34.6833, -58.55];
+const DEFAULT_CENTER = { lat: -34.6833, lng: -58.55 };
 const DEFAULT_ZOOM = 13;
 
-/* ------------------------------------------------------------------ */
-/*  Marker icons                                                       */
-/* ------------------------------------------------------------------ */
-
-function pinSvg(color: string, scale = 1): string {
-  const w = Math.round(24 * scale);
-  const h = Math.round(36 * scale);
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 24 36">
-    <path d="M12 0C5.4 0 0 5.4 0 12c0 9 12 24 12 24s12-15 12-24C24 5.4 18.6 0 12 0z" fill="${color}"/>
-    <circle cx="12" cy="12" r="5" fill="white"/>
-  </svg>`;
+/**
+ * Build a data-URI SVG pin for Google Maps. Using the legacy Marker
+ * (not AdvancedMarker) keeps us from needing a Map ID — the trade-off
+ * is less flexibility, but a pin is a pin.
+ */
+function pinIcon(highlighted: boolean): string {
+  const color = highlighted ? "#ff4081" : "#e6007e";
+  const w = highlighted ? 32 : 26;
+  const h = highlighted ? 48 : 38;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 24 36"><path d="M12 0C5.4 0 0 5.4 0 12c0 9 12 24 12 24s12-15 12-24C24 5.4 18.6 0 12 0z" fill="${color}" stroke="white" stroke-width="1.5"/><circle cx="12" cy="12" r="4.5" fill="white"/></svg>`;
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
 }
 
-function createIcon(highlighted = false): L.DivIcon {
-  const color = highlighted ? "#ff4081" : "#d6336c";
-  const scale = highlighted ? 1.35 : 1;
-  const w = Math.round(24 * scale);
-  const h = Math.round(36 * scale);
-
-  return L.divIcon({
-    html: pinSvg(color, scale),
-    className: "",
-    iconSize: [w, h],
-    iconAnchor: [w / 2, h],
-    popupAnchor: [0, -h],
-  });
-}
-
-const defaultIcon = createIcon(false);
-const highlightedIcon = createIcon(true);
-
-/* ------------------------------------------------------------------ */
-/*  Sub-component: auto-fit bounds when properties change              */
-/* ------------------------------------------------------------------ */
-
-interface BoundsUpdaterProps {
+function BoundsFitter({
+  properties,
+  singleMarker,
+}: {
   properties: NonNullable<MapViewProps["properties"]>;
   singleMarker?: boolean;
-}
-
-function BoundsUpdater({ properties, singleMarker }: BoundsUpdaterProps) {
+}) {
   const map = useMap();
-
   useEffect(() => {
-    if (singleMarker || properties.length === 0) return;
-
-    const bounds = L.latLngBounds(
-      properties.map((p) => [p.location.lat, p.location.lng] as [number, number])
-    );
-
-    if (bounds.isValid()) {
-      map.fitBounds(bounds, { padding: [40, 40], maxZoom: 16 });
-    }
+    if (!map || singleMarker || properties.length === 0) return;
+    if (typeof google === "undefined") return;
+    const bounds = new google.maps.LatLngBounds();
+    properties.forEach((p) => bounds.extend(p.location));
+    map.fitBounds(bounds, 48);
   }, [map, properties, singleMarker]);
-
   return null;
 }
-
-/* ------------------------------------------------------------------ */
-/*  Main inner component                                               */
-/* ------------------------------------------------------------------ */
 
 export default function MapViewInner({
   properties = [],
@@ -90,52 +53,40 @@ export default function MapViewInner({
   singleMarker = false,
   className = "",
 }: MapViewProps) {
-  const markerRefs = useRef<Record<string, L.Marker>>({});
+  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+  const [openId, setOpenId] = useState<string | null>(null);
 
-  /* Compute map center */
-  const mapCenter = useMemo<[number, number]>(() => {
-    if (center) return center;
+  const mapCenter = useMemo(() => {
+    if (center) return { lat: center[0], lng: center[1] };
     if (singleMarker && properties.length === 1) {
-      return [properties[0].location.lat, properties[0].location.lng];
+      return properties[0].location;
     }
     if (properties.length > 0) {
       const avgLat =
         properties.reduce((s, p) => s + p.location.lat, 0) / properties.length;
       const avgLng =
         properties.reduce((s, p) => s + p.location.lng, 0) / properties.length;
-      return [avgLat, avgLng];
+      return { lat: avgLat, lng: avgLng };
     }
     return DEFAULT_CENTER;
   }, [center, properties, singleMarker]);
 
-  const mapZoom = zoom ?? DEFAULT_ZOOM;
+  const mapZoom = zoom ?? (singleMarker ? 15 : DEFAULT_ZOOM);
+  const openProperty =
+    openId ? properties.find((p) => p.id === openId) ?? null : null;
 
-  /* Update highlighted marker icon */
-  useEffect(() => {
-    for (const [id, marker] of Object.entries(markerRefs.current)) {
-      if (marker) {
-        marker.setIcon(id === highlightedId ? highlightedIcon : defaultIcon);
-        if (id === highlightedId) {
-          marker.setZIndexOffset(1000);
-        } else {
-          marker.setZIndexOffset(0);
-        }
-      }
-    }
-  }, [highlightedId]);
+  if (!apiKey) {
+    return (
+      <div
+        className={`w-full h-full flex items-center justify-center bg-gray-100 rounded-lg ${className}`}
+      >
+        <p className="text-gray-400 text-sm">
+          Mapa no configurado (falta NEXT_PUBLIC_GOOGLE_MAPS_API_KEY)
+        </p>
+      </div>
+    );
+  }
 
-  const setMarkerRef = useCallback(
-    (id: string) => (ref: L.Marker | null) => {
-      if (ref) {
-        markerRefs.current[id] = ref;
-      } else {
-        delete markerRefs.current[id];
-      }
-    },
-    []
-  );
-
-  /* Empty state */
   if (properties.length === 0 && !center) {
     return (
       <div
@@ -147,65 +98,69 @@ export default function MapViewInner({
   }
 
   return (
-    <MapContainer
-      center={mapCenter}
-      zoom={mapZoom}
-      scrollWheelZoom
-      className={`w-full h-full rounded-lg z-0 ${className}`}
-      style={{ minHeight: 300 }}
-    >
-      <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-      />
+    <APIProvider apiKey={apiKey} language="es" region="AR">
+      <div
+        className={`relative w-full h-full rounded-lg overflow-hidden ${className}`}
+        style={{ minHeight: 300 }}
+      >
+        <Map
+          defaultCenter={mapCenter}
+          defaultZoom={mapZoom}
+          gestureHandling="greedy"
+          disableDefaultUI={false}
+          clickableIcons={false}
+          className="w-full h-full"
+        >
+          <BoundsFitter properties={properties} singleMarker={singleMarker} />
 
-      <BoundsUpdater properties={properties} singleMarker={singleMarker} />
+          {properties.map((property) => (
+            <Marker
+              key={property.id}
+              position={property.location}
+              icon={pinIcon(property.id === highlightedId)}
+              zIndex={property.id === highlightedId ? 1000 : 1}
+              onClick={() => !singleMarker && setOpenId(property.id)}
+            />
+          ))}
 
-      {properties.map((property) => {
-        const position: [number, number] = [
-          property.location.lat,
-          property.location.lng,
-        ];
-
-        return (
-          <Marker
-            key={property.id}
-            position={position}
-            icon={
-              property.id === highlightedId ? highlightedIcon : defaultIcon
-            }
-            ref={setMarkerRef(property.id)}
-          >
-            {!singleMarker && (
-              <Popup>
-                <div className="flex flex-col gap-1 min-w-[180px]">
-                  {property.images[0] ? (
-                    <img
-                      src={property.images[0]}
-                      alt={property.title}
-                      className="w-full h-24 object-cover rounded"
-                    />
-                  ) : (
-                    <div className="w-full h-24 bg-gray-200 rounded flex items-center justify-center text-gray-400 text-xs">
-                      Sin imagen
-                    </div>
-                  )}
-                  <p className="font-semibold text-sm text-gray-900">
-                    {property.currency === "ARS" ? "$" : "USD"} {formatPrice(property.price)}
-                  </p>
-                  <p className="text-xs text-gray-600">{property.address}</p>
-                  <a
-                    href={`/propiedades/${property.id}`}
-                    className="text-xs text-magenta-600 hover:underline mt-1 font-medium"
-                  >
-                    Ver propiedad
-                  </a>
-                </div>
-              </Popup>
-            )}
-          </Marker>
-        );
-      })}
-    </MapContainer>
+          {openProperty && !singleMarker && (
+            <InfoWindow
+              position={openProperty.location}
+              onCloseClick={() => setOpenId(null)}
+              pixelOffset={[0, -36]}
+            >
+              <div className="flex flex-col gap-1.5 min-w-[200px] max-w-[220px]">
+                {openProperty.images[0] ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={openProperty.images[0]}
+                    alt={openProperty.title}
+                    className="w-full h-24 object-cover rounded"
+                  />
+                ) : (
+                  <div className="w-full h-24 bg-gray-100 rounded flex items-center justify-center text-gray-400 text-xs">
+                    Sin imagen
+                  </div>
+                )}
+                <p className="font-semibold text-sm text-gray-900">
+                  {openProperty.currency === "ARS" ? "$" : "USD"}{" "}
+                  {formatPrice(openProperty.price)}
+                  {openProperty.operation === "alquiler" ? "/mes" : ""}
+                </p>
+                <p className="text-xs text-gray-600 line-clamp-2">
+                  {openProperty.address}
+                </p>
+                <a
+                  href={`/propiedad/${openProperty.id}`}
+                  className="text-xs font-semibold text-magenta hover:underline"
+                >
+                  Ver propiedad →
+                </a>
+              </div>
+            </InfoWindow>
+          )}
+        </Map>
+      </div>
+    </APIProvider>
   );
 }
