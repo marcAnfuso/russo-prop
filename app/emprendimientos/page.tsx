@@ -73,7 +73,7 @@ export default function EmprendimientosPage() {
               Desarrollos inmobiliarios
             </p>
           </div>
-          <h1 className="font-display text-5xl sm:text-6xl font-semibold leading-[1.05] tracking-tight text-navy mb-4">
+          <h1 className="font-display text-[2.5rem] sm:text-5xl xl:text-6xl font-semibold leading-[1.05] tracking-tight text-navy mb-4 break-words">
             Emprendimientos
           </h1>
           <p className="text-lg text-gray-500 leading-relaxed max-w-md mb-6">

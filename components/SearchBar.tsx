@@ -155,12 +155,12 @@ export default function SearchBar({
     }
   }, [activeIndex]);
 
-  const typeLabel =
-    selectedTypes.length === 0
-      ? "Tipo de propiedad"
-      : selectedTypes.length === 1
+  const typeLabelEmpty =
+    selectedTypes.length === 1
       ? selectedTypes[0]
-      : `${selectedTypes.length} tipos`;
+      : selectedTypes.length > 1
+      ? `${selectedTypes.length} tipos`
+      : null;
 
   const pillBase = `rounded-full px-5 py-2 font-semibold transition-all duration-200 ease-out cursor-pointer whitespace-nowrap active:scale-[0.97] ${
     isHero ? "text-sm" : "text-xs sm:text-sm"
@@ -172,11 +172,11 @@ export default function SearchBar({
 
   return (
     <div className={`w-full ${isHero ? "max-w-3xl" : "max-w-2xl"}`}>
-      {/* Operation pills */}
-      <div className="flex flex-wrap gap-2 mb-3">
+      {/* Operation pills — 2x2 grid on mobile, flex row on sm+ */}
+      <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 mb-3">
         <button
           type="button"
-          className={`${pillBase} ${
+          className={`${pillBase} text-center ${
             operation === "comprar" ? pillSelected : pillUnselected
           }`}
           onClick={() => setOperation("comprar")}
@@ -185,7 +185,7 @@ export default function SearchBar({
         </button>
         <button
           type="button"
-          className={`${pillBase} ${
+          className={`${pillBase} text-center ${
             operation === "alquilar" ? pillSelected : pillUnselected
           }`}
           onClick={() => setOperation("alquilar")}
@@ -194,14 +194,14 @@ export default function SearchBar({
         </button>
         <button
           type="button"
-          className={`${pillBase} ${pillUnselected}`}
+          className={`${pillBase} text-center ${pillUnselected}`}
           onClick={() => router.push("/tasaciones")}
         >
           Tasar
         </button>
         <button
           type="button"
-          className={`${pillBase} ${pillUnselected}`}
+          className={`${pillBase} text-center ${pillUnselected}`}
           onClick={() => router.push("/emprendimientos")}
         >
           Emprendimientos
@@ -300,7 +300,14 @@ export default function SearchBar({
             aria-haspopup="listbox"
             aria-expanded={showPropertyDropdown}
           >
-            <span>{typeLabel}</span>
+            {typeLabelEmpty ? (
+              <span>{typeLabelEmpty}</span>
+            ) : (
+              <>
+                <span className="hidden sm:inline">Tipo de propiedad</span>
+                <span className="sm:hidden">Tipo</span>
+              </>
+            )}
             <ChevronDown
               className={`h-4 w-4 transition-transform shrink-0 ${
                 showPropertyDropdown ? "rotate-180" : ""
