@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Search, X, ChevronDown, SlidersHorizontal } from "lucide-react";
 import type { Property } from "@/data/types";
-import { useLocalities } from "@/lib/useLocalities";
+import { useLocalities, rankLocalityMatches } from "@/lib/useLocalities";
 
 const PROPERTY_TYPES: { label: string; value: Property["type"] }[] = [
   { label: "Departamento", value: "departamento" },
@@ -344,13 +344,10 @@ export default function FilterBar({
   }, [applyFilters, propertyType, zones, onFilterStateChange]);
 
   /* ---- zone suggestions ---- */
-  const zoneSuggestions = useMemo(() => {
-    if (!zoneQuery.trim()) return localities.filter((l) => !zones.includes(l));
-    const q = zoneQuery.toLowerCase();
-    return localities.filter(
-      (l) => l.toLowerCase().includes(q) && !zones.includes(l)
-    );
-  }, [zoneQuery, zones, localities]);
+  const zoneSuggestions = useMemo(
+    () => rankLocalityMatches(localities, zoneQuery, zones),
+    [zoneQuery, zones, localities]
+  );
 
   const addZone = (z: string) => {
     if (!zones.includes(z)) {
@@ -430,13 +427,18 @@ export default function FilterBar({
               >
                 {zoneSuggestions.map((loc) => (
                   <li
-                    key={loc}
+                    key={loc.name}
                     role="option"
                     aria-selected={false}
-                    className="cursor-pointer px-3 py-2 text-sm text-navy transition-colors hover:bg-navy-50"
-                    onClick={() => addZone(loc)}
+                    className="flex items-center justify-between gap-3 cursor-pointer px-3 py-2 text-sm text-navy transition-colors hover:bg-navy-50"
+                    onClick={() => addZone(loc.name)}
                   >
-                    {loc}
+                    <span className="truncate">{loc.name}</span>
+                    {loc.count > 0 && (
+                      <span className="font-mono-price text-[11px] tabular-nums text-gray-400 flex-shrink-0">
+                        {loc.count}
+                      </span>
+                    )}
                   </li>
                 ))}
               </ul>

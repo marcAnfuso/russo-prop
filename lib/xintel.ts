@@ -499,24 +499,34 @@ export async function fetchLatestProperties(): Promise<Property[]> {
   return properties.slice(0, 6);
 }
 
+export interface LocalityCount {
+  name: string;
+  count: number;
+}
+
 /**
- * Fetch the list of localities (barrios) that Russo actually has listings in.
- * Walks up to 12 pages and aggregates unique normalized `in_bar` values.
+ * Fetch the list of localities (barrios) that Russo actually has listings in,
+ * with a count of how many active listings each one has.
+ * Walks up to 12 pages and aggregates normalized `in_bar` values.
  * Pages are cached by Next's fetch layer (REVALIDATE = 30 min).
  */
-export async function fetchAvailableLocalities(maxPages = 12): Promise<string[]> {
-  const seen = new Set<string>();
+export async function fetchAvailableLocalities(
+  maxPages = 12
+): Promise<LocalityCount[]> {
+  const counts = new Map<string, number>();
   for (let page = 1; page <= maxPages; page++) {
     try {
       const { fichas } = await fetchPage(buildListUrl({}, page));
       for (const f of fichas) {
         const loc = normalizeLocality(f.in_bar);
-        if (loc) seen.add(loc);
+        if (loc) counts.set(loc, (counts.get(loc) ?? 0) + 1);
       }
       if (fichas.length < PER_PAGE) break;
     } catch {
       break;
     }
   }
-  return Array.from(seen).sort((a, b) => a.localeCompare(b, "es"));
+  return Array.from(counts.entries())
+    .map(([name, count]) => ({ name, count }))
+    .sort((a, b) => a.name.localeCompare(b.name, "es"));
 }

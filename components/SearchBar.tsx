@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Search, X, ChevronDown, Check } from "lucide-react";
-import { useLocalities } from "@/lib/useLocalities";
+import { useLocalities, rankLocalityMatches } from "@/lib/useLocalities";
 
 interface SearchBarProps {
   variant?: "hero" | "compact";
@@ -50,14 +50,10 @@ export default function SearchBar({
     return () => clearTimeout(timer);
   }, [query]);
 
-  // Filter localities
+  // Filter + rank localities (prefix > word-start > substring)
   const suggestions = useMemo(() => {
     if (!debouncedQuery.trim()) return [];
-    const lower = debouncedQuery.toLowerCase();
-    return localities.filter(
-      (loc) =>
-        loc.toLowerCase().includes(lower) && !selectedZones.includes(loc)
-    );
+    return rankLocalityMatches(localities, debouncedQuery, selectedZones);
   }, [debouncedQuery, selectedZones, localities]);
 
   // Close dropdowns on click outside
@@ -144,7 +140,7 @@ export default function SearchBar({
     if (e.key === "Enter") {
       e.preventDefault();
       if (activeIndex >= 0 && activeIndex < suggestions.length) {
-        selectZone(suggestions[activeIndex]);
+        selectZone(suggestions[activeIndex].name);
       } else if (suggestions.length === 0 && query.trim() === "") {
         handleSearch();
       }
@@ -257,21 +253,30 @@ export default function SearchBar({
             >
               {suggestions.map((loc, index) => (
                 <li
-                  key={loc}
+                  key={loc.name}
                   id={`zone-option-${index}`}
                   role="option"
                   aria-selected={index === activeIndex}
-                  className={`px-4 py-2.5 text-sm cursor-pointer transition-colors ${
+                  className={`flex items-center justify-between gap-3 px-4 py-2.5 text-sm cursor-pointer transition-colors ${
                     index === activeIndex
                       ? "bg-magenta-50 text-magenta"
                       : "text-navy hover:bg-navy-50"
                   }`}
                   onMouseDown={(e) => {
                     e.preventDefault();
-                    selectZone(loc);
+                    selectZone(loc.name);
                   }}
                 >
-                  {loc}
+                  <span className="truncate">{loc.name}</span>
+                  {loc.count > 0 && (
+                    <span
+                      className={`font-mono-price text-[11px] tabular-nums flex-shrink-0 ${
+                        index === activeIndex ? "text-magenta" : "text-gray-400"
+                      }`}
+                    >
+                      {loc.count}
+                    </span>
+                  )}
                 </li>
               ))}
             </ul>
