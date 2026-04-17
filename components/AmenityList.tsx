@@ -125,9 +125,9 @@ export default function AmenityList({ items }: { items: string[] }) {
         return (
           <li
             key={amenity}
-            className="flex items-center gap-3 text-sm text-navy"
+            className="group flex items-center gap-3 text-sm text-navy"
           >
-            <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-magenta/10 text-magenta transition-colors group-hover/amenity:bg-magenta/15">
+            <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-gray-50 text-navy-400 transition-colors group-hover:bg-magenta/10 group-hover:text-magenta">
               <Icon className="h-4 w-4" />
             </span>
             <span className="leading-snug font-medium">{amenity}</span>

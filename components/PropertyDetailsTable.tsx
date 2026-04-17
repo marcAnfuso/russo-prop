@@ -20,11 +20,16 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
-interface DetailTile {
+interface DetailRow {
   icon: LucideIcon;
   label: string;
   value: string;
-  accent?: boolean; // highlight in magenta
+  accent?: boolean;
+}
+
+interface Group {
+  title: string;
+  rows: DetailRow[];
 }
 
 function operationLabel(op: string): string {
@@ -41,30 +46,24 @@ function yesNo(v?: boolean): string | null {
   return null;
 }
 
-interface Group {
-  title: string;
-  tiles: DetailTile[];
-}
-
-function Tile({ tile }: { tile: DetailTile }) {
-  const Icon = tile.icon;
+function Row({ row }: { row: DetailRow }) {
+  const Icon = row.icon;
   return (
-    <div className="group relative flex flex-col gap-3 rounded-2xl border border-gray-100 bg-white p-5 transition-all duration-300 hover:border-magenta/30 hover:shadow-[0_12px_28px_-12px_rgba(230,0,126,0.18)] hover:-translate-y-0.5">
-      <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-magenta/10 text-magenta transition-colors group-hover:bg-magenta/15">
+    <div className="flex items-center gap-3 py-3">
+      <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-gray-50 text-navy-400 flex-shrink-0">
         <Icon className="h-4 w-4" />
       </span>
-      <div className="space-y-1">
-        <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400">
-          {tile.label}
-        </p>
-        <p
-          className={`font-display text-2xl font-semibold leading-tight tracking-tight ${
-            tile.accent ? "text-magenta" : "text-navy"
-          }`}
-        >
-          {tile.value}
-        </p>
-      </div>
+      <span className="text-[11px] font-semibold uppercase tracking-widest text-gray-400 flex-shrink-0 w-28">
+        {row.label}
+      </span>
+      <span
+        className={`font-semibold text-sm flex-1 min-w-0 truncate ${
+          row.accent ? "text-magenta" : "text-navy"
+        }`}
+        title={row.value}
+      >
+        {row.value}
+      </span>
     </div>
   );
 }
@@ -73,8 +72,7 @@ export default function PropertyDetailsTable({ property }: { property: Property 
   const d = property.details ?? {};
   const f = property.features ?? {};
 
-  // Group 1: Ubicación
-  const ubicacion: DetailTile[] = [
+  const ubicacion: DetailRow[] = [
     { icon: Home, label: "Tipo", value: typeLabel(property.type) },
     { icon: Tag, label: "Operación", value: operationLabel(property.operation), accent: true },
   ];
@@ -85,8 +83,7 @@ export default function PropertyDetailsTable({ property }: { property: Property 
   if (d.aptNumber) ubicacion.push({ icon: DoorOpen, label: "Departamento", value: d.aptNumber });
   if (d.orientation) ubicacion.push({ icon: Compass, label: "Ubicación", value: d.orientation });
 
-  // Group 2: Especificaciones
-  const especificaciones: DetailTile[] = [];
+  const especificaciones: DetailRow[] = [];
   if (f.rooms) especificaciones.push({ icon: Home, label: "Ambientes", value: String(f.rooms) });
   if (f.bedrooms) especificaciones.push({ icon: Bed, label: "Dormitorios", value: String(f.bedrooms) });
   if (f.bathrooms) especificaciones.push({ icon: Bath, label: "Baños", value: String(f.bathrooms) });
@@ -98,36 +95,35 @@ export default function PropertyDetailsTable({ property }: { property: Property 
   if (d.category) especificaciones.push({ icon: Briefcase, label: "Categoría", value: d.category });
   if (f.age != null && f.age > 0) especificaciones.push({ icon: CalendarClock, label: "Antigüedad", value: `${f.age} años` });
 
-  // Group 3: Costos
-  const costos: DetailTile[] = [];
+  const costos: DetailRow[] = [];
   if (d.expenses) costos.push({ icon: Receipt, label: "Expensas", value: `$ ${formatPrice(d.expenses)}`, accent: true });
   if (d.tax) costos.push({ icon: Banknote, label: "Impuesto", value: `$ ${formatPrice(d.tax)}`, accent: true });
 
   const groups: Group[] = [];
-  if (ubicacion.length) groups.push({ title: "Ubicación", tiles: ubicacion });
-  if (especificaciones.length) groups.push({ title: "Especificaciones", tiles: especificaciones });
-  if (costos.length) groups.push({ title: "Costos mensuales", tiles: costos });
+  if (ubicacion.length) groups.push({ title: "Ubicación", rows: ubicacion });
+  if (especificaciones.length) groups.push({ title: "Especificaciones", rows: especificaciones });
+  if (costos.length) groups.push({ title: "Costos mensuales", rows: costos });
 
   if (groups.length === 0) return null;
 
   return (
     <section>
-      <div className="flex items-center gap-3 mb-6">
+      <div className="flex items-center gap-3 mb-5">
         <span className="h-6 w-1 rounded-full bg-magenta" />
         <h2 className="font-display text-2xl font-semibold text-navy">
           Detalles de la propiedad
         </h2>
       </div>
 
-      <div className="space-y-8">
+      <div className="rounded-2xl border border-gray-100 bg-white divide-y divide-gray-100">
         {groups.map((group) => (
-          <div key={group.title}>
-            <p className="text-[11px] font-semibold uppercase tracking-widest text-magenta mb-3">
+          <div key={group.title} className="px-6 py-5">
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-magenta mb-2">
               {group.title}
             </p>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-              {group.tiles.map((tile) => (
-                <Tile key={tile.label} tile={tile} />
+            <div className="grid grid-cols-1 md:grid-cols-2 md:gap-x-8">
+              {group.rows.map((row) => (
+                <Row key={row.label} row={row} />
               ))}
             </div>
           </div>

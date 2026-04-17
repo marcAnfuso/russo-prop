@@ -2,8 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
-  Heart,
-  Share2,
   Maximize2,
   LandPlot,
   Home,
@@ -19,6 +17,7 @@ import Gallery from "@/components/Gallery";
 import AmenityList from "@/components/AmenityList";
 import PropertyDetailsTable from "@/components/PropertyDetailsTable";
 import AreaMeasurementsTable from "@/components/AreaMeasurementsTable";
+import DetailHeaderActions from "@/components/DetailHeaderActions";
 import ContactSidebar from "@/components/ContactSidebar";
 import MapView from "@/components/MapView";
 import Breadcrumb from "@/components/Breadcrumb";
@@ -218,20 +217,10 @@ export default async function PropertyDetailPage({ params }: PageProps) {
             <h1 className="text-2xl font-bold text-navy md:text-3xl">
               {property.title}
             </h1>
-            <div className="flex items-center gap-2 flex-shrink-0">
-              <button
-                aria-label="Agregar a favoritos"
-                className="rounded-full border border-gray-300 p-2 text-gray-500 transition-colors hover:border-magenta hover:text-magenta"
-              >
-                <Heart className="h-5 w-5" />
-              </button>
-              <button
-                aria-label="Compartir"
-                className="rounded-full border border-gray-300 p-2 text-gray-500 transition-colors hover:border-magenta hover:text-magenta"
-              >
-                <Share2 className="h-5 w-5" />
-              </button>
-            </div>
+            <DetailHeaderActions
+              propertyId={property.id}
+              title={property.title}
+            />
           </div>
 
           {/* Gallery */}
