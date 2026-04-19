@@ -116,10 +116,10 @@ export default function ContactSidebar({
           info@russopropiedades.com.ar
         </a>
         <a
-          href="tel:+541146514024"
+          href="tel:+541150187340"
           className="text-xs text-gray-500 hover:text-magenta transition-colors"
         >
-          011 4651-4024
+          011 5018-7340
         </a>
       </div>
 

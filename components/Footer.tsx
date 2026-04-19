@@ -51,11 +51,11 @@ export default function Footer() {
               <div className="flex items-center gap-2">
                 <Phone className="h-4 w-4 shrink-0 text-magenta" aria-hidden="true" />
                 <a
-                  href="tel:+541146514024"
+                  href="tel:+541150187340"
                   className="hover:text-magenta transition-colors"
-                  aria-label="Llamar al +54 11 4651 4024"
+                  aria-label="Llamar al +54 11 5018 7340"
                 >
-                  +54 11 4651 4024
+                  +54 11 5018 7340
                 </a>
               </div>
               <div className="flex items-center gap-2">

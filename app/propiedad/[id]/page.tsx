@@ -15,6 +15,8 @@ import type { Property } from "@/data/types";
 import { formatPrice } from "@/lib/utils";
 import Gallery from "@/components/Gallery";
 import AmenityList from "@/components/AmenityList";
+import AIHighlights from "@/components/AIHighlights";
+import AskAboutProperty from "@/components/AskAboutProperty";
 import PropertyDetailsTable from "@/components/PropertyDetailsTable";
 import AreaMeasurementsTable from "@/components/AreaMeasurementsTable";
 import DetailHeaderActions from "@/components/DetailHeaderActions";
@@ -266,6 +268,10 @@ export default async function PropertyDetailPage({ params }: PageProps) {
             </div>
           )}
 
+          {/* AI-generated highlights — 4-6 bullets drawn from the Xintel
+              description + features, cached in Postgres. */}
+          <AIHighlights propertyId={property.id} />
+
           {/* Description */}
           {property.description && (
             <section>
@@ -298,6 +304,9 @@ export default async function PropertyDetailPage({ params }: PageProps) {
           {property.areas && property.areas.length > 0 && (
             <AreaMeasurementsTable areas={property.areas} />
           )}
+
+          {/* Chat bounded a esta propiedad */}
+          <AskAboutProperty propertyId={property.id} />
 
           {/* Location / Map */}
           <section>
