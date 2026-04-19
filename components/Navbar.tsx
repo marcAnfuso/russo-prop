@@ -115,9 +115,9 @@ export default function Navbar() {
             <NavbarContactPopover
               icon={Phone}
               label="Teléfono"
-              value="+541146514024"
-              displayValue="+54 11 4651 4024"
-              href="tel:+541146514024"
+              value="+541150187340"
+              displayValue="+54 11 5018 7340"
+              href="tel:+541150187340"
               actionLabel="Llamar"
             />
             <NavbarContactPopover
@@ -229,11 +229,11 @@ export default function Navbar() {
 
         <div className="border-t border-navy-100 p-4 flex flex-col gap-3 text-sm text-navy">
           <a
-            href="tel:+541146514024"
+            href="tel:+541150187340"
             className="flex items-center gap-2 hover:text-magenta transition-colors"
           >
             <Phone className="h-4 w-4" />
-            <span>+54 11 4651 4024</span>
+            <span>+54 11 5018 7340</span>
           </a>
           <a
             href="mailto:info@russopropiedades.com.ar"
