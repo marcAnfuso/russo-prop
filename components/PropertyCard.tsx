@@ -21,6 +21,10 @@ const COMMERCIAL_TYPE_LABEL: Partial<Record<string, string>> = {
   terreno: "Terreno",
   cochera: "Cochera",
   edificio: "Edificio",
+  galpon: "Galpón",
+  negocio: "Negocio",
+  quinta: "Quinta",
+  campo: "Campo",
 };
 
 export default function PropertyCard({ property, onHover, onQuickView, compact = false }: PropertyCardProps) {

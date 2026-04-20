@@ -34,13 +34,13 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
   const property = await fetchProperty(id);
-  if (!property) return { title: "Propiedad no encontrada | Russo Propiedades" };
+  if (!property) return { title: "Propiedad no encontrada" };
 
   const priceLabel = property.price === 9999999
     ? "Reservado"
     : `${property.currency === "ARS" ? "$" : "USD"} ${formatPrice(property.price)}`;
 
-  const title = `${property.type.charAt(0).toUpperCase() + property.type.slice(1)} en ${property.operation === "alquiler" ? "Alquiler" : "Venta"} — ${priceLabel} | Russo Propiedades`;
+  const title = `${property.type.charAt(0).toUpperCase() + property.type.slice(1)} en ${property.operation === "alquiler" ? "Alquiler" : "Venta"} — ${priceLabel}`;
   const description = `${property.address}, ${property.locality}. ${property.features.rooms ? property.features.rooms + " amb." : ""} ${property.features.totalArea ? property.features.totalArea + " m²" : ""}`.trim();
 
   return {

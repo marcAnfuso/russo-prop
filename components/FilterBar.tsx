@@ -9,10 +9,15 @@ const PROPERTY_TYPES: { label: string; value: Property["type"] }[] = [
   { label: "Departamento", value: "departamento" },
   { label: "Casa", value: "casa" },
   { label: "PH", value: "ph" },
+  { label: "Quinta", value: "quinta" },
+  { label: "Campo", value: "campo" },
   { label: "Terreno", value: "terreno" },
-  { label: "Cochera", value: "cochera" },
   { label: "Local", value: "local" },
   { label: "Oficina", value: "oficina" },
+  { label: "Galpón", value: "galpon" },
+  { label: "Negocio", value: "negocio" },
+  { label: "Edificio", value: "edificio" },
+  { label: "Cochera", value: "cochera" },
 ];
 
 const SORT_OPTIONS = [

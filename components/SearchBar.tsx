@@ -10,14 +10,19 @@ interface SearchBarProps {
   defaultOperation?: "comprar" | "alquilar";
 }
 
-const PROPERTY_TYPES = [
-  "Departamento",
-  "Casa",
-  "PH",
-  "Terreno",
-  "Cochera",
-  "Local",
-  "Oficina",
+const PROPERTY_TYPES: { label: string; value: string }[] = [
+  { label: "Departamento", value: "departamento" },
+  { label: "Casa", value: "casa" },
+  { label: "PH", value: "ph" },
+  { label: "Quinta", value: "quinta" },
+  { label: "Campo", value: "campo" },
+  { label: "Terreno", value: "terreno" },
+  { label: "Local", value: "local" },
+  { label: "Oficina", value: "oficina" },
+  { label: "Galpón", value: "galpon" },
+  { label: "Negocio", value: "negocio" },
+  { label: "Edificio", value: "edificio" },
+  { label: "Cochera", value: "cochera" },
 ];
 
 type Operation = "comprar" | "alquilar";
@@ -112,7 +117,7 @@ export default function SearchBar({
     if (selectedTypes.length > 0) {
       // FilterBar reads `type` as comma-separated values so multi-type
       // selections from the hero survive the navigation.
-      params.set("type", selectedTypes.map((t) => t.toLowerCase()).join(","));
+      params.set("type", selectedTypes.join(","));
     }
     const qs = params.toString();
     router.push(qs ? `${basePath}?${qs}` : basePath);
@@ -156,7 +161,8 @@ export default function SearchBar({
 
   const typeLabelEmpty =
     selectedTypes.length === 1
-      ? selectedTypes[0]
+      ? PROPERTY_TYPES.find((t) => t.value === selectedTypes[0])?.label ??
+        selectedTypes[0]
       : selectedTypes.length > 1
       ? `${selectedTypes.length} tipos`
       : null;
@@ -322,17 +328,17 @@ export default function SearchBar({
               className="absolute right-0 top-full mt-1 bg-white rounded-lg shadow-xl border border-navy-100 z-50 min-w-[210px] overflow-hidden py-1"
             >
               {PROPERTY_TYPES.map((type) => {
-                const checked = selectedTypes.includes(type);
+                const checked = selectedTypes.includes(type.value);
                 return (
                   <button
-                    key={type}
+                    key={type.value}
                     type="button"
                     role="option"
                     aria-selected={checked}
                     className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-left cursor-pointer transition-colors hover:bg-navy-50 text-navy"
                     onMouseDown={(e) => {
                       e.preventDefault();
-                      toggleType(type);
+                      toggleType(type.value);
                     }}
                   >
                     {/* Checkbox */}
@@ -347,7 +353,7 @@ export default function SearchBar({
                         <Check className="w-2.5 h-2.5 text-white stroke-[3]" />
                       )}
                     </span>
-                    {type}
+                    {type.label}
                   </button>
                 );
               })}

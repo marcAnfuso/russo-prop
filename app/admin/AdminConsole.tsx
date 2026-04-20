@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import Image from "next/image";
 import { Search, Star, Sparkles, X, LogOut } from "lucide-react";
 import { formatPrice } from "@/lib/utils";
+import MediaPicksPanel, { type MediaPick } from "./MediaPicksPanel";
 
 interface AdminProperty {
   id: string;
@@ -24,12 +25,14 @@ interface Props {
   properties: AdminProperty[];
   initialFeatured: string[];
   initialNew: string[];
+  initialMedia: MediaPick[];
 }
 
 export default function AdminConsole({
   properties,
   initialFeatured,
   initialNew,
+  initialMedia,
 }: Props) {
   const [featured, setFeatured] = useState<Set<string>>(new Set(initialFeatured));
   const [fresh, setFresh] = useState<Set<string>>(new Set(initialNew));
@@ -146,6 +149,9 @@ export default function AdminConsole({
             onRemove={(id) => togglePick(id, "new")}
           />
         </div>
+
+        {/* Videos de Instagram / TikTok */}
+        <MediaPicksPanel initial={initialMedia} />
 
         {/* Search */}
         <section className="space-y-3">
