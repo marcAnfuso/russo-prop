@@ -141,7 +141,7 @@ function Dropdown({
 }
 
 /* ------------------------------------------------------------------ */
-/*  ToggleGroup helper                                                */
+/*  ToggleGroup helper (single-select)                                */
 /* ------------------------------------------------------------------ */
 
 function ToggleGroup({
@@ -166,6 +166,55 @@ function ToggleGroup({
               key={opt.value}
               type="button"
               onClick={() => onChange(selected ? null : opt.value)}
+              aria-pressed={selected}
+              className={`rounded-lg border px-2.5 py-1 text-xs font-medium transition-all duration-150 active:scale-[0.97] ${
+                selected
+                  ? "border-magenta bg-magenta text-white shadow-sm"
+                  : "border-navy-100 bg-white text-navy hover:border-navy-300 hover:bg-gray-50"
+              }`}
+            >
+              {opt.label}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  MultiToggleGroup (multi-select variant)                           */
+/* ------------------------------------------------------------------ */
+
+function MultiToggleGroup({
+  label,
+  options,
+  values,
+  onChange,
+}: {
+  label: string;
+  options: { label: string; value: string }[];
+  values: string[];
+  onChange: (next: string[]) => void;
+}) {
+  const set = new Set(values);
+  const toggle = (v: string) => {
+    const next = new Set(set);
+    if (next.has(v)) next.delete(v);
+    else next.add(v);
+    onChange(Array.from(next));
+  };
+  return (
+    <div className="flex flex-col gap-1.5">
+      <span className="text-xs font-medium text-navy-300">{label}</span>
+      <div className="flex flex-wrap gap-1.5">
+        {options.map((opt) => {
+          const selected = set.has(opt.value);
+          return (
+            <button
+              key={opt.value}
+              type="button"
+              onClick={() => toggle(opt.value)}
               aria-pressed={selected}
               className={`rounded-lg border px-2.5 py-1 text-xs font-medium transition-all duration-150 active:scale-[0.97] ${
                 selected
@@ -239,8 +288,8 @@ export default function FilterBar({
   const [expanded, setExpanded] = useState(false);
 
   /* expanded filters */
-  const [ambientes, setAmbientes] = useState<string | null>(null);
-  const [dormitorios, setDormitorios] = useState<string | null>(null);
+  const [ambientes, setAmbientes] = useState<string[]>([]);
+  const [dormitorios, setDormitorios] = useState<string[]>([]);
   const [banos, setBanos] = useState<string | null>(null);
   const [superficieMin, setSuperficieMin] = useState("");
   const [superficieMax, setSuperficieMax] = useState("");
@@ -288,8 +337,8 @@ export default function FilterBar({
   /* ---- count active expanded filters ---- */
   const expandedFilterCount = useMemo(() => {
     let n = 0;
-    if (ambientes) n++;
-    if (dormitorios) n++;
+    if (ambientes.length > 0) n++;
+    if (dormitorios.length > 0) n++;
     if (banos) n++;
     if (superficieMin || superficieMax) n++;
     if (cochera) n++;
@@ -333,24 +382,24 @@ export default function FilterBar({
       result = result.filter((p) => p.currency === currency);
     }
 
-    // ambientes
-    if (ambientes) {
-      const num = Number(ambientes);
-      if (ambientes === "5") {
-        result = result.filter((p) => (p.features.rooms ?? 0) >= 5);
-      } else {
-        result = result.filter((p) => p.features.rooms === num);
-      }
+    // ambientes (multi — OR entre los valores seleccionados; "5" = 5+)
+    if (ambientes.length > 0) {
+      result = result.filter((p) => {
+        const rooms = p.features.rooms ?? 0;
+        return ambientes.some((v) =>
+          v === "5" ? rooms >= 5 : rooms === Number(v)
+        );
+      });
     }
 
-    // dormitorios
-    if (dormitorios) {
-      const num = Number(dormitorios);
-      if (dormitorios === "4") {
-        result = result.filter((p) => (p.features.bedrooms ?? 0) >= 4);
-      } else {
-        result = result.filter((p) => p.features.bedrooms === num);
-      }
+    // dormitorios (multi — OR; "4" = 4+)
+    if (dormitorios.length > 0) {
+      result = result.filter((p) => {
+        const beds = p.features.bedrooms ?? 0;
+        return dormitorios.some((v) =>
+          v === "4" ? beds >= 4 : beds === Number(v)
+        );
+      });
     }
 
     // baños
@@ -479,8 +528,8 @@ export default function FilterBar({
     setPriceMax("");
     setCurrency("");
     setExpanded(false);
-    setAmbientes(null);
-    setDormitorios(null);
+    setAmbientes([]);
+    setDormitorios([]);
     setBanos(null);
     setSuperficieMin("");
     setSuperficieMax("");
@@ -497,8 +546,8 @@ export default function FilterBar({
     priceMin ||
     priceMax ||
     currency ||
-    ambientes ||
-    dormitorios ||
+    ambientes.length > 0 ||
+    dormitorios.length > 0 ||
     banos ||
     superficieMin ||
     superficieMax ||
@@ -707,7 +756,7 @@ export default function FilterBar({
       >
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pb-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 pt-3 border-t border-navy-100">
-            <ToggleGroup
+            <MultiToggleGroup
               label="Ambientes"
               options={[
                 { label: "1", value: "1" },
@@ -716,10 +765,10 @@ export default function FilterBar({
                 { label: "4", value: "4" },
                 { label: "5+", value: "5" },
               ]}
-              value={ambientes}
+              values={ambientes}
               onChange={setAmbientes}
             />
-            <ToggleGroup
+            <MultiToggleGroup
               label="Dormitorios"
               options={[
                 { label: "1", value: "1" },
@@ -727,7 +776,7 @@ export default function FilterBar({
                 { label: "3", value: "3" },
                 { label: "4+", value: "4" },
               ]}
-              value={dormitorios}
+              values={dormitorios}
               onChange={setDormitorios}
             />
             <ToggleGroup
