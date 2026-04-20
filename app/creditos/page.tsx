@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { neighborhoods } from "@/data/neighborhoods";
 
 export const metadata: Metadata = {
-  title: "Créditos de imágenes | Russo Propiedades",
+  title: "Créditos de imágenes",
   description:
     "Atribución de fotos de barrios bajo licencias Creative Commons de Wikimedia Commons.",
 };

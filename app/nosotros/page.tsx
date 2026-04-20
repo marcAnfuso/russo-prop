@@ -5,7 +5,7 @@ import MeetRusso from "@/components/MeetRusso";
 import { Home, Handshake, Compass, ShieldCheck } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Nosotros · Russo Propiedades",
+  title: "Nosotros",
   description:
     "Russo Propiedades es una inmobiliaria familiar de zona oeste. Dos generaciones trabajando el mismo territorio desde San Justo.",
 };

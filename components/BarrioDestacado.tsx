@@ -99,7 +99,7 @@ export default function BarrioDestacado(props: Partial<BarrioDestacadoProps>) {
                 <span className="text-xs font-semibold uppercase tracking-widest mb-2 text-white/80">
                   Guía de barrio
                 </span>
-                <h3 className="font-display text-5xl lg:text-6xl font-semibold leading-none">
+                <h3 className="font-display text-5xl lg:text-5xl xl:text-6xl font-semibold leading-none">
                   {b.name}
                 </h3>
               </div>

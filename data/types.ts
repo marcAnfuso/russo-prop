@@ -1,5 +1,17 @@
 export type OperationType = "venta" | "alquiler";
-export type PropertyType = "casa" | "departamento" | "ph" | "terreno" | "cochera" | "local" | "oficina" | "edificio";
+export type PropertyType =
+  | "casa"
+  | "departamento"
+  | "ph"
+  | "terreno"
+  | "cochera"
+  | "local"
+  | "oficina"
+  | "edificio"
+  | "galpon"
+  | "negocio"
+  | "quinta"
+  | "campo";
 export type DevelopmentStatus = "pre-venta" | "pozo" | "en-construccion" | "terminado";
 
 export interface PriceHistoryEntry {

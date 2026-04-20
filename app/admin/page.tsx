@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { currentSessionIsAdmin } from "@/lib/admin-auth";
 import { fetchAllProperties } from "@/lib/xintel";
 import { listPicks } from "@/lib/picks";
+import { listMediaPicks } from "@/lib/media-picks";
 import AdminLogin from "./AdminLogin";
 import AdminConsole from "./AdminConsole";
 
@@ -17,11 +18,12 @@ export default async function AdminPage() {
   const authed = await currentSessionIsAdmin();
   if (!authed) return <AdminLogin />;
 
-  const [ventas, alquileres, featured, fresh] = await Promise.all([
+  const [ventas, alquileres, featured, fresh, media] = await Promise.all([
     fetchAllProperties("venta"),
     fetchAllProperties("alquiler"),
     listPicks("featured"),
     listPicks("new"),
+    listMediaPicks(),
   ]);
   const all = [...ventas, ...alquileres];
   // Deduplicate in case a listing shows in both operations somehow.
@@ -44,6 +46,7 @@ export default async function AdminPage() {
       properties={properties}
       initialFeatured={featured}
       initialNew={fresh}
+      initialMedia={media}
     />
   );
 }

@@ -12,6 +12,7 @@ const navLinks = [
   { href: "/alquileres", label: "Alquileres" },
   { href: "/emprendimientos", label: "Emprendimientos" },
   { href: "/barrios", label: "Barrios" },
+  { href: "/historias", label: "Historias" },
   { href: "/nosotros", label: "Nosotros" },
   { href: "/tasaciones", label: "Tasaciones" },
   { href: "/contacto", label: "Contacto" },
@@ -82,7 +83,7 @@ export default function Navbar() {
                 <li key={href}>
                   <Link
                     href={href}
-                    className={`relative px-2 xl:px-3 py-2 text-sm font-medium whitespace-nowrap transition-colors group/nav ${
+                    className={`relative px-1.5 xl:px-3 py-2 text-[13px] xl:text-sm font-medium whitespace-nowrap transition-colors group/nav ${
                       isActive
                         ? "text-magenta"
                         : "text-navy hover:text-magenta"

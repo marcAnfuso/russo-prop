@@ -203,14 +203,14 @@ const TYPE_MAP: Record<string, PropertyType> = {
   c: "casa",
   d: "departamento",
   e: "edificio",
-  g: "local",    // Galpon
+  g: "galpon",
   h: "cochera",
   l: "local",
-  n: "local",    // Negocio
+  n: "negocio",
   o: "oficina",
-  p: "terreno",  // Campo
-  q: "terreno",  // Quinta
-  t: "terreno",  // Lote
+  p: "campo",
+  q: "quinta",
+  t: "terreno",
   // tipo display names
   casa: "casa",
   departamento: "departamento",
@@ -219,14 +219,14 @@ const TYPE_MAP: Record<string, PropertyType> = {
   "p.h.": "ph",
   terreno: "terreno",
   lote: "terreno",
-  campo: "terreno",
-  quinta: "terreno",
+  campo: "campo",
+  quinta: "quinta",
   cochera: "cochera",
   local: "local",
-  negocio: "local",
+  negocio: "negocio",
   oficina: "oficina",
-  galpon: "local",
-  galpón: "local",
+  galpon: "galpon",
+  galpón: "galpon",
   edificio: "edificio",
   // in_tpr subtypes (Xintel internal codes)
   duplex: "departamento",
@@ -234,7 +234,7 @@ const TYPE_MAP: Record<string, PropertyType> = {
   semipiso: "departamento",
   piso: "departamento",
   monoambiente: "departamento",
-  tinglado: "local",
+  tinglado: "galpon",
   fondo: "terreno",
 };
 
@@ -248,6 +248,10 @@ const TYPE_TO_XINTEL_CODE: Record<PropertyType, string> = {
   oficina: "O",
   ph: "PH",
   terreno: "T",
+  galpon: "G",
+  negocio: "N",
+  campo: "P",
+  quinta: "Q",
 };
 
 function mapType(...candidates: (string | undefined)[]): PropertyType {
