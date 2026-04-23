@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { currentSessionIsAdmin } from "@/lib/admin-auth";
+import { getCurrentAdmin } from "@/lib/admin-auth";
 import { fetchAllProperties } from "@/lib/xintel";
 import { listPicks } from "@/lib/picks";
 import { listMediaPicks } from "@/lib/media-picks";
@@ -15,8 +15,8 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function AdminPage() {
-  const authed = await currentSessionIsAdmin();
-  if (!authed) return <AdminLogin />;
+  const me = await getCurrentAdmin();
+  if (!me) return <AdminLogin />;
 
   const [ventas, alquileres, featured, fresh, media] = await Promise.all([
     fetchAllProperties("venta"),
@@ -47,6 +47,12 @@ export default async function AdminPage() {
       initialFeatured={featured}
       initialNew={fresh}
       initialMedia={media}
+      currentUser={{
+        id: me.id,
+        username: me.username,
+        displayName: me.display_name,
+        role: me.role,
+      }}
     />
   );
 }

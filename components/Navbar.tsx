@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { Phone, Mail, Menu, X, Heart, Instagram } from "lucide-react";
+import { Phone, Mail, Menu, X, Heart, Instagram, Lock } from "lucide-react";
 import NavbarContactPopover from "./NavbarContactPopover";
 
 const navLinks = [
@@ -52,10 +52,10 @@ export default function Navbar() {
   return (
     <>
     <nav
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 bg-white ${
         scrolled
-          ? "py-2 bg-white/90 backdrop-blur-md shadow-[0_4px_20px_-2px_rgba(26,34,81,0.08)] border-b border-gray-100"
-          : "py-4 bg-white/95 backdrop-blur-sm border-b border-transparent"
+          ? "py-2 shadow-[0_4px_20px_-2px_rgba(26,34,81,0.08)] border-b border-gray-100"
+          : "py-4 border-b border-transparent"
       }`}
     >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -138,6 +138,15 @@ export default function Navbar() {
             >
               <Instagram className="h-4 w-4" />
             </a>
+            <span className="mx-2 h-5 w-px bg-gray-200" aria-hidden="true" />
+            <Link
+              href="/admin"
+              className="flex items-center p-1.5 rounded-md text-magenta hover:bg-magenta/10 transition-colors"
+              aria-label="Acceso al panel del equipo"
+              title="Acceso equipo"
+            >
+              <Lock className="h-4 w-4" />
+            </Link>
           </div>
 
           {/* Mobile hamburger */}
@@ -252,6 +261,14 @@ export default function Navbar() {
             <Instagram className="h-4 w-4" />
             <span>@russopropiedadesok</span>
           </a>
+          <Link
+            href="/admin"
+            onClick={() => setMenuOpen(false)}
+            className="flex items-center gap-2 hover:text-magenta transition-colors"
+          >
+            <Lock className="h-4 w-4" />
+            <span>Acceso equipo</span>
+          </Link>
         </div>
       </div>
     </>

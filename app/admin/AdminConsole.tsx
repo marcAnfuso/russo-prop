@@ -5,6 +5,7 @@ import Image from "next/image";
 import { Search, Star, Sparkles, X, LogOut } from "lucide-react";
 import { formatPrice } from "@/lib/utils";
 import MediaPicksPanel, { type MediaPick } from "./MediaPicksPanel";
+import UsersPanel from "./UsersPanel";
 
 interface AdminProperty {
   id: string;
@@ -26,6 +27,12 @@ interface Props {
   initialFeatured: string[];
   initialNew: string[];
   initialMedia: MediaPick[];
+  currentUser: {
+    id: number;
+    username: string;
+    displayName: string;
+    role: "owner" | "admin";
+  };
 }
 
 export default function AdminConsole({
@@ -33,6 +40,7 @@ export default function AdminConsole({
   initialFeatured,
   initialNew,
   initialMedia,
+  currentUser,
 }: Props) {
   const [featured, setFeatured] = useState<Set<string>>(new Set(initialFeatured));
   const [fresh, setFresh] = useState<Set<string>>(new Set(initialNew));
@@ -115,7 +123,7 @@ export default function AdminConsole({
               Panel interno
             </p>
             <h1 className="font-display text-2xl font-semibold">
-              Seleccion de propiedades
+              Hola, {currentUser.displayName}
             </h1>
           </div>
           <button
@@ -152,6 +160,15 @@ export default function AdminConsole({
 
         {/* Videos de Instagram / TikTok */}
         <MediaPicksPanel initial={initialMedia} />
+
+        {/* Usuarios del panel (visible a todos; owner puede crear/borrar) */}
+        <UsersPanel
+          currentUser={{
+            id: currentUser.id,
+            username: currentUser.username,
+            role: currentUser.role,
+          }}
+        />
 
         {/* Search */}
         <section className="space-y-3">
