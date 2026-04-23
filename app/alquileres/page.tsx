@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import PropertyListWithMap from "@/components/PropertyListWithMap";
 import PropertyListSkeleton from "@/components/PropertyListSkeleton";
-import { fetchAllProperties } from "@/lib/xintel";
+import { fetchAllProperties, toListProperty } from "@/lib/xintel";
 
 export const metadata = {
   title: "Propiedades en alquiler",
@@ -14,12 +14,14 @@ export const metadata = {
 
 async function AlquileresContent() {
   const properties = await fetchAllProperties("alquiler");
+  // Strip campos pesados: el detail page re-fetchea la ficha completa.
+  const listProperties = properties.map(toListProperty);
   return (
     <PropertyListWithMap
       operationType="alquiler"
-      initialProperties={properties}
+      initialProperties={listProperties}
       initialHasMore={false}
-      totalCount={properties.length}
+      totalCount={listProperties.length}
     />
   );
 }

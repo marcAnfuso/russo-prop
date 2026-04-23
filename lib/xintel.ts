@@ -330,6 +330,28 @@ function mapListFicha(ficha: XintelListFicha, imgs: string | string[], amenities
   };
 }
 
+/**
+ * Reduce una Property a sólo los campos que las vistas de lista/mapa
+ * necesitan. Al serializar 600+ propiedades al cliente, los campos
+ * pesados (description HTML, amenities, details, areas, plans) hinchan
+ * el HTML a casi 2 MB y Chrome mata el renderer en devices flojos.
+ * El detail page re-fetchea la ficha completa igualmente.
+ */
+export function toListProperty(p: Property): Property {
+  return {
+    ...p,
+    description: "",
+    amenities: [],
+    areas: undefined,
+    plans: undefined,
+    details: undefined,
+    videoUrl: undefined,
+    // Mantener sólo la primera imagen: cards usan images[0]; QuickView
+    // y detalle ya vuelven a cargar todas desde el endpoint del detalle.
+    images: p.images.length > 0 ? [p.images[0]] : [],
+  };
+}
+
 // ─── Public API ────────────────────────────────────────────────────────────
 
 interface FetchPropertiesParams {

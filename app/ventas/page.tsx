@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import PropertyListWithMap from "@/components/PropertyListWithMap";
 import PropertyListSkeleton from "@/components/PropertyListSkeleton";
-import { fetchAllProperties } from "@/lib/xintel";
+import { fetchAllProperties, toListProperty } from "@/lib/xintel";
 
 export const metadata = {
   title: "Propiedades en venta",
@@ -14,12 +14,16 @@ export const metadata = {
 
 async function VentasContent() {
   const properties = await fetchAllProperties("venta");
+  // Strip campos pesados antes de serializar: el HTML bajaba casi 1.9 MB
+  // con las 658 propiedades completas y Chrome mataba el renderer en
+  // devices flojos. El detail page re-fetchea la ficha entera.
+  const listProperties = properties.map(toListProperty);
   return (
     <PropertyListWithMap
       operationType="venta"
-      initialProperties={properties}
+      initialProperties={listProperties}
       initialHasMore={false}
-      totalCount={properties.length}
+      totalCount={listProperties.length}
     />
   );
 }
