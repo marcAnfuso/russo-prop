@@ -66,12 +66,13 @@ export default function FeaturedProperties({
         </motion.div>
 
         <div className="relative">
-          {/* Arrow buttons — only render on desktop, mobile usa swipe nativo */}
+          {/* Arrow buttons — z-30 así superan al Link overlay del card
+              (z-10) sin dejar que medio pixel de miss toque la propiedad. */}
           <button
             type="button"
             onClick={() => scrollBy(-1)}
             aria-label="Anterior"
-            className={`hidden md:flex absolute left-2 top-1/2 -translate-y-1/2 z-10 items-center justify-center h-10 w-10 rounded-full bg-white shadow-lg border border-gray-200 text-navy transition-all hover:scale-105 ${
+            className={`hidden md:flex absolute left-1 top-1/2 -translate-y-1/2 z-30 items-center justify-center h-12 w-12 rounded-full bg-white shadow-lg border border-gray-200 text-navy transition-all hover:scale-105 hover:border-magenta ${
               canLeft ? "opacity-100" : "opacity-0 pointer-events-none"
             }`}
           >
@@ -81,7 +82,7 @@ export default function FeaturedProperties({
             type="button"
             onClick={() => scrollBy(1)}
             aria-label="Siguiente"
-            className={`hidden md:flex absolute right-2 top-1/2 -translate-y-1/2 z-10 items-center justify-center h-10 w-10 rounded-full bg-white shadow-lg border border-gray-200 text-navy transition-all hover:scale-105 ${
+            className={`hidden md:flex absolute right-1 top-1/2 -translate-y-1/2 z-30 items-center justify-center h-12 w-12 rounded-full bg-white shadow-lg border border-gray-200 text-navy transition-all hover:scale-105 hover:border-magenta ${
               canRight ? "opacity-100" : "opacity-0 pointer-events-none"
             }`}
           >
@@ -95,7 +96,7 @@ export default function FeaturedProperties({
             {featured.map((property) => (
               <div
                 key={property.id}
-                className="snap-start shrink-0 w-[82%] sm:w-[46%] md:w-[32%] lg:w-[30%]"
+                className="snap-start shrink-0 w-[82%] sm:w-[48%] md:w-[32%]"
               >
                 <PropertyCard property={property} compact />
               </div>
