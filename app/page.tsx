@@ -18,7 +18,7 @@ export const metadata: Metadata = {
 };
 
 async function FeaturedPropertiesLoader() {
-  const featured = await getHomeFeatured(4);
+  const featured = await getHomeFeatured(12);
   return <FeaturedProperties properties={featured} />;
 }
 
