@@ -77,4 +77,13 @@
   .section-label {
     @apply text-xs font-semibold uppercase tracking-widest text-magenta;
   }
+
+  /* Hide scrollbar on horizontal carousels while keeping swipe/scroll */
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
 }

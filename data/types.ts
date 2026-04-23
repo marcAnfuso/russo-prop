@@ -71,6 +71,7 @@ export interface Property {
   };
   amenities: string[];
   areas?: AreaMeasurement[];  // full `superficie` table
+  plans?: string[];           // blueprints / floor plans from `lista_planos` (detail only)
   details?: PropertyDetails;  // extra ficha details (detail page only)
   images: string[];
   videoUrl?: string;

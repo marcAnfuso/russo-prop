@@ -90,6 +90,8 @@ interface XintelDetailResponse {
     img?: string[];
     superficie?: { title: string[]; dato: string[]; cantidad: number };
     videos?: { video_url: string }[];
+    lista_planos?: string[] | null;
+    plano?: string | null;
   };
 }
 
@@ -471,6 +473,11 @@ export async function fetchProperty(id: string): Promise<Property | null> {
     if (!ficha) return null;
 
     const imgs: string[] = Array.isArray(r.img) ? r.img.filter(Boolean) : [];
+    const plans: string[] = Array.isArray(r.lista_planos)
+      ? r.lista_planos.filter(Boolean)
+      : r.plano
+      ? [r.plano]
+      : [];
     const amenities = await fetchAmenitiesForId(String(ficha.in_num));
 
     // Build the `areas` list from superficie (title+dato pairs, skipping 0.00 values)
@@ -553,6 +560,7 @@ export async function fetchProperty(id: string): Promise<Property | null> {
       },
       amenities,
       areas: areas.length > 0 ? areas : undefined,
+      plans: plans.length > 0 ? plans : undefined,
       details,
       images: imgs,
       videoUrl: r.videos?.[0]?.video_url ?? ficha.video ?? undefined,
