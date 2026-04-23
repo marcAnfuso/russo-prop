@@ -55,3 +55,4 @@ test-results.json
 *.png
 !public/**/*.jpg
 !public/**/*.png
+russo-presupuesto.pdf

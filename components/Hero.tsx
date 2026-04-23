@@ -22,40 +22,19 @@ export default function Hero() {
 
   return (
     <section className="relative -mt-[72px] min-h-[68vh] md:min-h-screen flex items-center justify-center overflow-hidden">
-      {/* Mobile: foto de San Justo (plaza central) con overlay pesado.
-          Da contexto visual sin dar vueltas — este es el territorio de
-          Russo. */}
-      <div className="md:hidden absolute inset-0">
+      {/* PREVIEW: foto nueva de Russo */}
+      <div className="absolute inset-0">
         <Image
-          src="/images/neighborhoods/san-justo.jpg"
+          src="/images/hero-russo-color.webp"
           alt=""
           fill
           priority
           sizes="100vw"
           className="object-cover"
         />
-        <div className="absolute inset-0 bg-black/55" />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/75" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(230,0,126,0.2),transparent_60%)]" />
+        <div className="absolute inset-0 bg-black/40" />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/65" />
       </div>
-
-      {/* Desktop: video */}
-      <video
-        ref={videoRef}
-        autoPlay
-        muted
-        loop
-        playsInline
-        preload="auto"
-        disablePictureInPicture
-        className="hidden md:block absolute inset-0 w-full h-full object-cover"
-      >
-        <source src="/images/hero.mp4" type="video/mp4" />
-      </video>
-
-      {/* Gradient overlay — solo desktop, para oscurecer el video. */}
-      <div className="hidden md:block absolute inset-0 bg-navy/65 pointer-events-none" />
-      <div className="hidden md:block absolute inset-0 bg-gradient-to-b from-navy/40 via-transparent to-navy/60 pointer-events-none" />
 
       <div className="relative z-10 flex flex-col items-center text-center px-4 sm:px-6 lg:px-8 w-full max-w-4xl mx-auto">
         <motion.h1
