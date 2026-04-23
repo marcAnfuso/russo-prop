@@ -16,7 +16,7 @@ import { formatPrice } from "@/lib/utils";
 import Gallery from "@/components/Gallery";
 import AmenityList from "@/components/AmenityList";
 import AIHighlights from "@/components/AIHighlights";
-import AskAboutProperty from "@/components/AskAboutProperty";
+import RussiaChatWidget from "@/components/RussiaChatWidget";
 import PropertyDetailsTable from "@/components/PropertyDetailsTable";
 import AreaMeasurementsTable from "@/components/AreaMeasurementsTable";
 import DetailHeaderActions from "@/components/DetailHeaderActions";
@@ -306,9 +306,6 @@ export default async function PropertyDetailPage({ params }: PageProps) {
             <AreaMeasurementsTable areas={property.areas} />
           )}
 
-          {/* Chat bounded a esta propiedad */}
-          <AskAboutProperty propertyId={property.id} />
-
           {/* Location / Map */}
           <section>
             <h2 className="flex items-center gap-3 font-display text-2xl font-semibold text-navy mb-3">
@@ -349,6 +346,9 @@ export default async function PropertyDetailPage({ params }: PageProps) {
         />
       </div>
     </div>
+    {/* Widget flotante de chat con la IA — aparece bottom-left en toda
+        la página de detalle, con avatar + burbuja de bienvenida. */}
+    <RussiaChatWidget propertyId={property.id} />
     </>
   );
 }

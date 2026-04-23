@@ -10,7 +10,21 @@
       "Bash(node_modules/.bin/next dev:*)",
       "Bash(netstat -tlnp)",
       "Bash(jq '{status: \"\"\"\"OK\"\"\"\", count: .properties | length, hasMore: .hasMore, total: .total}')",
-      "Bash(/home/marc/russo-prop/TEST_RESULTS_SUMMARY.md:*)"
+      "Bash(/home/marc/russo-prop/TEST_RESULTS_SUMMARY.md:*)",
+      "Bash(/tmp/real_test.sh:*)",
+      "Bash(__NEW_LINE_1aaeeda26951a487__ chmod:*)",
+      "Bash(/tmp/real_test.sh)",
+      "mcp__playwright__browser_navigate",
+      "mcp__playwright__browser_take_screenshot",
+      "mcp__playwright__browser_evaluate",
+      "Bash(libreoffice --headless --convert-to txt \"/home/marc/Descargas/FORECAST Generación de datos del Proyectado.docx\" --outdir /tmp)",
+      "Bash(sudo apt-get *)",
+      "mcp__playwright__browser_close",
+      "Bash(google-chrome --headless --disable-gpu --no-sandbox --print-to-pdf=/home/marc/russo-prop/russo-propuesta.pdf --print-to-pdf-no-header --no-pdf-header-footer file:///tmp/russo-propuesta.html)",
+      "Bash(google-chrome --headless --disable-gpu --no-sandbox --print-to-pdf=/home/marc/russo-prop/russo-propuesta.pdf --print-to-pdf-no-header file:///tmp/russo-propuesta.html)",
+      "mcp__playwright__browser_snapshot",
+      "mcp__playwright__browser_click",
+      "mcp__playwright__browser_console_messages"
     ],
     "additionalDirectories": [
       "/home/marc/russo-prop/app",
