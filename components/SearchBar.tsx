@@ -323,7 +323,7 @@ export default function SearchBar({
             <div
               role="listbox"
               aria-multiselectable="true"
-              className="absolute right-0 top-full mt-1 bg-white rounded-lg shadow-xl border border-navy-100 z-50 min-w-[210px] overflow-hidden py-1"
+              className="absolute right-0 top-full mt-1 bg-white rounded-lg shadow-xl border border-navy-100 z-50 min-w-[210px] max-h-[280px] overflow-y-auto py-1"
             >
               {PROPERTY_TYPES.map((type) => {
                 const checked = selectedTypes.includes(type.value);
