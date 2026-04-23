@@ -6,8 +6,8 @@ import SearchBar from "@/components/SearchBar";
 
 export default function Hero() {
   return (
-    <section className="relative -mt-[72px] min-h-[72vh] md:min-h-screen flex items-center justify-center overflow-hidden">
-      <div className="absolute inset-0">
+    <section className="relative -mt-[72px] min-h-[72vh] md:min-h-screen flex items-center justify-center">
+      <div className="absolute inset-0 overflow-hidden">
         <Image
           src="/images/hero-russo-color.webp"
           alt=""
