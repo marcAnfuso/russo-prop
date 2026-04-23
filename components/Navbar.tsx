@@ -52,10 +52,10 @@ export default function Navbar() {
   return (
     <>
     <nav
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 bg-white ${
         scrolled
-          ? "py-2 bg-white/90 backdrop-blur-md shadow-[0_4px_20px_-2px_rgba(26,34,81,0.08)] border-b border-gray-100"
-          : "py-4 bg-white/95 backdrop-blur-sm border-b border-transparent"
+          ? "py-2 shadow-[0_4px_20px_-2px_rgba(26,34,81,0.08)] border-b border-gray-100"
+          : "py-4 border-b border-transparent"
       }`}
     >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">

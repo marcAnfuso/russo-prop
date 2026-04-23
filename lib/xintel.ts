@@ -112,6 +112,20 @@ function decodeHtml(s?: string): string {
 }
 
 /**
+ * Xintel concatena ambientes al título vía plantilla, incluso cuando la
+ * ficha no tiene ese campo (locales, galpones, terrenos). Resultado:
+ * "Local en alquiler San Justo 0 ambientes". Limpiamos el " 0 ambientes"
+ * — nunca tiene sentido semántico.
+ */
+function sanitizeTitle(raw: string): string {
+  return raw
+    .replace(/\s+0\s+ambientes?/gi, "")
+    .replace(/\s+0\s+amb\.?/gi, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/**
  * Turn Xintel's uppercase `in_tpr` codes into user-facing subtype labels.
  * Returns undefined when the value matches the parent type (e.g. "DEPARTAMENTO"
  * for a Departamento is redundant) or when it's not a recognized residential
@@ -290,7 +304,7 @@ function mapListFicha(ficha: XintelListFicha, imgs: string | string[], amenities
   return {
     id: String(ficha.in_num),
     code: `RUS${ficha.in_num}`,
-    title: decodeHtml(ficha.titulo) || `Propiedad ${ficha.in_num}`,
+    title: sanitizeTitle(decodeHtml(ficha.titulo)) || `Propiedad ${ficha.in_num}`,
     operation: op,
     type: mapType(ficha.tipo, ficha.in_tpr, ficha.in_tip),
     subtype: mapSubtype(ficha.in_tpr, ficha.tipo),
@@ -540,7 +554,7 @@ export async function fetchProperty(id: string): Promise<Property | null> {
     return {
       id: String(ficha.in_num),
       code: `RUS${ficha.in_num}`,
-      title: decodeHtml(ficha.titulo) || `Propiedad ${ficha.in_num}`,
+      title: sanitizeTitle(decodeHtml(ficha.titulo)) || `Propiedad ${ficha.in_num}`,
       operation: op,
       type: mapType(ficha.tipo, ficha.in_tpr, ficha.in_tip),
       subtype: mapSubtype(ficha.in_tpr, ficha.tipo),

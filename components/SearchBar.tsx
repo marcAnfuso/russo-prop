@@ -241,7 +241,7 @@ export default function SearchBar({
             }}
             onKeyDown={handleInputKeyDown}
             onFocus={() => setShowAutocomplete(true)}
-            className={`w-full bg-transparent outline-none text-navy placeholder-navy-500 ${
+            className={`w-full bg-transparent outline-none text-black placeholder-black font-light ${
               isHero
                 ? "px-4 py-3 text-base sm:text-lg"
                 : "px-3 py-2.5 text-sm"
@@ -299,9 +299,7 @@ export default function SearchBar({
         <div ref={propertyDropdownRef} className="relative">
           <button
             type="button"
-            className={`flex items-center gap-1.5 h-full whitespace-nowrap transition-colors hover:text-magenta ${
-              selectedTypes.length > 0 ? "text-navy font-medium" : "text-navy-500"
-            } ${isHero ? "px-4 text-base sm:text-lg" : "px-3 text-sm"}`}
+            className={`flex items-center gap-1.5 h-full whitespace-nowrap transition-colors hover:text-magenta font-light text-black ${isHero ? "px-4 text-base sm:text-lg" : "px-3 text-sm"}`}
             onClick={() => setShowPropertyDropdown((prev) => !prev)}
             aria-haspopup="listbox"
             aria-expanded={showPropertyDropdown}
