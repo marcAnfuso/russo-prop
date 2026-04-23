@@ -57,10 +57,11 @@ export default function PropertyCard({
 
   const isAlquiler = operation === "alquiler";
   const currencyLabel = currency === "ARS" ? "$" : "USD";
-  const priceLabel =
-    price === 9999999
-      ? "Reservado"
-      : `${currencyLabel} ${formatPrice(price)}${isAlquiler ? "/mes" : ""}`;
+  const priceLabel = property.sold
+    ? "Vendida"
+    : price === 9999999
+    ? "Reservado"
+    : `${currencyLabel} ${formatPrice(price)}${isAlquiler ? "/mes" : ""}`;
   const imageSrc = images.length > 0 ? images[0] : null;
   const badgeLabel = subtype ?? COMMERCIAL_TYPE_LABEL[type];
 
@@ -125,7 +126,11 @@ export default function PropertyCard({
             {isAlquiler ? "Alquiler" : "Venta"}
           </span>
 
-          {price === 9999999 ? (
+          {property.sold ? (
+            <span className="absolute top-3 right-3 z-20 rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-white bg-emerald-500 shadow-[0_4px_12px_-2px_rgba(16,185,129,0.5)]">
+              Vendimos
+            </span>
+          ) : price === 9999999 ? (
             <span className="absolute top-3 right-3 z-20 rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-white bg-amber-500">
               Reservado
             </span>
@@ -218,7 +223,11 @@ export default function PropertyCard({
           {isAlquiler ? "Alquiler" : "Venta"}
         </span>
 
-        {price === 9999999 ? (
+        {property.sold ? (
+          <span className="absolute top-3 right-3 z-20 rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-white bg-emerald-500 shadow-[0_4px_12px_-2px_rgba(16,185,129,0.5)]">
+            Vendimos
+          </span>
+        ) : price === 9999999 ? (
           <span className="absolute top-3 right-3 z-20 rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-white bg-amber-500 backdrop-blur-sm">
             Reservado
           </span>

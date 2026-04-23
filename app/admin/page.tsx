@@ -18,11 +18,12 @@ export default async function AdminPage() {
   const me = await getCurrentAdmin();
   if (!me) return <AdminLogin />;
 
-  const [ventas, alquileres, featured, fresh, media] = await Promise.all([
+  const [ventas, alquileres, featured, fresh, sold, media] = await Promise.all([
     fetchAllProperties("venta"),
     fetchAllProperties("alquiler"),
     listPicks("featured"),
     listPicks("new"),
+    listPicks("sold"),
     listMediaPicks(),
   ]);
   const all = [...ventas, ...alquileres];
@@ -46,6 +47,7 @@ export default async function AdminPage() {
       properties={properties}
       initialFeatured={featured}
       initialNew={fresh}
+      initialSold={sold}
       initialMedia={media}
       currentUser={{
         id: me.id,

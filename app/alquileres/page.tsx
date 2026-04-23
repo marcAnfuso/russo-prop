@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import PropertyListWithMap from "@/components/PropertyListWithMap";
 import PropertyListSkeleton from "@/components/PropertyListSkeleton";
 import { fetchAllProperties, toListProperty } from "@/lib/xintel";
+import { listPicks } from "@/lib/picks";
 
 export const metadata = {
   title: "Propiedades en alquiler",
@@ -13,9 +14,16 @@ export const metadata = {
 };
 
 async function AlquileresContent() {
-  const properties = await fetchAllProperties("alquiler");
+  const [properties, soldIds] = await Promise.all([
+    fetchAllProperties("alquiler"),
+    listPicks("sold"),
+  ]);
+  const soldSet = new Set(soldIds);
   // Strip campos pesados: el detail page re-fetchea la ficha completa.
-  const listProperties = properties.map(toListProperty);
+  const listProperties = properties.map((p) => ({
+    ...toListProperty(p),
+    sold: soldSet.has(p.id),
+  }));
   return (
     <PropertyListWithMap
       operationType="alquiler"

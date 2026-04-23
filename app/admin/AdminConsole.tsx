@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Image from "next/image";
-import { Search, Star, Sparkles, X, LogOut } from "lucide-react";
+import { Search, Star, Sparkles, X, LogOut, CheckCircle2 } from "lucide-react";
 import { formatPrice } from "@/lib/utils";
 import MediaPicksPanel, { type MediaPick } from "./MediaPicksPanel";
 import UsersPanel from "./UsersPanel";
@@ -20,12 +20,13 @@ interface AdminProperty {
   type: string;
 }
 
-type PickList = "featured" | "new";
+type PickList = "featured" | "new" | "sold";
 
 interface Props {
   properties: AdminProperty[];
   initialFeatured: string[];
   initialNew: string[];
+  initialSold: string[];
   initialMedia: MediaPick[];
   currentUser: {
     id: number;
@@ -39,11 +40,13 @@ export default function AdminConsole({
   properties,
   initialFeatured,
   initialNew,
+  initialSold,
   initialMedia,
   currentUser,
 }: Props) {
   const [featured, setFeatured] = useState<Set<string>>(new Set(initialFeatured));
   const [fresh, setFresh] = useState<Set<string>>(new Set(initialNew));
+  const [sold, setSold] = useState<Set<string>>(new Set(initialSold));
   const [query, setQuery] = useState("");
   const [operation, setOperation] = useState<"" | "venta" | "alquiler">("");
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -64,8 +67,10 @@ export default function AdminConsole({
   }, [properties, query, operation]);
 
   async function togglePick(propertyId: string, list: PickList) {
-    const current = list === "featured" ? featured : fresh;
-    const setter = list === "featured" ? setFeatured : setFresh;
+    const current =
+      list === "featured" ? featured : list === "new" ? fresh : sold;
+    const setter =
+      list === "featured" ? setFeatured : list === "new" ? setFresh : setSold;
     const has = current.has(propertyId);
     const previous = new Set(current);
     // Optimistic update
@@ -86,13 +91,12 @@ export default function AdminConsole({
             body: JSON.stringify({ property_id: propertyId, list }),
           });
       if (!res.ok) throw new Error("bad response");
-      setToast(
-        has
-          ? "Quitado de la lista"
-          : list === "featured"
-          ? "Agregado a Destacadas"
-          : "Marcado como Nuevo ingreso"
-      );
+      const labels: Record<PickList, string> = {
+        featured: "Destacadas",
+        new: "Nuevos ingresos",
+        sold: "Vendidas",
+      };
+      setToast(has ? "Quitado de la lista" : `Agregado a ${labels[list]}`);
       setTimeout(() => setToast(null), 2000);
     } catch {
       // Revert
@@ -139,7 +143,7 @@ export default function AdminConsole({
 
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 space-y-10">
         {/* Current picks */}
-        <div className="grid md:grid-cols-2 gap-6">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           <PickPanel
             title="Destacadas"
             subtitle="Marcá varias — el sitio las va rotando de a 4 por día."
@@ -155,6 +159,14 @@ export default function AdminConsole({
             ids={Array.from(fresh)}
             propertyById={propertyById}
             onRemove={(id) => togglePick(id, "new")}
+          />
+          <PickPanel
+            title="Vendidas"
+            subtitle='Muestran el badge "Vendimos" en vez de "Reservado".'
+            icon={<CheckCircle2 className="h-4 w-4" />}
+            ids={Array.from(sold)}
+            propertyById={propertyById}
+            onRemove={(id) => togglePick(id, "sold")}
           />
         </div>
 
@@ -212,6 +224,7 @@ export default function AdminConsole({
             {filtered.slice(0, 60).map((p) => {
               const isFeatured = featured.has(p.id);
               const isNew = fresh.has(p.id);
+              const isSold = sold.has(p.id);
               return (
                 <li
                   key={p.id}
@@ -244,12 +257,12 @@ export default function AdminConsole({
                       </p>
                     </div>
                   </div>
-                  <div className="border-t border-gray-100 p-2 flex gap-2">
+                  <div className="border-t border-gray-100 p-2 flex gap-1.5">
                     <button
                       type="button"
                       onClick={() => togglePick(p.id, "featured")}
                       disabled={busyId === p.id}
-                      className={`flex-1 inline-flex items-center justify-center gap-1 rounded-md py-1.5 text-xs font-semibold transition-colors ${
+                      className={`flex-1 inline-flex items-center justify-center gap-1 rounded-md py-1.5 text-[11px] font-semibold transition-colors ${
                         isFeatured
                           ? "bg-magenta text-white"
                           : "bg-magenta-50 text-magenta hover:bg-magenta-100"
@@ -262,14 +275,27 @@ export default function AdminConsole({
                       type="button"
                       onClick={() => togglePick(p.id, "new")}
                       disabled={busyId === p.id}
-                      className={`flex-1 inline-flex items-center justify-center gap-1 rounded-md py-1.5 text-xs font-semibold transition-colors ${
+                      className={`flex-1 inline-flex items-center justify-center gap-1 rounded-md py-1.5 text-[11px] font-semibold transition-colors ${
                         isNew
                           ? "bg-navy text-white"
                           : "bg-navy-50 text-navy hover:bg-navy-100"
                       }`}
                     >
                       <Sparkles className="h-3 w-3" />
-                      {isNew ? "Es nueva" : "Nueva"}
+                      {isNew ? "Nueva" : "Nueva"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => togglePick(p.id, "sold")}
+                      disabled={busyId === p.id}
+                      className={`flex-1 inline-flex items-center justify-center gap-1 rounded-md py-1.5 text-[11px] font-semibold transition-colors ${
+                        isSold
+                          ? "bg-emerald-500 text-white"
+                          : "bg-emerald-50 text-emerald-600 hover:bg-emerald-100"
+                      }`}
+                    >
+                      <CheckCircle2 className="h-3 w-3" />
+                      {isSold ? "Vendida" : "Vender"}
                     </button>
                   </div>
                 </li>

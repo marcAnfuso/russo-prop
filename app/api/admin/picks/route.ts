@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { currentSessionIsAdmin } from "@/lib/admin-auth";
 import { addPick, listPicks, removePick, type PickList } from "@/lib/picks";
 
-const VALID_LISTS: PickList[] = ["featured", "new"];
+const VALID_LISTS: PickList[] = ["featured", "new", "sold"];
 
 function parseList(raw: string | null): PickList | null {
   return raw && (VALID_LISTS as string[]).includes(raw) ? (raw as PickList) : null;

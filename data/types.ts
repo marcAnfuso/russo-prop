@@ -78,6 +78,10 @@ export interface Property {
   location: { lat: number; lng: number };
   featured: boolean;
   priceHistory?: PriceHistoryEntry[];
+  /** Override manual del equipo desde el admin — marca la propiedad
+   * como vendida, independientemente del precio 9999999 que usa Xintel
+   * ambiguamente para reservadas/vendidas/consultar. */
+  sold?: boolean;
 }
 
 export interface Development {

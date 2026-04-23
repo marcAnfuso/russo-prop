@@ -11,6 +11,7 @@ import {
   Calendar,
 } from "lucide-react";
 import { fetchProperty, fetchPropertyIds } from "@/lib/xintel";
+import { listPicks } from "@/lib/picks";
 import type { Property } from "@/data/types";
 import { formatPrice } from "@/lib/utils";
 import Gallery from "@/components/Gallery";
@@ -61,11 +62,16 @@ interface PageProps {
 
 export default async function PropertyDetailPage({ params }: PageProps) {
   const { id } = await params;
-  const property = await fetchProperty(id);
+  const [property, soldIds] = await Promise.all([
+    fetchProperty(id),
+    listPicks("sold"),
+  ]);
   const { properties: allProperties } = await fetchProperties({
     operation: property?.operation ?? "venta",
     page: 1,
   });
+  // Marca la propiedad como vendida si el equipo la togglée en el admin.
+  if (property) property.sold = soldIds.includes(property.id);
 
   if (!property) {
     return (
@@ -233,8 +239,8 @@ export default async function PropertyDetailPage({ params }: PageProps) {
             title={property.title}
           />
 
-          {/* Operation badge */}
-          <div>
+          {/* Operation badge + Vendimos si aplica */}
+          <div className="flex items-center gap-2 flex-wrap">
             <span
               className={`inline-block rounded-full px-4 py-1.5 text-sm font-semibold uppercase tracking-wide text-white ${
                 isAlquiler ? "bg-navy" : "bg-magenta"
@@ -242,11 +248,18 @@ export default async function PropertyDetailPage({ params }: PageProps) {
             >
               {operationLabel}
             </span>
+            {property.sold && (
+              <span className="inline-block rounded-full bg-emerald-500 px-4 py-1.5 text-sm font-bold uppercase tracking-wide text-white shadow-[0_4px_12px_-2px_rgba(16,185,129,0.5)]">
+                Vendimos
+              </span>
+            )}
           </div>
 
           {/* Price */}
           <p className="text-3xl font-bold text-gray-900">
-            {property.currency === "ARS" ? "$" : "USD"} {formatPrice(property.price)}{isAlquiler ? "/mes" : ""}
+            {property.sold
+              ? "Vendida"
+              : `${property.currency === "ARS" ? "$" : "USD"} ${formatPrice(property.price)}${isAlquiler ? "/mes" : ""}`}
           </p>
 
           {/* Features grid */}
