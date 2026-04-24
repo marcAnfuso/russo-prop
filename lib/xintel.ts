@@ -49,6 +49,7 @@ interface XintelListFicha {
   img_princ?: string;
   in_des?: string | boolean;
   video?: string;
+  tour360?: string;
   cantidad_dormitorios?: string | number;
   // Detail-only fields (fichas.propiedades)
   in_pis?: string | number;   // piso
@@ -325,6 +326,7 @@ function mapListFicha(ficha: XintelListFicha, imgs: string | string[], amenities
     amenities: amenities ?? [],
     images,
     videoUrl: ficha.video ?? undefined,
+    tour360Url: ficha.tour360 || undefined,
     location: parseCoords(ficha.in_coo),
     featured: String(ficha.in_des) === "True" || ficha.in_des === true,
   };
@@ -346,6 +348,7 @@ export function toListProperty(p: Property): Property {
     plans: undefined,
     details: undefined,
     videoUrl: undefined,
+    tour360Url: undefined,
     // Mantener sólo la primera imagen: cards usan images[0]; QuickView
     // y detalle ya vuelven a cargar todas desde el endpoint del detalle.
     images: p.images.length > 0 ? [p.images[0]] : [],
@@ -600,6 +603,7 @@ export async function fetchProperty(id: string): Promise<Property | null> {
       details,
       images: imgs,
       videoUrl: r.videos?.[0]?.video_url ?? ficha.video ?? undefined,
+      tour360Url: ficha.tour360 || undefined,
       location: parseCoords(ficha.in_coo),
       featured: String(ficha.in_des) === "True" || ficha.in_des === true,
     };

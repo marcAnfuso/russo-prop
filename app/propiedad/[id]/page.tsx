@@ -236,6 +236,7 @@ export default async function PropertyDetailPage({ params }: PageProps) {
             images={property.images}
             videoUrl={property.videoUrl}
             plans={property.plans}
+            tour360Url={property.tour360Url}
             title={property.title}
           />
 

@@ -75,6 +75,8 @@ export interface Property {
   details?: PropertyDetails;  // extra ficha details (detail page only)
   images: string[];
   videoUrl?: string;
+  /** URL externa de recorrido virtual 360° (Xintel: tour360). */
+  tour360Url?: string;
   location: { lat: number; lng: number };
   featured: boolean;
   priceHistory?: PriceHistoryEntry[];

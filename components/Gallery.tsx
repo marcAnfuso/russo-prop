@@ -2,19 +2,20 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
-import { ChevronLeft, ChevronRight, X, Camera, Play, FileImage, Download, ZoomIn, ZoomOut } from "lucide-react";
+import { ChevronLeft, ChevronRight, X, Camera, Play, FileImage, Download, ZoomIn, ZoomOut, Orbit } from "lucide-react";
 import { toEmbedUrl } from "@/lib/utils";
 
 interface GalleryProps {
   images: string[];
   videoUrl?: string;
   plans?: string[];
+  tour360Url?: string;
   title: string;
 }
 
-type Tab = "fotos" | "video" | "planos";
+type Tab = "fotos" | "video" | "planos" | "tour360";
 
-export default function Gallery({ images, videoUrl, plans, title }: GalleryProps) {
+export default function Gallery({ images, videoUrl, plans, tour360Url, title }: GalleryProps) {
   const [activeTab, setActiveTab] = useState<Tab>("fotos");
   const [currentIndex, setCurrentIndex] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
@@ -105,11 +106,15 @@ export default function Gallery({ images, videoUrl, plans, title }: GalleryProps
   // Map was removed — the property map is already shown in its own section below.
 
   const hasPlans = !!plans && plans.length > 0;
+  const hasTour = !!tour360Url;
 
   const tabs: { key: Tab; label: string; icon: React.ReactNode }[] = [
     { key: "fotos", label: "Fotos", icon: <Camera className="w-4 h-4" /> },
     ...(videoUrl
       ? [{ key: "video" as Tab, label: "Video", icon: <Play className="w-4 h-4" /> }]
+      : []),
+    ...(hasTour
+      ? [{ key: "tour360" as Tab, label: "Tour 360°", icon: <Orbit className="w-4 h-4" /> }]
       : []),
     ...(hasPlans
       ? [{ key: "planos" as Tab, label: "Planos", icon: <FileImage className="w-4 h-4" /> }]
@@ -351,6 +356,28 @@ export default function Gallery({ images, videoUrl, plans, title }: GalleryProps
         )}
 
         {activeTab === "video" && renderVideoTab()}
+
+        {activeTab === "tour360" && hasTour && (
+          <div className="space-y-3">
+            <div className="w-full aspect-video rounded-lg overflow-hidden border border-gray-200 bg-gray-100">
+              <iframe
+                src={tour360Url}
+                title={`${title} - tour virtual 360°`}
+                allowFullScreen
+                className="w-full h-full"
+              />
+            </div>
+            <a
+              href={tour360Url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-magenta hover:underline"
+            >
+              <Orbit className="h-3.5 w-3.5" />
+              Abrir en pantalla completa
+            </a>
+          </div>
+        )}
 
         {activeTab === "planos" && hasPlans && (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
