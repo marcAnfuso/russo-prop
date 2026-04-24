@@ -85,7 +85,7 @@ export default function RussiaChatWidget({ propertyId }: Props) {
   // ── Chat panel abierto ───────────────────────────────────────────────
   if (state === "open") {
     return (
-      <div className="fixed bottom-6 left-6 z-40 w-[min(360px,calc(100vw-2rem))] max-h-[min(560px,calc(100vh-3rem))] flex flex-col bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden">
+      <div className="fixed bottom-6 right-6 z-40 w-[min(360px,calc(100vw-2rem))] max-h-[min(560px,calc(100vh-3rem))] flex flex-col bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden">
         <header className="bg-gradient-to-r from-magenta to-[#b3006d] text-white px-4 py-3 flex items-center gap-3 flex-shrink-0">
           <RobotAvatar size={36} />
           <div className="flex-1 min-w-0">
@@ -199,9 +199,9 @@ export default function RussiaChatWidget({ propertyId }: Props) {
   // ── Estado con burbuja (sugerencia) ──────────────────────────────────
   // ── Estado colapsado (sólo avatar) ───────────────────────────────────
   return (
-    <div className="fixed bottom-6 left-6 z-40 flex items-end gap-3">
+    <div className="fixed bottom-6 right-6 z-40 flex items-end gap-3">
       {state === "bubble" && (
-        <div className="relative max-w-[240px] bg-white rounded-2xl rounded-bl-md shadow-xl border border-gray-100 px-4 py-3 mb-1 animate-in fade-in slide-in-from-bottom-2 duration-300">
+        <div className="relative max-w-[240px] bg-white rounded-2xl rounded-br-md shadow-xl border border-gray-100 px-4 py-3 mb-1 animate-in fade-in slide-in-from-bottom-2 duration-300">
           <button
             type="button"
             onClick={() => setState("collapsed")}

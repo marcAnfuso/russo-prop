@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { usePathname } from "next/navigation";
 
 // Argentina mobile numbers need the "9" after the country code (54) for
 // WhatsApp to resolve — otherwise the link says "no existe en WhatsApp".
@@ -9,6 +10,12 @@ const WHATSAPP_URL =
 
 export default function WhatsAppFAB() {
   const [hovered, setHovered] = useState(false);
+  const pathname = usePathname();
+
+  // En el detalle de propiedad dejamos sólo a Russia (chat IA bottom-left)
+  // y ocultamos el FAB de WhatsApp para no saturar con dos botones fijos.
+  // El sidebar de contacto y el hero menú ya exponen el WhatsApp del equipo.
+  if (pathname?.startsWith("/propiedad/")) return null;
 
   return (
     <>
