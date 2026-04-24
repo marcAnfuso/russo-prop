@@ -222,9 +222,17 @@ export default async function PropertyDetailPage({ params }: PageProps) {
 
           {/* Title + actions row */}
           <div className="flex items-start justify-between gap-4">
-            <h1 className="text-2xl font-bold text-navy md:text-3xl">
-              {property.title}
-            </h1>
+            <div className="flex-1 min-w-0">
+              <h1 className="text-2xl font-bold text-navy md:text-3xl">
+                {property.title}
+              </h1>
+              <p className="mt-1.5 text-sm text-gray-500">
+                {property.address}
+                {property.details?.floor ? ` · Piso ${property.details.floor}` : ""}
+                {property.details?.aptNumber ? ` · Depto ${property.details.aptNumber}` : ""}
+                {property.locality ? ` · ${property.locality}` : ""}
+              </p>
+            </div>
             <DetailHeaderActions
               propertyId={property.id}
               title={property.title}
