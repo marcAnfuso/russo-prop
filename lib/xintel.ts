@@ -499,10 +499,23 @@ export async function fetchProperty(id: string): Promise<Property | null> {
   url.searchParams.set("id", id);
   url.searchParams.set("emprendimiento", "True");
 
+  // El endpoint de detalle NO devuelve tour360, así que paralelamente
+  // traemos la versión list (filtrada por in_num=id) sólo para extraer
+  // ese campo. Como ambos responses se cachean con revalidate, el costo
+  // real es una sola request por deploy y propiedad.
+  const tourUrl = new URL(BASE);
+  tourUrl.searchParams.set("json", "resultados.fichas");
+  tourUrl.searchParams.set("inm", INM);
+  tourUrl.searchParams.set("apiK", API_KEY_LIST);
+  tourUrl.searchParams.set("in_num", id);
+
   try {
-    const res = await fetch(url.toString(), {
-      next: { revalidate: REVALIDATE },
-    });
+    const [res, tourRes] = await Promise.all([
+      fetch(url.toString(), { next: { revalidate: REVALIDATE } }),
+      fetch(tourUrl.toString(), { next: { revalidate: REVALIDATE } }).catch(
+        () => null
+      ),
+    ]);
     if (!res.ok) return null;
     const data: XintelDetailResponse = await res.json();
     const r = data?.resultado;
@@ -510,6 +523,18 @@ export async function fetchProperty(id: string): Promise<Property | null> {
 
     const ficha = r.ficha?.[0];
     if (!ficha) return null;
+
+    // Rescatar tour360 de la list (si está disponible).
+    let tour360Url: string | undefined;
+    if (tourRes && tourRes.ok) {
+      try {
+        const tourData = (await tourRes.json()) as XintelListResponse;
+        const tourFicha = tourData?.resultado?.fichas?.[0];
+        tour360Url = tourFicha?.tour360 || undefined;
+      } catch {
+        tour360Url = undefined;
+      }
+    }
 
     const imgs: string[] = Array.isArray(r.img) ? r.img.filter(Boolean) : [];
     const plans: string[] = Array.isArray(r.lista_planos)
@@ -603,7 +628,7 @@ export async function fetchProperty(id: string): Promise<Property | null> {
       details,
       images: imgs,
       videoUrl: r.videos?.[0]?.video_url ?? ficha.video ?? undefined,
-      tour360Url: ficha.tour360 || undefined,
+      tour360Url: tour360Url ?? ficha.tour360 ?? undefined,
       location: parseCoords(ficha.in_coo),
       featured: String(ficha.in_des) === "True" || ficha.in_des === true,
     };
