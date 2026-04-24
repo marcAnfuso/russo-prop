@@ -41,6 +41,17 @@ export default function SearchBar({
   const [showAutocomplete, setShowAutocomplete] = useState(false);
   const [showPropertyDropdown, setShowPropertyDropdown] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Placeholder corto en mobile porque el input comparte fila con el
+  // dropdown de "Tipo" y se cortaba el texto.
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 640px)");
+    const update = () => setIsMobile(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
 
   const inputRef = useRef<HTMLInputElement>(null);
   const autocompleteRef = useRef<HTMLUListElement>(null);
@@ -233,7 +244,7 @@ export default function SearchBar({
               activeIndex >= 0 ? `zone-option-${activeIndex}` : undefined
             }
             aria-autocomplete="list"
-            placeholder="¿Dónde querés mudarte?"
+            placeholder={isMobile ? "Calle, barrio…" : "Calle, barrio o código RUS"}
             value={query}
             onChange={(e) => {
               setQuery(e.target.value);

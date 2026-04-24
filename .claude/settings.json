@@ -24,7 +24,8 @@
       "Bash(google-chrome --headless --disable-gpu --no-sandbox --print-to-pdf=/home/marc/russo-prop/russo-propuesta.pdf --print-to-pdf-no-header file:///tmp/russo-propuesta.html)",
       "mcp__playwright__browser_snapshot",
       "mcp__playwright__browser_click",
-      "mcp__playwright__browser_console_messages"
+      "mcp__playwright__browser_console_messages",
+      "mcp__playwright__browser_wait_for"
     ],
     "additionalDirectories": [
       "/home/marc/russo-prop/app",
