@@ -41,7 +41,7 @@ export default function Hero() {
         >
           <span className="inline-flex items-center gap-2">
             <span className="h-px w-8 bg-magenta" aria-hidden="true" />
-            Zona Oeste · desde 1994
+            Zona Oeste · desde 1992
             <span className="h-px w-8 bg-magenta" aria-hidden="true" />
           </span>
         </motion.p>

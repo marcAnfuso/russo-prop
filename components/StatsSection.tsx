@@ -92,7 +92,7 @@ export default function StatsSection() {
           <h2 className="font-display text-4xl sm:text-5xl font-semibold leading-tight tracking-tight text-white">
             Conocemos cada cuadra
             <br />
-            <span className="italic text-white/50">desde 1995</span>
+            <span className="italic text-white/50">desde 1992</span>
           </h2>
         </div>
 

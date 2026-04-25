@@ -2,57 +2,69 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import MeetRusso from "@/components/MeetRusso";
-import { Home, Handshake, Compass, ShieldCheck } from "lucide-react";
+import BlueprintTimeline, { type TimelineItem } from "@/components/BlueprintTimeline";
+import { Heart, Target, Eye } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Nosotros",
   description:
-    "Russo Propiedades es una inmobiliaria familiar de zona oeste. Dos generaciones trabajando el mismo territorio desde San Justo.",
+    "Russo Propiedades: desde 1992 acompañando a quienes buscan su hogar en zona oeste. Servicio profesional y personalizado en San Justo, La Matanza.",
 };
 
-const values = [
+const timeline: TimelineItem[] = [
   {
-    icon: Home,
-    title: "Conocimiento del territorio",
-    text: "Nacimos y crecimos en zona oeste. No tasamos de escritorio: conocemos cada cuadra.",
+    year: "1992",
+    title: "Primeros pasos",
+    text: "Abrimos la primera oficina, humilde pero con objetivos muy claros.",
+    city: "sj",
   },
   {
-    icon: Handshake,
-    title: "Trato directo",
-    text: "Hablás con quien decide. Sin intermediarios, sin respuestas tibias.",
+    year: "1995",
+    title: "Oficina propia",
+    text: "Lo que empezó como una visión, se transformó en realidad: inauguramos nuestra primera oficina propia.",
+    city: "sj",
   },
   {
-    icon: Compass,
-    title: "Acompañamiento completo",
-    text: "Desde la primera visita hasta la escritura. Nos quedamos del lado tuyo.",
+    year: "2008",
+    title: "Administración",
+    text: "Creamos un gran departamento de administración de propiedades, lo que nos permitió sumar un enorme capital humano al equipo.",
+    city: "sj",
   },
   {
-    icon: ShieldCheck,
-    title: "Responsabilidad intacta",
-    text: "Nuestro apellido está en la puerta. Es lo que nos mantiene despiertos.",
-  },
-];
-
-const timeline = [
-  {
-    year: "1994",
-    title: "Primera oficina en San Justo",
-    text: "Elba Russo abre la inmobiliaria en el centro de San Justo con dos tableros y un teléfono.",
-  },
-  {
-    year: "2005",
-    title: "Expansión a zona oeste",
-    text: "Sumamos operaciones en Ramos Mejía, Haedo, Villa Luzuriaga, Ciudadela y Morón.",
-  },
-  {
-    year: "2015",
-    title: "Segunda generación",
-    text: "Franco Russo se suma al equipo y moderniza el trabajo: fotografía profesional, tasaciones basadas en data real.",
+    year: "2017",
+    title: "Oficina modelo",
+    text: "Inauguramos una nueva oficina modelo en una moderna torre, con divisiones dedicadas a administración, alquileres y ventas.",
+    city: "sj",
   },
   {
     year: "2024",
-    title: "Más de 2.000 operaciones",
-    text: "Cerramos el año con la confianza acumulada de 30 años y un equipo de 8 asesores activos.",
+    title: "Expansión",
+    text: "Dimos el salto a un nuevo territorio: abrimos nuestra primera oficina fuera de San Justo.",
+    city: "rm",
+  },
+  {
+    year: "2026",
+    title: "Próxima apertura",
+    text: "Sumamos una segunda sede en Ramos Mejía, consolidando nuestra presencia en toda zona oeste.",
+    city: "rm",
+  },
+];
+
+const pillars = [
+  {
+    icon: Heart,
+    title: "Historia",
+    text: "Más de 30 años acompañando a familias en zona oeste. Empezamos en 1992 con una oficina humilde y objetivos claros. Durante este último año agregamos a nuestra experiencia toda la tecnología disponible, que sumada a nuestro más importante capital (gente joven, capaz, idónea y honesta) permite brindar un servicio de excelencia.",
+  },
+  {
+    icon: Target,
+    title: "Objetivos",
+    text: "Somos una empresa con espíritu de servicio, buscando la excelencia en todo lo que hacemos. Nuestra prioridad es la tranquilidad del cliente, acompañándolo durante todo el proceso con una gestión profesional y personalizada.",
+  },
+  {
+    icon: Eye,
+    title: "Visión",
+    text: "El cliente es nuestra razón de ser. Cada nuevo reto se convierte en una motivación personal — su confianza es nuestro valor más preciado. Queremos acompañar a cada persona a construir su futuro teniendo en cuenta sus necesidades y objetivos.",
   },
 ];
 
@@ -62,75 +74,85 @@ export default function NosotrosPage() {
       {/* Hero with MeetRusso reused */}
       <MeetRusso />
 
-      {/* Historia / timeline */}
-      <section className="py-20 lg:py-24 px-4 sm:px-6 lg:px-8 bg-gray-50">
-        <div className="mx-auto max-w-6xl">
-          <div className="mb-14 max-w-2xl">
-            <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-magenta mb-4">
+      {/* Historia — timeline tipo blueprint arquitectónico */}
+      <BlueprintTimeline items={timeline} />
+
+      {/* Slogans — el de antes y el de ahora */}
+      <section className="py-20 lg:py-24 px-4 sm:px-6 lg:px-8 bg-white">
+        <div className="mx-auto max-w-5xl">
+          <div className="mb-12 text-center">
+            <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-magenta mb-3">
               <span className="h-1.5 w-1.5 rounded-full bg-magenta" />
-              Historia
+              Nuestros slogans
             </p>
-            <h2 className="font-display text-4xl sm:text-5xl font-semibold leading-tight tracking-tight text-navy">
-              30 años, <span className="italic text-magenta">una sola cuadra</span> de San Justo.
-            </h2>
+            <p className="text-gray-500 text-base max-w-xl mx-auto">
+              La forma cambia, los valores no.
+            </p>
           </div>
 
-          <ol className="relative border-l-2 border-gray-200 ml-2 space-y-10">
-            {timeline.map((t) => (
-              <li key={t.year} className="pl-8 relative">
-                <span className="absolute left-0 top-1.5 -translate-x-1/2 h-4 w-4 rounded-full bg-magenta ring-4 ring-gray-50" />
-                <p className="font-mono-price text-sm text-magenta font-semibold mb-1">
-                  {t.year}
-                </p>
-                <h3 className="font-display text-xl font-semibold text-navy mb-1">
-                  {t.title}
-                </h3>
-                <p className="text-gray-600 leading-relaxed max-w-2xl">
-                  {t.text}
-                </p>
-              </li>
-            ))}
-          </ol>
+          <div className="grid md:grid-cols-2 gap-6 lg:gap-8">
+            {/* Slogan anterior */}
+            <div className="relative rounded-2xl border border-gray-200 bg-gradient-to-br from-gray-50 to-white p-8 lg:p-10">
+              <span className="inline-block rounded-full bg-gray-100 text-gray-500 text-[10px] font-bold uppercase tracking-widest px-3 py-1 mb-5">
+                De siempre
+              </span>
+              <p className="font-display text-2xl sm:text-3xl leading-tight text-navy italic">
+                &ldquo;Usted sabe en quién confiar.&rdquo;
+              </p>
+              <p className="mt-4 text-sm text-gray-500">
+                Nuestro slogan durante décadas. Una frase de familia que se trajo a la inmobiliaria y se quedó.
+              </p>
+            </div>
+
+            {/* Slogan actual */}
+            <div className="relative rounded-2xl border border-magenta/30 bg-gradient-to-br from-magenta/5 via-white to-magenta/10 p-8 lg:p-10 shadow-[0_10px_40px_-12px_rgba(230,0,126,0.2)]">
+              <span className="inline-block rounded-full bg-magenta text-white text-[10px] font-bold uppercase tracking-widest px-3 py-1 mb-5">
+                Hoy
+              </span>
+              <p className="font-display text-2xl sm:text-3xl leading-tight text-navy">
+                <span className="text-magenta">Valores</span> humanos.
+              </p>
+              <p className="mt-4 text-sm text-gray-500">
+                Nuestra bandera actual. Porque más allá de toda la tecnología, lo que sigue haciendo la diferencia es la gente.
+              </p>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* Valores */}
+      {/* Pilares: Historia · Objetivos · Visión */}
       <section className="py-20 lg:py-24 px-4 sm:px-6 lg:px-8 bg-white">
         <div className="mx-auto max-w-6xl">
           <div className="mb-14 max-w-2xl">
             <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-magenta mb-4">
               <span className="h-1.5 w-1.5 rounded-full bg-magenta" />
-              Cómo trabajamos
+              Quiénes somos
             </p>
             <h2 className="font-display text-4xl sm:text-5xl font-semibold leading-tight tracking-tight text-navy">
-              Lo que <span className="italic text-magenta">no</span> cambia.
+              Nuestra <span className="italic text-magenta">razón de ser</span>.
             </h2>
           </div>
 
-          <div className="grid sm:grid-cols-2 gap-6 lg:gap-8">
-            {values.map((v) => (
+          <div className="grid md:grid-cols-3 gap-6 lg:gap-8">
+            {pillars.map((p) => (
               <div
-                key={v.title}
+                key={p.title}
                 className="group relative rounded-2xl border border-gray-100 bg-white p-6 lg:p-8 hover:border-magenta/30 hover:shadow-[0_12px_40px_-12px_rgba(230,0,126,0.18)] transition-all duration-300"
               >
-                <div className="flex items-start gap-4">
-                  <div className="flex-shrink-0 h-11 w-11 rounded-xl bg-gray-50 text-navy-400 flex items-center justify-center group-hover:bg-magenta-50 group-hover:text-magenta transition-colors">
-                    <v.icon className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <h3 className="font-display text-xl font-semibold text-navy mb-2">
-                      {v.title}
-                    </h3>
-                    <p className="text-gray-600 leading-relaxed">{v.text}</p>
-                  </div>
+                <div className="flex-shrink-0 h-11 w-11 rounded-xl bg-gray-50 text-navy-400 flex items-center justify-center group-hover:bg-magenta-50 group-hover:text-magenta transition-colors mb-4">
+                  <p.icon className="h-5 w-5" />
                 </div>
+                <h3 className="font-display text-xl font-semibold text-navy mb-3">
+                  {p.title}
+                </h3>
+                <p className="text-gray-600 leading-relaxed">{p.text}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Sucursal */}
+      {/* Sede */}
       <section className="py-20 lg:py-24 px-4 sm:px-6 lg:px-8 bg-navy text-white relative overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,rgba(230,0,126,0.18),transparent_60%)]" />
         <div className="relative mx-auto max-w-6xl grid lg:grid-cols-12 gap-10 items-center">
@@ -140,12 +162,12 @@ export default function NosotrosPage() {
               Nuestra sede
             </p>
             <h2 className="font-display text-4xl sm:text-5xl font-semibold leading-tight tracking-tight">
-              Plaza de San Justo.{" "}
-              <span className="italic text-magenta">Desde 1994</span>.
+              Centro de San Justo.{" "}
+              <span className="italic text-magenta">Desde 1992</span>.
             </h2>
             <p className="text-white/70 text-lg leading-relaxed max-w-xl">
-              Nos podés encontrar a metros de la municipalidad. Atendemos con o
-              sin cita previa, y siempre hay alguien del equipo en el local.
+              Nos podés encontrar en Pte. J. D. Perón 3501. Atendemos con o sin
+              cita previa, y siempre hay alguien del equipo en el local.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 pt-2">
               <Link
@@ -189,7 +211,7 @@ export default function NosotrosPage() {
                   Sede central
                 </p>
                 <p className="font-display text-xl text-white font-semibold leading-tight">
-                  Centro de San Justo, La Matanza
+                  Pte. J. D. Perón 3501, San Justo
                 </p>
               </div>
             </div>
