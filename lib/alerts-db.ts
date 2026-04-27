@@ -29,6 +29,7 @@ export interface Alert {
   active: boolean;
   created_at: string;
   last_notified_at: string | null;
+  notified_ids?: string[];
 }
 
 // ── Schema ──────────────────────────────────────────────────────────────
@@ -44,8 +45,13 @@ export async function ensureAlertsSchema(): Promise<void> {
       unsubscribe_token TEXT NOT NULL UNIQUE,
       active BOOLEAN NOT NULL DEFAULT TRUE,
       created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-      last_notified_at TIMESTAMPTZ
+      last_notified_at TIMESTAMPTZ,
+      notified_ids TEXT[] NOT NULL DEFAULT '{}'
     )
+  `;
+  // Migración idempotente: si la tabla ya existía sin la columna, agregarla.
+  await db`
+    ALTER TABLE alerts ADD COLUMN IF NOT EXISTS notified_ids TEXT[] NOT NULL DEFAULT '{}'
   `;
   await db`CREATE INDEX IF NOT EXISTS idx_alerts_email ON alerts (email)`;
   await db`CREATE INDEX IF NOT EXISTS idx_alerts_active ON alerts (active) WHERE active = TRUE`;
@@ -71,7 +77,8 @@ export async function createAlert(params: {
     )
     RETURNING id, email, name, criterion, unsubscribe_token, active,
       to_char(created_at, 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS created_at,
-      to_char(last_notified_at, 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS last_notified_at
+      to_char(last_notified_at, 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS last_notified_at,
+      notified_ids
   `) as unknown as Alert[];
   return rows[0];
 }
@@ -94,7 +101,8 @@ export async function listActiveAlerts(): Promise<Alert[]> {
     SELECT
       id, email, name, criterion, unsubscribe_token, active,
       to_char(created_at, 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS created_at,
-      to_char(last_notified_at, 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS last_notified_at
+      to_char(last_notified_at, 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS last_notified_at,
+      notified_ids
     FROM alerts
     WHERE active = TRUE
     ORDER BY created_at DESC
@@ -109,7 +117,8 @@ export async function listAllAlerts(): Promise<Alert[]> {
     SELECT
       id, email, name, criterion, unsubscribe_token, active,
       to_char(created_at, 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS created_at,
-      to_char(last_notified_at, 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS last_notified_at
+      to_char(last_notified_at, 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS last_notified_at,
+      notified_ids
     FROM alerts
     ORDER BY created_at DESC
   `) as unknown as Alert[];
@@ -126,6 +135,24 @@ export async function setLastNotified(id: number): Promise<void> {
   await ensureAlertsSchema();
   const db = sql();
   await db`UPDATE alerts SET last_notified_at = now() WHERE id = ${id}`;
+}
+
+/** Suma `ids` al campo notified_ids (sin duplicados) y stampea last_notified_at. */
+export async function recordNotification(
+  id: number,
+  ids: string[]
+): Promise<void> {
+  await ensureAlertsSchema();
+  if (ids.length === 0) return;
+  const db = sql();
+  await db`
+    UPDATE alerts
+    SET last_notified_at = now(),
+        notified_ids = ARRAY(
+          SELECT DISTINCT unnest(notified_ids || ${ids}::text[])
+        )
+    WHERE id = ${id}
+  `;
 }
 
 // ── Helpers para humanizar el criterio en emails / UI ──────────────────

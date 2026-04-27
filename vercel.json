@@ -4,6 +4,10 @@
     {
       "path": "/api/snapshot/run",
       "schedule": "0 7 * * *"
+    },
+    {
+      "path": "/api/cron/alerts-notify",
+      "schedule": "0 12 * * *"
     }
   ]
 }
