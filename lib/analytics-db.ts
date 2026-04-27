@@ -417,6 +417,125 @@ export async function getContactBreakdown(daysBack: number): Promise<TopItem[]> 
   return rows;
 }
 
+// ── Sesiones (drill-down) ──────────────────────────────────────────────
+
+export interface SessionRow {
+  id: string;
+  visitor_id: string;
+  device: string | null;
+  browser: string | null;
+  os: string | null;
+  country: string | null;
+  city: string | null;
+  referrer: string | null;
+  first_seen: string;
+  last_seen: string;
+  event_count: number;
+  pageview_count: number;
+  contacted: boolean;
+}
+
+export async function listSessions(
+  daysBack: number,
+  options: {
+    limit?: number;
+    onlyContacted?: boolean;
+    onlyContactProperties?: boolean;
+  } = {}
+): Promise<SessionRow[]> {
+  await ensureAnalyticsSchema();
+  const db = sql();
+  const limit = options.limit ?? 100;
+  const onlyContacted = options.onlyContacted ?? false;
+
+  // Joineamos sesión con sus eventos para contar y detectar si contactó
+  const rows = (await db`
+    WITH stats AS (
+      SELECT
+        session_id,
+        COUNT(*)::int AS event_count,
+        COUNT(*) FILTER (WHERE type = 'pageview')::int AS pageview_count,
+        bool_or(type IN ('contact_click', 'form_submit', 'russia_chat_open')) AS contacted
+      FROM analytics_events
+      WHERE ts >= now() - (${daysBack}::int * INTERVAL '1 day')
+      GROUP BY session_id
+    )
+    SELECT
+      s.id, s.visitor_id, s.device, s.browser, s.os,
+      s.country, s.city, s.referrer,
+      to_char(s.first_seen, 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS first_seen,
+      to_char(s.last_seen,  'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS last_seen,
+      COALESCE(stats.event_count, 0) AS event_count,
+      COALESCE(stats.pageview_count, 0) AS pageview_count,
+      COALESCE(stats.contacted, FALSE) AS contacted
+    FROM analytics_sessions s
+    LEFT JOIN stats ON stats.session_id = s.id
+    WHERE s.last_seen >= now() - (${daysBack}::int * INTERVAL '1 day')
+      AND s.is_bot = FALSE
+      AND (NOT ${onlyContacted} OR stats.contacted = TRUE)
+    ORDER BY s.last_seen DESC
+    LIMIT ${limit}
+  `) as unknown as SessionRow[];
+  return rows;
+}
+
+export async function getSession(id: string): Promise<SessionRow | null> {
+  await ensureAnalyticsSchema();
+  const db = sql();
+  const rows = (await db`
+    WITH stats AS (
+      SELECT
+        session_id,
+        COUNT(*)::int AS event_count,
+        COUNT(*) FILTER (WHERE type = 'pageview')::int AS pageview_count,
+        bool_or(type IN ('contact_click', 'form_submit', 'russia_chat_open')) AS contacted
+      FROM analytics_events
+      WHERE session_id = ${id}
+      GROUP BY session_id
+    )
+    SELECT
+      s.id, s.visitor_id, s.device, s.browser, s.os,
+      s.country, s.city, s.referrer,
+      to_char(s.first_seen, 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS first_seen,
+      to_char(s.last_seen,  'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS last_seen,
+      COALESCE(stats.event_count, 0) AS event_count,
+      COALESCE(stats.pageview_count, 0) AS pageview_count,
+      COALESCE(stats.contacted, FALSE) AS contacted
+    FROM analytics_sessions s
+    LEFT JOIN stats ON stats.session_id = s.id
+    WHERE s.id = ${id}
+    LIMIT 1
+  `) as unknown as SessionRow[];
+  return rows[0] ?? null;
+}
+
+export interface SessionEvent {
+  id: number;
+  type: string;
+  path: string | null;
+  property_id: string | null;
+  metadata: Record<string, unknown> | null;
+  ts: string;
+}
+
+export async function getSessionEvents(sessionId: string): Promise<SessionEvent[]> {
+  await ensureAnalyticsSchema();
+  const db = sql();
+  const rows = (await db`
+    SELECT
+      id::int AS id,
+      type,
+      path,
+      property_id,
+      metadata,
+      to_char(ts, 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS ts
+    FROM analytics_events
+    WHERE session_id = ${sessionId}
+    ORDER BY ts ASC, id ASC
+  `) as unknown as SessionEvent[];
+  return rows;
+}
+
 /** Tráfico por hora del día (heatmap), promedio sobre el rango. */
 export async function getHourlyTraffic(daysBack: number): Promise<
   { hour: number; pageviews: number }[]

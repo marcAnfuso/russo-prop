@@ -16,7 +16,8 @@ import {
   TabList,
   Badge,
 } from "@tremor/react";
-import { ArrowDown, ArrowUp, Minus } from "lucide-react";
+import Link from "next/link";
+import { ArrowDown, ArrowUp, Minus, Users } from "lucide-react";
 import type {
   OverviewStats,
   DailyPoint,
@@ -97,16 +98,25 @@ export default function AnalyticsDashboard({
             Visitas anónimas · sin cookies · datos en vivo desde nuestra DB.
           </p>
         </div>
-        <TabGroup
-          index={currentTabIndex >= 0 ? currentTabIndex : 1}
-          onIndexChange={(i) => setRange(RANGES[i].days)}
-        >
-          <TabList variant="solid">
-            {RANGES.map((r) => (
-              <Tab key={r.days}>{r.label}</Tab>
-            ))}
-          </TabList>
-        </TabGroup>
+        <div className="flex items-center gap-3 flex-wrap">
+          <Link
+            href={`/admin/analytics/sessions?days=${days}`}
+            className="inline-flex items-center gap-1.5 rounded-lg bg-navy text-white px-3 py-2 text-xs font-semibold hover:bg-navy-700 transition-colors"
+          >
+            <Users className="h-3.5 w-3.5" />
+            Ver sesiones
+          </Link>
+          <TabGroup
+            index={currentTabIndex >= 0 ? currentTabIndex : 1}
+            onIndexChange={(i) => setRange(RANGES[i].days)}
+          >
+            <TabList variant="solid">
+              {RANGES.map((r) => (
+                <Tab key={r.days}>{r.label}</Tab>
+              ))}
+            </TabList>
+          </TabGroup>
+        </div>
       </div>
 
       {/* KPIs con delta */}
