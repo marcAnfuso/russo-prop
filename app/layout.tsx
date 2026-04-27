@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { Suspense } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import WhatsAppFAB from "@/components/WhatsAppFAB";
+import AnalyticsTracker from "@/components/AnalyticsTracker";
 
 const SITE_URL = "https://russo-prop.vercel.app";
 
@@ -116,6 +118,10 @@ export default function RootLayout({
         <div className="pt-[72px]">{children}</div>
         <Footer />
         <WhatsAppFAB />
+        {/* Tracker propio · pageviews + base para fases siguientes */}
+        <Suspense fallback={null}>
+          <AnalyticsTracker />
+        </Suspense>
       </body>
     </html>
   );

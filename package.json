@@ -15,6 +15,7 @@
   "dependencies": {
     "@google/genai": "^1.50.1",
     "@neondatabase/serverless": "^1.0.2",
+    "@tremor/react": "^3.18.7",
     "@types/bcryptjs": "^2.4.6",
     "@vis.gl/react-google-maps": "^1.8.3",
     "bcryptjs": "^3.0.3",
