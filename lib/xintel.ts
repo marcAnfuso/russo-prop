@@ -448,22 +448,35 @@ export async function fetchAllProperties(
     for (let p = 2; p <= maxPages; p++) pagesToFetch.push(p);
   }
 
-  if (!pagesToFetch.length) return firstProps;
+  const restProps = pagesToFetch.length
+    ? await Promise.all(
+        pagesToFetch.map(async (page) => {
+          try {
+            const r = await fetchPage(buildListUrl({ operation }, page));
+            return r.fichas.map((f, i) =>
+              mapListFicha(f, r.imgs[i] ?? [], r.caracteristicas[f.in_num])
+            );
+          } catch {
+            return [];
+          }
+        })
+      )
+    : [];
 
-  const rest = await Promise.all(
-    pagesToFetch.map(async (page) => {
-      try {
-        const r = await fetchPage(buildListUrl({ operation }, page));
-        return r.fichas.map((f, i) =>
-          mapListFicha(f, r.imgs[i] ?? [], r.caracteristicas[f.in_num])
-        );
-      } catch {
-        return [];
-      }
-    })
-  );
+  const regular = firstProps.concat(...restProps);
 
-  return firstProps.concat(...rest);
+  // Mergear con fichas.destacadas — Xintel a veces oculta del listado
+  // regular propiedades que tienen `activa: 0` aunque estén marcadas como
+  // destacadas e igual sean accesibles públicamente. Si Russo las marcó
+  // como destacadas, claramente quiere que aparezcan en la web. Las
+  // sumamos deduplicando por id.
+  const destacadas = await fetchFeaturedProperties().catch(() => [] as Property[]);
+  const byId = new Map<string, Property>(regular.map((p) => [p.id, p]));
+  for (const p of destacadas) {
+    if (operation && p.operation !== operation) continue;
+    if (!byId.has(p.id)) byId.set(p.id, p);
+  }
+  return Array.from(byId.values());
 }
 
 /**
@@ -661,7 +674,11 @@ export async function fetchFeaturedProperties(): Promise<Property[]> {
     const data: XintelListResponse = await res.json();
     const fichas = data?.resultado?.fichas ?? [];
     const imgs = data?.resultado?.img ?? [];
-    return fichas.slice(0, 6).map((f, i) => mapListFicha(f, imgs[i] ?? []));
+    // Devolvemos TODAS las destacadas — el caller (getHomeFeatured)
+    // hace .slice(0, count) si necesita limitar. Esto le permite a
+    // fetchAllProperties usarnos para mergear y rescatar propiedades
+    // que están sólo en este endpoint (activa=0 en Xintel).
+    return fichas.map((f, i) => mapListFicha(f, imgs[i] ?? []));
   } catch {
     const { properties } = await fetchProperties();
     return properties.filter((p) => p.featured).slice(0, 6);
