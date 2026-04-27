@@ -536,6 +536,100 @@ export async function getSessionEvents(sessionId: string): Promise<SessionEvent[
   return rows;
 }
 
+// ── Funnel de conversión ───────────────────────────────────────────────
+
+export interface FunnelStep {
+  key: string;
+  label: string;
+  visitors: number;
+}
+
+/**
+ * Funnel clásico de inmobiliaria:
+ *   1. Visitaron el sitio (cualquier pageview)
+ *   2. Vieron alguna sección de listados (/ventas o /alquileres)
+ *   3. Entraron a una ficha de propiedad
+ *   4. Iniciaron contacto (wpp/tel/email/form/Russia)
+ *
+ * Cada paso se cuenta como "visitor_ids únicos que llegaron a ese paso".
+ * No exige orden estricto — alguien que entró directo a una propiedad
+ * cuenta para los pasos 1 y 3 (skip del 2). Es una vista realista del
+ * funnel, no una secuencia rígida.
+ */
+export async function getFunnel(daysBack: number): Promise<FunnelStep[]> {
+  await ensureAnalyticsSchema();
+  const db = sql();
+  const rows = (await db`
+    WITH range AS (SELECT now() - (${daysBack}::int * INTERVAL '1 day') AS since),
+    eligible AS (
+      SELECT visitor_id FROM analytics_sessions WHERE is_bot = FALSE
+    )
+    SELECT
+      COUNT(DISTINCT visitor_id) FILTER (
+        WHERE type = 'pageview'
+      )::int AS step_visit,
+      COUNT(DISTINCT visitor_id) FILTER (
+        WHERE type = 'pageview'
+        AND (path LIKE '/ventas%' OR path LIKE '/alquileres%' OR path LIKE '/emprendimientos%')
+      )::int AS step_listing,
+      COUNT(DISTINCT visitor_id) FILTER (
+        WHERE type = 'property_view'
+      )::int AS step_detail,
+      COUNT(DISTINCT visitor_id) FILTER (
+        WHERE type IN ('contact_click', 'form_submit', 'russia_chat_open')
+      )::int AS step_contact
+    FROM analytics_events, range
+    WHERE ts >= range.since
+      AND visitor_id IN (SELECT visitor_id FROM eligible)
+  `) as unknown as {
+    step_visit: number;
+    step_listing: number;
+    step_detail: number;
+    step_contact: number;
+  }[];
+  const r = rows[0];
+  return [
+    { key: "visit", label: "Visitaron el sitio", visitors: r.step_visit },
+    { key: "listing", label: "Buscaron en listados", visitors: r.step_listing },
+    { key: "detail", label: "Entraron a una ficha", visitors: r.step_detail },
+    { key: "contact", label: "Iniciaron contacto", visitors: r.step_contact },
+  ];
+}
+
+/** Export raw de eventos para análisis externo (CSV). */
+export async function exportEvents(
+  daysBack: number
+): Promise<{
+  ts: string;
+  session_id: string;
+  visitor_id: string;
+  type: string;
+  path: string | null;
+  property_id: string | null;
+  metadata: string | null;
+}[]> {
+  await ensureAnalyticsSchema();
+  const db = sql();
+  const rows = (await db`
+    SELECT
+      to_char(ts, 'YYYY-MM-DD HH24:MI:SS') AS ts,
+      session_id, visitor_id, type, path, property_id,
+      metadata::text AS metadata
+    FROM analytics_events
+    WHERE ts >= now() - (${daysBack}::int * INTERVAL '1 day')
+    ORDER BY ts ASC
+  `) as unknown as {
+    ts: string;
+    session_id: string;
+    visitor_id: string;
+    type: string;
+    path: string | null;
+    property_id: string | null;
+    metadata: string | null;
+  }[];
+  return rows;
+}
+
 /** Tráfico por hora del día (heatmap), promedio sobre el rango. */
 export async function getHourlyTraffic(daysBack: number): Promise<
   { hour: number; pageviews: number }[]

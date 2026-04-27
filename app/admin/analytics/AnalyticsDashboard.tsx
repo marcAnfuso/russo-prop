@@ -17,12 +17,13 @@ import {
   Badge,
 } from "@tremor/react";
 import Link from "next/link";
-import { ArrowDown, ArrowUp, Minus, Users } from "lucide-react";
+import { ArrowDown, ArrowUp, Minus, Users, Download, Filter } from "lucide-react";
 import type {
   OverviewStats,
   DailyPoint,
   TopItem,
   PropertyViewStat,
+  FunnelStep,
 } from "@/lib/analytics-db";
 
 interface OverviewWithDelta extends OverviewStats {
@@ -42,6 +43,7 @@ interface Props {
   scrollDist: { bucket: number; reach: number }[];
   contactDist: TopItem[];
   hourly: { hour: number; pageviews: number }[];
+  funnel: FunnelStep[];
 }
 
 const RANGES: { label: string; days: number }[] = [
@@ -71,6 +73,7 @@ export default function AnalyticsDashboard({
   scrollDist,
   contactDist,
   hourly,
+  funnel,
 }: Props) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -106,6 +109,14 @@ export default function AnalyticsDashboard({
             <Users className="h-3.5 w-3.5" />
             Ver sesiones
           </Link>
+          <a
+            href={`/api/admin/analytics/export?days=${days}`}
+            className="inline-flex items-center gap-1.5 rounded-lg bg-white border border-gray-200 text-navy px-3 py-2 text-xs font-semibold hover:border-magenta hover:text-magenta transition-colors"
+            download
+          >
+            <Download className="h-3.5 w-3.5" />
+            Exportar CSV
+          </a>
           <TabGroup
             index={currentTabIndex >= 0 ? currentTabIndex : 1}
             onIndexChange={(i) => setRange(RANGES[i].days)}
@@ -141,6 +152,78 @@ export default function AnalyticsDashboard({
           value={`${overview.avgSessionMinutes} min`}
         />
       </Grid>
+
+      {/* Funnel de conversión */}
+      <Card>
+        <div className="flex items-baseline justify-between gap-3 flex-wrap">
+          <div>
+            <Title>Funnel de conversión</Title>
+            <Text className="mt-1">
+              De los visitantes únicos del período, cuántos llegaron a cada paso.
+            </Text>
+          </div>
+          {funnel[0]?.visitors > 0 && (
+            <div className="text-right">
+              <p className="text-[10px] uppercase tracking-wider text-gray-400">
+                Conversión total
+              </p>
+              <p className="font-mono-price text-2xl font-bold text-magenta">
+                {(
+                  (funnel[funnel.length - 1].visitors /
+                    Math.max(funnel[0].visitors, 1)) *
+                  100
+                ).toFixed(1)}
+                %
+              </p>
+            </div>
+          )}
+        </div>
+        <div className="mt-6 space-y-3">
+          {funnel.map((step, i) => {
+            const top = funnel[0].visitors || 1;
+            const prev = i > 0 ? funnel[i - 1].visitors : top;
+            const widthPct = (step.visitors / top) * 100;
+            const stepConvPct = i > 0 && prev > 0 ? (step.visitors / prev) * 100 : 100;
+            return (
+              <div key={step.key}>
+                <div className="flex items-baseline justify-between text-sm mb-1.5">
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono-price text-xs text-gray-400 tabular-nums">
+                      {String(i + 1).padStart(2, "0")}
+                    </span>
+                    <span className="font-semibold text-navy">{step.label}</span>
+                  </div>
+                  <div className="flex items-center gap-3 text-xs">
+                    <span className="font-mono-price font-bold text-navy tabular-nums">
+                      {Intl.NumberFormat("es-AR").format(step.visitors)}
+                    </span>
+                    {i > 0 && (
+                      <span className="font-mono-price text-magenta tabular-nums">
+                        {stepConvPct.toFixed(1)}%
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <div className="h-3 rounded-full bg-gray-100 overflow-hidden">
+                  <div
+                    className={`h-full rounded-full transition-all ${
+                      i === funnel.length - 1
+                        ? "bg-emerald-500"
+                        : "bg-gradient-to-r from-magenta to-magenta-600"
+                    }`}
+                    style={{ width: `${widthPct}%` }}
+                  />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        <p className="mt-4 text-[11px] text-gray-400 inline-flex items-center gap-1">
+          <Filter className="h-3 w-3" />
+          Cada paso cuenta visitantes únicos · alguien que entró directo a una
+          ficha cuenta para los pasos 1 y 3.
+        </p>
+      </Card>
 
       {/* Timeline diario */}
       <Card>
@@ -369,15 +452,6 @@ export default function AnalyticsDashboard({
         )}
       </Card>
 
-      <Card>
-        <Title>Estamos en Fase 3 de 5</Title>
-        <Text className="mt-1">
-          Próxima fase: explorador de sesiones — vas a poder entrar a una
-          sesión específica y ver el recorrido completo paso a paso (qué páginas,
-          en qué orden, cuánto tiempo, si contactó). Después: funnels de
-          conversión y exportación a CSV.
-        </Text>
-      </Card>
     </div>
   );
 }

@@ -14,6 +14,7 @@ import {
   getScrollDepthDistribution,
   getContactBreakdown,
   getHourlyTraffic,
+  getFunnel,
 } from "@/lib/analytics-db";
 import AdminLogin from "../AdminLogin";
 import AnalyticsDashboard from "./AnalyticsDashboard";
@@ -52,6 +53,7 @@ export default async function AnalyticsPage({ searchParams }: PageProps) {
     scrollDist,
     contactDist,
     hourly,
+    funnel,
   ] = await Promise.all([
     getOverviewWithDelta(days),
     getDailyTimeline(days),
@@ -64,6 +66,7 @@ export default async function AnalyticsPage({ searchParams }: PageProps) {
     getScrollDepthDistribution(days),
     getContactBreakdown(days),
     getHourlyTraffic(days),
+    getFunnel(days),
   ]);
 
   return (
@@ -99,6 +102,7 @@ export default async function AnalyticsPage({ searchParams }: PageProps) {
         scrollDist={scrollDist}
         contactDist={contactDist}
         hourly={hourly}
+        funnel={funnel}
       />
     </main>
   );
