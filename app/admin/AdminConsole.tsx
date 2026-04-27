@@ -367,71 +367,132 @@ function PickPanel({
   propertyById: Map<string, AdminProperty>;
   onRemove: (id: string) => void;
 }) {
+  const [showAll, setShowAll] = useState(false);
+  const PREVIEW_COUNT = 3;
+  const hasMore = ids.length > PREVIEW_COUNT;
+  const visibleIds = showAll ? ids : ids.slice(0, PREVIEW_COUNT);
+
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-      <div className="flex items-center gap-2 mb-1 text-navy">
-        <span className="text-magenta">{icon}</span>
-        <h2 className="font-display text-lg font-semibold">{title}</h2>
-        <span className="ml-auto text-xs font-mono-price tabular-nums text-gray-400">
-          {ids.length}
-        </span>
-      </div>
-      <p className="text-xs text-gray-500 mb-4">{subtitle}</p>
-      {ids.length === 0 ? (
-        <p className="text-sm text-gray-400 italic py-4">
-          Sin propiedades seleccionadas todavía.
-        </p>
-      ) : (
-        <ul className="space-y-2 max-h-80 overflow-auto">
-          {ids.map((id) => {
-            const p = propertyById.get(id);
-            if (!p) {
-              return (
-                <li
+    <>
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+        <div className="flex items-center gap-2 mb-1 text-navy">
+          <span className="text-magenta">{icon}</span>
+          <h2 className="font-display text-lg font-semibold">{title}</h2>
+          <span className="ml-auto text-xs font-mono-price tabular-nums text-gray-400">
+            {ids.length}
+          </span>
+        </div>
+        <p className="text-xs text-gray-500 mb-4">{subtitle}</p>
+        {ids.length === 0 ? (
+          <p className="text-sm text-gray-400 italic py-4">
+            Sin propiedades seleccionadas todavía.
+          </p>
+        ) : (
+          <>
+            <ul className="space-y-2">
+              {visibleIds.map((id) => (
+                <PickRow
                   key={id}
-                  className="flex items-center gap-3 rounded-lg border border-gray-100 px-3 py-2"
-                >
-                  <p className="flex-1 text-xs text-gray-400">
-                    Propiedad {id} · ya no está en el inventario
-                  </p>
-                  <button
-                    type="button"
-                    onClick={() => onRemove(id)}
-                    className="text-gray-400 hover:text-magenta"
-                    aria-label="Quitar"
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
-                </li>
-              );
-            }
-            return (
-              <li
-                key={id}
-                className="flex items-center gap-3 rounded-lg border border-gray-100 px-3 py-2"
+                  id={id}
+                  property={propertyById.get(id)}
+                  onRemove={onRemove}
+                />
+              ))}
+            </ul>
+            {hasMore && (
+              <button
+                type="button"
+                onClick={() => setShowAll(true)}
+                className="mt-3 w-full text-xs font-semibold text-magenta hover:bg-magenta-50 rounded-md py-2 transition-colors"
               >
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs text-gray-400">
-                    {p.code} · {p.operation === "venta" ? "Venta" : "Alquiler"}
-                  </p>
-                  <p className="text-sm font-medium text-navy truncate">
-                    {p.address}
-                  </p>
-                  <p className="text-xs text-gray-500">{p.locality}</p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => onRemove(id)}
-                  className="text-gray-400 hover:text-magenta"
-                  aria-label="Quitar"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              </li>
-            );
-          })}
-        </ul>
+                Ver las {ids.length} →
+              </button>
+            )}
+          </>
+        )}
+      </div>
+
+      {/* Modal con todas (al hacer click en "Ver las N") */}
+      {showAll && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-xl max-w-lg w-full max-h-[85vh] flex flex-col">
+            <div className="flex items-center justify-between gap-4 p-5 border-b border-gray-200 flex-shrink-0">
+              <div className="flex items-center gap-2 text-navy">
+                <span className="text-magenta">{icon}</span>
+                <h3 className="font-display text-lg font-semibold">{title}</h3>
+                <span className="text-xs font-mono-price tabular-nums text-gray-400">
+                  {ids.length}
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowAll(false)}
+                className="text-gray-400 hover:text-gray-600"
+                aria-label="Cerrar"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <ul className="flex-1 overflow-y-auto p-5 space-y-2">
+              {ids.map((id) => (
+                <PickRow
+                  key={id}
+                  id={id}
+                  property={propertyById.get(id)}
+                  onRemove={onRemove}
+                />
+              ))}
+            </ul>
+          </div>
+        </div>
       )}
-    </div>
+    </>
+  );
+}
+
+function PickRow({
+  id,
+  property: p,
+  onRemove,
+}: {
+  id: string;
+  property: AdminProperty | undefined;
+  onRemove: (id: string) => void;
+}) {
+  if (!p) {
+    return (
+      <li className="flex items-center gap-3 rounded-lg border border-gray-100 px-3 py-2">
+        <p className="flex-1 text-xs text-gray-400">
+          Propiedad {id} · ya no está en el inventario
+        </p>
+        <button
+          type="button"
+          onClick={() => onRemove(id)}
+          className="text-gray-400 hover:text-magenta"
+          aria-label="Quitar"
+        >
+          <X className="h-4 w-4" />
+        </button>
+      </li>
+    );
+  }
+  return (
+    <li className="flex items-center gap-3 rounded-lg border border-gray-100 px-3 py-2">
+      <div className="flex-1 min-w-0">
+        <p className="text-xs text-gray-400">
+          {p.code} · {p.operation === "venta" ? "Venta" : "Alquiler"}
+        </p>
+        <p className="text-sm font-medium text-navy truncate">{p.address}</p>
+        <p className="text-xs text-gray-500">{p.locality}</p>
+      </div>
+      <button
+        type="button"
+        onClick={() => onRemove(id)}
+        className="text-gray-400 hover:text-magenta"
+        aria-label="Quitar"
+      >
+        <X className="h-4 w-4" />
+      </button>
+    </li>
   );
 }
