@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 
 // Argentina mobile numbers need the "9" after the country code (54) for
@@ -10,12 +10,26 @@ const WHATSAPP_URL =
 
 export default function WhatsAppFAB() {
   const [hovered, setHovered] = useState(false);
+  const [visible, setVisible] = useState(false);
   const pathname = usePathname();
 
   // En el detalle de propiedad dejamos sólo a Russia (chat IA bottom-left)
   // y ocultamos el FAB de WhatsApp para no saturar con dos botones fijos.
   // El sidebar de contacto y el hero menú ya exponen el WhatsApp del equipo.
-  if (pathname?.startsWith("/propiedad/")) return null;
+  const shouldRender = !pathname?.startsWith("/propiedad/");
+
+  // El FAB aparece después de que el usuario empieza a scrollear — así
+  // no compite con el hero la primera vez que entran. Threshold bajo
+  // para que se vea apenas hacen scroll mínimo.
+  useEffect(() => {
+    if (!shouldRender) return;
+    const onScroll = () => setVisible(window.scrollY > 200);
+    onScroll(); // estado inicial (ej. si entró con scroll cargado)
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [shouldRender]);
+
+  if (!shouldRender) return null;
 
   return (
     <>
@@ -38,8 +52,15 @@ export default function WhatsAppFAB() {
         target="_blank"
         rel="noopener noreferrer"
         aria-label="Contactar por WhatsApp"
-        className="fixed bottom-6 right-6 z-50 flex items-center justify-center w-14 h-14 rounded-full bg-[#25D366] shadow-lg transition-all duration-200 hover:scale-110 hover:shadow-[0_6px_24px_rgba(37,211,102,0.6)] active:scale-95"
-        style={{ animation: hovered ? "none" : "pulse-ring 2s ease-in-out infinite" }}
+        className={`fixed bottom-6 right-6 z-50 flex items-center justify-center w-14 h-14 rounded-full bg-[#25D366] shadow-lg transition-all duration-300 hover:scale-110 hover:shadow-[0_6px_24px_rgba(37,211,102,0.6)] active:scale-95 ${
+          visible
+            ? "opacity-100 translate-y-0 pointer-events-auto"
+            : "opacity-0 translate-y-4 pointer-events-none"
+        }`}
+        style={{
+          animation:
+            hovered || !visible ? "none" : "pulse-ring 2s ease-in-out infinite",
+        }}
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
       >
