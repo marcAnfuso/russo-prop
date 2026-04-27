@@ -13,12 +13,12 @@ import Breadcrumb from "@/components/Breadcrumb";
 import Gallery from "@/components/Gallery";
 import ContactSidebar from "@/components/ContactSidebar";
 import MapView from "@/components/MapView";
-import { getDevelopment, getDevelopmentIds } from "@/lib/developments-db";
+import { fetchDevelopment, fetchDevelopmentIds } from "@/lib/xintel-developments";
 import { formatPrice } from "@/lib/utils";
 import type { DevelopmentStatus } from "@/data/types";
 
 export async function generateStaticParams() {
-  const ids = await getDevelopmentIds();
+  const ids = await fetchDevelopmentIds();
   return ids.map((id) => ({ id }));
 }
 
@@ -42,7 +42,7 @@ export default async function DevelopmentDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const dev = await getDevelopment(id);
+  const dev = await fetchDevelopment(id);
 
   if (!dev) {
     return (

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { randomUUID } from "crypto";
+import { revalidatePath } from "next/cache";
 import { currentSessionIsAdmin } from "@/lib/admin-auth";
 import {
   addMediaPick,
@@ -54,6 +55,7 @@ export async function POST(req: NextRequest) {
     category: category as MediaCategory,
     title: title || undefined,
   });
+  revalidatePath("/historias");
   return NextResponse.json({ ok: true, id });
 }
 
@@ -69,6 +71,7 @@ export async function DELETE(req: NextRequest) {
     );
   }
   await removeMediaPick(id);
+  revalidatePath("/historias");
   return NextResponse.json({ ok: true });
 }
 
@@ -85,5 +88,6 @@ export async function PATCH(req: NextRequest) {
     );
   }
   await reorderMediaPicks(ids);
+  revalidatePath("/historias");
   return NextResponse.json({ ok: true });
 }

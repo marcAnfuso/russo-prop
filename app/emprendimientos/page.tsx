@@ -1,7 +1,7 @@
-import { listDevelopments } from "@/lib/developments-db";
+import { fetchDevelopments } from "@/lib/xintel-developments";
 import EmprendimientosClient from "./EmprendimientosClient";
 
 export default async function EmprendimientosPage() {
-  const developments = await listDevelopments();
+  const developments = await fetchDevelopments();
   return <EmprendimientosClient developments={developments} />;
 }

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { getCurrentAdmin } from "@/lib/admin-auth";
 import {
   listDevelopments,
@@ -91,6 +92,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: false, error: parsed.error }, { status: 400 });
   }
   await upsertDevelopment(parsed, me.username);
+  revalidatePath("/");
+  revalidatePath("/emprendimientos");
+  revalidatePath(`/emprendimiento/${parsed.id}`);
   return NextResponse.json({ ok: true });
 }
 
@@ -102,5 +106,8 @@ export async function DELETE(req: NextRequest) {
     return NextResponse.json({ ok: false, error: "id requerido" }, { status: 400 });
   }
   await deleteDevelopment(id);
+  revalidatePath("/");
+  revalidatePath("/emprendimientos");
+  revalidatePath(`/emprendimiento/${id}`);
   return NextResponse.json({ ok: true });
 }

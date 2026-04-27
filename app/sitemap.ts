@@ -1,11 +1,11 @@
 import { fetchPropertyIds } from "@/lib/xintel";
-import { getDevelopmentIds } from "@/lib/developments-db";
+import { fetchDevelopmentIds } from "@/lib/xintel-developments";
 import type { MetadataRoute } from "next";
 
 const BASE = "https://russopropiedades.com.ar";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [ids, devIds] = await Promise.all([fetchPropertyIds(), getDevelopmentIds()]);
+  const [ids, devIds] = await Promise.all([fetchPropertyIds(), fetchDevelopmentIds()]);
 
   const properties = ids.map((id) => ({
     url: `${BASE}/propiedad/${id}`,

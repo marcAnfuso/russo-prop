@@ -1,8 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { currentSessionIsAdmin } from "@/lib/admin-auth";
 import { addPick, listPicks, removePick, type PickList } from "@/lib/picks";
 
 const VALID_LISTS: PickList[] = ["featured", "new", "sold"];
+
+// Páginas públicas que consumen los picks. Las invalidamos en cada
+// mutación para que los cambios del admin se reflejen al toque (sin
+// esperar a que Vercel revalide la caché ISR).
+const PUBLIC_PATHS = ["/", "/ventas", "/alquileres"];
+
+function revalidatePublic() {
+  for (const p of PUBLIC_PATHS) revalidatePath(p);
+}
 
 function parseList(raw: string | null): PickList | null {
   return raw && (VALID_LISTS as string[]).includes(raw) ? (raw as PickList) : null;
@@ -52,6 +62,7 @@ export async function POST(req: NextRequest) {
     expiresAt = new Date(Date.now() + ttlDays * 24 * 60 * 60 * 1000).toISOString();
   }
   await addPick(propertyId, list, expiresAt);
+  revalidatePublic();
   return NextResponse.json({ ok: true });
 }
 
@@ -65,5 +76,6 @@ export async function DELETE(req: NextRequest) {
     return NextResponse.json({ ok: false, error: "invalid params" }, { status: 400 });
   }
   await removePick(propertyId, list);
+  revalidatePublic();
   return NextResponse.json({ ok: true });
 }
