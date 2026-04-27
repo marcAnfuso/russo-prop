@@ -199,11 +199,13 @@ function DeviceIcon({ device }: { device: string | null }) {
 }
 
 function formatDate(d: Date): string {
+  // Forzamos zona horaria Argentina · sino Vercel renderiza en UTC.
   return d.toLocaleString("es-AR", {
     day: "2-digit",
     month: "2-digit",
     hour: "2-digit",
     minute: "2-digit",
+    timeZone: "America/Argentina/Buenos_Aires",
   });
 }
 

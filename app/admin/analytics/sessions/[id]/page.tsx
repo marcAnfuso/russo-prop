@@ -131,6 +131,7 @@ export default async function SessionDetailPage({ params }: PageProps) {
                 {start.toLocaleString("es-AR", {
                   dateStyle: "medium",
                   timeStyle: "short",
+                  timeZone: "America/Argentina/Buenos_Aires",
                 })}{" "}
                 · duración {formatDuration(durSec)}
               </p>
