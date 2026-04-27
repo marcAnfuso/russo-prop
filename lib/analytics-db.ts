@@ -306,3 +306,134 @@ export async function getCountryBreakdown(daysBack: number, limit = 10): Promise
   `) as unknown as TopItem[];
   return rows;
 }
+
+/** Comparativo · período actual (last N días) vs anterior (N-2N días). */
+export async function getOverviewWithDelta(daysBack: number): Promise<
+  OverviewStats & { delta: { visitors: number; sessions: number; pageviews: number } }
+> {
+  const [curr, prev] = await Promise.all([
+    getOverview(daysBack),
+    getOverviewRange(daysBack * 2, daysBack),
+  ]);
+  function pct(now: number, before: number): number {
+    if (before === 0) return now > 0 ? 100 : 0;
+    return Math.round(((now - before) / before) * 100);
+  }
+  return {
+    ...curr,
+    delta: {
+      visitors: pct(curr.visitors, prev.visitors),
+      sessions: pct(curr.sessions, prev.sessions),
+      pageviews: pct(curr.pageviews, prev.pageviews),
+    },
+  };
+}
+
+/** Stats para un rango exacto (entre `fromDays` atrás y `toDays` atrás). */
+async function getOverviewRange(
+  fromDays: number,
+  toDays: number
+): Promise<OverviewStats> {
+  await ensureAnalyticsSchema();
+  const db = sql();
+  const rows = (await db`
+    SELECT
+      COUNT(DISTINCT visitor_id)::int AS visitors,
+      COUNT(DISTINCT session_id)::int AS sessions,
+      COUNT(*) FILTER (WHERE type = 'pageview')::int AS pageviews
+    FROM analytics_events
+    WHERE ts >= now() - (${fromDays}::int * INTERVAL '1 day')
+      AND ts <  now() - (${toDays}::int * INTERVAL '1 day')
+      AND visitor_id NOT IN (
+        SELECT visitor_id FROM analytics_sessions WHERE is_bot = TRUE
+      )
+  `) as unknown as { visitors: number; sessions: number; pageviews: number }[];
+  return { ...rows[0], avgSessionMinutes: 0 };
+}
+
+/** Top búsquedas (text de search bar). */
+export async function getTopSearches(daysBack: number, limit = 10): Promise<TopItem[]> {
+  await ensureAnalyticsSchema();
+  const db = sql();
+  // Si la metadata.zones existe la concatenamos, si no usamos types
+  const rows = (await db`
+    SELECT
+      COALESCE(
+        NULLIF(metadata->>'zones', ''),
+        NULLIF(metadata->>'types', ''),
+        '(sin filtro)'
+      ) AS key,
+      COUNT(*)::int AS count
+    FROM analytics_events
+    WHERE type = 'search'
+      AND ts >= now() - (${daysBack}::int * INTERVAL '1 day')
+    GROUP BY 1
+    ORDER BY count DESC
+    LIMIT ${limit}
+  `) as unknown as TopItem[];
+  return rows;
+}
+
+/** Distribución de scroll depth (qué % de visitas llega a cada bucket). */
+export async function getScrollDepthDistribution(daysBack: number): Promise<
+  { bucket: number; reach: number }[]
+> {
+  await ensureAnalyticsSchema();
+  const db = sql();
+  const rows = (await db`
+    SELECT
+      (metadata->>'bucket')::int AS bucket,
+      COUNT(DISTINCT (session_id || COALESCE(metadata->>'path', '')))::int AS hits
+    FROM analytics_events
+    WHERE type = 'scroll_depth'
+      AND ts >= now() - (${daysBack}::int * INTERVAL '1 day')
+      AND metadata->>'bucket' IS NOT NULL
+    GROUP BY bucket
+    ORDER BY bucket ASC
+  `) as unknown as { bucket: number; hits: number }[];
+
+  // Total = max bucket reach (todos los que vieron al menos 25%)
+  const max = Math.max(...rows.map((r) => r.hits), 1);
+  return rows.map((r) => ({
+    bucket: r.bucket,
+    reach: Math.round((r.hits / max) * 100),
+  }));
+}
+
+/** Distribución por canal de contact_click (wpp / phone / email). */
+export async function getContactBreakdown(daysBack: number): Promise<TopItem[]> {
+  await ensureAnalyticsSchema();
+  const db = sql();
+  const rows = (await db`
+    SELECT
+      COALESCE(metadata->>'channel', 'otro') AS key,
+      COUNT(*)::int AS count
+    FROM analytics_events
+    WHERE type = 'contact_click'
+      AND ts >= now() - (${daysBack}::int * INTERVAL '1 day')
+    GROUP BY 1
+    ORDER BY count DESC
+  `) as unknown as TopItem[];
+  return rows;
+}
+
+/** Tráfico por hora del día (heatmap), promedio sobre el rango. */
+export async function getHourlyTraffic(daysBack: number): Promise<
+  { hour: number; pageviews: number }[]
+> {
+  await ensureAnalyticsSchema();
+  const db = sql();
+  const rows = (await db`
+    WITH hours AS (SELECT generate_series(0, 23) AS hour)
+    SELECT
+      hours.hour,
+      COALESCE(COUNT(e.id) FILTER (WHERE e.type = 'pageview'), 0)::int AS pageviews
+    FROM hours
+    LEFT JOIN analytics_events e
+      ON EXTRACT(HOUR FROM e.ts AT TIME ZONE 'America/Argentina/Buenos_Aires') = hours.hour
+      AND e.ts >= now() - (${daysBack}::int * INTERVAL '1 day')
+    GROUP BY hours.hour
+    ORDER BY hours.hour ASC
+  `) as unknown as { hour: number; pageviews: number }[];
+  return rows;
+}

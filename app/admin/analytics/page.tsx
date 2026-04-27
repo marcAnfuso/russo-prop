@@ -3,12 +3,17 @@ import Link from "next/link";
 import { ArrowLeft, BarChart3 } from "lucide-react";
 import { getCurrentAdmin } from "@/lib/admin-auth";
 import {
-  getOverview,
+  getOverviewWithDelta,
   getDailyTimeline,
   getTopPaths,
   getTopReferrers,
   getDeviceBreakdown,
   getTopProperties,
+  getCountryBreakdown,
+  getTopSearches,
+  getScrollDepthDistribution,
+  getContactBreakdown,
+  getHourlyTraffic,
 } from "@/lib/analytics-db";
 import AdminLogin from "../AdminLogin";
 import AnalyticsDashboard from "./AnalyticsDashboard";
@@ -35,13 +40,30 @@ export default async function AnalyticsPage({ searchParams }: PageProps) {
     return Number.isFinite(n) && n > 0 && n <= 365 ? n : 7;
   })();
 
-  const [overview, daily, topPaths, topReferrers, devices, topProps] = await Promise.all([
-    getOverview(days),
+  const [
+    overview,
+    daily,
+    topPaths,
+    topReferrers,
+    devices,
+    topProps,
+    countries,
+    topSearches,
+    scrollDist,
+    contactDist,
+    hourly,
+  ] = await Promise.all([
+    getOverviewWithDelta(days),
     getDailyTimeline(days),
     getTopPaths(days, 10),
     getTopReferrers(days, 8),
     getDeviceBreakdown(days),
     getTopProperties(days, 10),
+    getCountryBreakdown(days, 8),
+    getTopSearches(days, 8),
+    getScrollDepthDistribution(days),
+    getContactBreakdown(days),
+    getHourlyTraffic(days),
   ]);
 
   return (
@@ -72,6 +94,11 @@ export default async function AnalyticsPage({ searchParams }: PageProps) {
         topReferrers={topReferrers}
         devices={devices}
         topProperties={topProps}
+        countries={countries}
+        topSearches={topSearches}
+        scrollDist={scrollDist}
+        contactDist={contactDist}
+        hourly={hourly}
       />
     </main>
   );
