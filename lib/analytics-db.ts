@@ -258,6 +258,45 @@ export interface PropertyViewStat {
   contacts: number;
 }
 
+export interface PropertyRankingRow {
+  property_id: string;
+  views: number;
+  contacts: number;
+  favorites: number;
+  avg_time_seconds: number;
+}
+
+/**
+ * Ranking flexible de propiedades. Devuelve TODOS los KPIs por
+ * property_id y la página decide cómo ordenarlos. La query toma todas
+ * las propiedades que aparecieron al menos una vez en el rango.
+ */
+export async function getPropertyRanking(
+  daysBack: number,
+  limit = 30
+): Promise<PropertyRankingRow[]> {
+  await ensureAnalyticsSchema();
+  const db = sql();
+  const rows = (await db`
+    WITH range AS (SELECT now() - (${daysBack}::int * INTERVAL '1 day') AS since)
+    SELECT
+      property_id,
+      COUNT(*) FILTER (WHERE type = 'property_view')::int AS views,
+      COUNT(*) FILTER (WHERE type IN ('contact_click', 'form_submit', 'russia_chat_open'))::int AS contacts,
+      COUNT(*) FILTER (WHERE type = 'favorite_toggle')::int AS favorites,
+      COALESCE(
+        AVG((metadata->>'seconds')::int) FILTER (WHERE type = 'time_on_page' AND metadata->>'seconds' ~ '^[0-9]+$'),
+        0
+      )::float AS avg_time_seconds
+    FROM analytics_events, range
+    WHERE ts >= range.since AND property_id IS NOT NULL
+    GROUP BY property_id
+    ORDER BY views DESC, contacts DESC
+    LIMIT ${limit}
+  `) as unknown as PropertyRankingRow[];
+  return rows;
+}
+
 export async function getTopProperties(daysBack: number, limit = 10): Promise<PropertyViewStat[]> {
   await ensureAnalyticsSchema();
   const db = sql();

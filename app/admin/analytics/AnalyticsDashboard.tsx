@@ -17,7 +17,7 @@ import {
   Badge,
 } from "@tremor/react";
 import Link from "next/link";
-import { ArrowDown, ArrowUp, Minus, Users, Download, Filter } from "lucide-react";
+import { ArrowDown, ArrowUp, Minus, Users, Download, Filter, Building2 } from "lucide-react";
 import type {
   OverviewStats,
   DailyPoint,
@@ -102,6 +102,13 @@ export default function AnalyticsDashboard({
           </p>
         </div>
         <div className="flex items-center gap-3 flex-wrap">
+          <Link
+            href={`/admin/analytics/properties?days=${days}`}
+            className="inline-flex items-center gap-1.5 rounded-lg bg-magenta text-white px-3 py-2 text-xs font-semibold hover:bg-magenta-600 transition-colors"
+          >
+            <Building2 className="h-3.5 w-3.5" />
+            Ranking propiedades
+          </Link>
           <Link
             href={`/admin/analytics/sessions?days=${days}`}
             className="inline-flex items-center gap-1.5 rounded-lg bg-navy text-white px-3 py-2 text-xs font-semibold hover:bg-navy-700 transition-colors"
