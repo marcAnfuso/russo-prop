@@ -56,12 +56,21 @@ export default function FeaturedProperties({
           transition={{ duration: 0.5 }}
           className="text-center mb-10 px-4 sm:px-6 lg:px-8"
         >
-          <p className="section-label mb-3">Selección de propiedades</p>
+          {/* Línea ornamental con diamantes — estilo magazine premium */}
+          <div className="flex items-center justify-center gap-3 mb-3">
+            <span className="h-px w-12 bg-magenta/40" aria-hidden="true" />
+            <span className="text-magenta text-xs" aria-hidden="true">◆</span>
+            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-magenta">
+              Selección Russo
+            </p>
+            <span className="text-magenta text-xs" aria-hidden="true">◆</span>
+            <span className="h-px w-12 bg-magenta/40" aria-hidden="true" />
+          </div>
           <h2 className="text-3xl sm:text-4xl font-bold text-navy">
             Propiedades <span className="text-magenta">destacadas</span>
           </h2>
-          <p className="mt-3 text-gray-400 text-base max-w-md mx-auto">
-            Lo que estás buscando, lo podés encontrar
+          <p className="mt-3 text-sm italic text-gray-400 max-w-md mx-auto">
+            Las que el equipo eligió, una por una.
           </p>
         </motion.div>
 
@@ -96,8 +105,18 @@ export default function FeaturedProperties({
             {featured.map((property) => (
               <div
                 key={property.id}
-                className="snap-start shrink-0 w-[82%] sm:w-[48%] md:w-[32%]"
+                className="snap-start shrink-0 w-[82%] sm:w-[48%] md:w-[32%] relative"
               >
+                {/* Cinta diagonal "Destacada" en la esquina superior izq.
+                    Va por encima del card sin invadir contenido. */}
+                <div
+                  aria-hidden="true"
+                  className="absolute -top-1.5 -left-1.5 z-30 h-20 w-20 overflow-hidden pointer-events-none"
+                >
+                  <div className="absolute top-3 -left-7 w-28 rotate-[-45deg] bg-magenta py-1 text-center text-[9px] font-bold uppercase tracking-widest text-white shadow-md">
+                    ★ Destacada
+                  </div>
+                </div>
                 <PropertyCard property={property} compact />
               </div>
             ))}

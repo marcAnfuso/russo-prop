@@ -97,7 +97,7 @@ export default function XintelDevelopmentsPanel({ initial, initialHiddenIds }: P
                 isHidden ? "border-gray-200 bg-gray-50 opacity-60" : "border-gray-200 bg-white"
               }`}
             >
-              <div className="aspect-[4/3] bg-gray-100 relative">
+              <div className="aspect-[16/9] bg-gray-100 relative">
                 {d.images[0] ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
