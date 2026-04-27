@@ -33,7 +33,11 @@ interface Props {
 }
 
 export default function FeaturedDevelopments({ developments }: Props) {
-  const featured = developments.filter((d) => d.featured);
+  // Mostramos todos los visibles (los ocultos ya se filtraron arriba en
+  // fetchPublicDevelopments). Si Russo tiene 5 visibles → 5 cards;
+  // si tiene 7 → 7. El admin maneja qué aparece desde el toggle de
+  // visibilidad.
+  const featured = developments;
 
   if (featured.length === 0) return null;
 
