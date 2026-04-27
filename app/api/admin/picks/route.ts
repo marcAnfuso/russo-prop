@@ -3,15 +3,17 @@ import { revalidatePath } from "next/cache";
 import { currentSessionIsAdmin } from "@/lib/admin-auth";
 import { addPick, listPicks, removePick, type PickList } from "@/lib/picks";
 
-const VALID_LISTS: PickList[] = ["featured", "new", "sold"];
+const VALID_LISTS: PickList[] = ["featured", "new", "sold", "development_hidden"];
 
 // Páginas públicas que consumen los picks. Las invalidamos en cada
 // mutación para que los cambios del admin se reflejen al toque (sin
 // esperar a que Vercel revalide la caché ISR).
-const PUBLIC_PATHS = ["/", "/ventas", "/alquileres"];
+const PROPERTY_PATHS = ["/", "/ventas", "/alquileres"];
+const DEVELOPMENT_PATHS = ["/", "/emprendimientos"];
 
-function revalidatePublic() {
-  for (const p of PUBLIC_PATHS) revalidatePath(p);
+function revalidateForList(list: PickList) {
+  const paths = list === "development_hidden" ? DEVELOPMENT_PATHS : PROPERTY_PATHS;
+  for (const p of paths) revalidatePath(p);
 }
 
 function parseList(raw: string | null): PickList | null {
@@ -62,7 +64,7 @@ export async function POST(req: NextRequest) {
     expiresAt = new Date(Date.now() + ttlDays * 24 * 60 * 60 * 1000).toISOString();
   }
   await addPick(propertyId, list, expiresAt);
-  revalidatePublic();
+  revalidateForList(list);
   return NextResponse.json({ ok: true });
 }
 
@@ -76,6 +78,6 @@ export async function DELETE(req: NextRequest) {
     return NextResponse.json({ ok: false, error: "invalid params" }, { status: 400 });
   }
   await removePick(propertyId, list);
-  revalidatePublic();
+  revalidateForList(list);
   return NextResponse.json({ ok: true });
 }

@@ -1,4 +1,5 @@
 import type { Development, DevelopmentStatus } from "@/data/types";
+import { listPicks } from "./picks";
 
 const BASE = "https://xintelapi.com.ar/";
 const INM = "RUS";
@@ -188,6 +189,21 @@ export async function fetchDevelopment(id: string): Promise<Development | null> 
 }
 
 export async function fetchDevelopmentIds(): Promise<string[]> {
-  const all = await fetchDevelopments();
+  const all = await fetchPublicDevelopments();
   return all.map((d) => d.id);
+}
+
+/**
+ * Lista de emprendimientos para mostrar al público — filtra los que
+ * el equipo escondió desde el admin (manual_picks list_key
+ * "development_hidden"). El admin ve todos sin filtrar para poder
+ * tocar los toggles.
+ */
+export async function fetchPublicDevelopments(): Promise<Development[]> {
+  const [all, hidden] = await Promise.all([
+    fetchDevelopments(),
+    listPicks("development_hidden").catch(() => []),
+  ]);
+  const hiddenSet = new Set(hidden);
+  return all.filter((d) => !hiddenSet.has(d.id));
 }

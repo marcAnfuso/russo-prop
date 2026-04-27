@@ -14,6 +14,7 @@ import Gallery from "@/components/Gallery";
 import ContactSidebar from "@/components/ContactSidebar";
 import MapView from "@/components/MapView";
 import { fetchDevelopment, fetchDevelopmentIds } from "@/lib/xintel-developments";
+import { listPicks } from "@/lib/picks";
 import { formatPrice } from "@/lib/utils";
 import type { DevelopmentStatus } from "@/data/types";
 
@@ -42,7 +43,21 @@ export default async function DevelopmentDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const dev = await fetchDevelopment(id);
+  const [dev, hidden] = await Promise.all([
+    fetchDevelopment(id),
+    listPicks("development_hidden").catch((): string[] => []),
+  ]);
+
+  // Si el admin escondió este emprendimiento, no exponer la URL pública.
+  if (dev && hidden.includes(dev.id)) {
+    return (
+      <main className="container mx-auto px-4 py-20 text-center">
+        <h1 className="text-3xl font-bold text-navy mb-4">
+          Emprendimiento no disponible
+        </h1>
+      </main>
+    );
+  }
 
   if (!dev) {
     return (

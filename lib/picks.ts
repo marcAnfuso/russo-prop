@@ -1,6 +1,6 @@
 import { sql } from "./db";
 
-export type PickList = "featured" | "new" | "sold";
+export type PickList = "featured" | "new" | "sold" | "development_hidden";
 
 export interface Pick {
   property_id: string;

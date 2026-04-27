@@ -6,7 +6,10 @@ import { Search, Star, Sparkles, X, LogOut, CheckCircle2 } from "lucide-react";
 import { formatPrice } from "@/lib/utils";
 import MediaPicksPanel, { type MediaPick } from "./MediaPicksPanel";
 import UsersPanel from "./UsersPanel";
-import DevelopmentsPanel from "./DevelopmentsPanel";
+// CRUD manual de emprendimientos · DEPRECATED — la data ahora viene de
+// Xintel directo. Lo dejamos importado por las dudas, comentado abajo.
+// import DevelopmentsPanel from "./DevelopmentsPanel";
+import XintelDevelopmentsPanel from "./XintelDevelopmentsPanel";
 import type { Development } from "@/data/types";
 
 interface AdminProperty {
@@ -31,6 +34,7 @@ interface Props {
   initialSold: string[];
   initialMedia: MediaPick[];
   initialDevelopments: Development[];
+  initialHiddenDevelopments: string[];
   currentUser: {
     id: number;
     username: string;
@@ -46,6 +50,7 @@ export default function AdminConsole({
   initialSold,
   initialMedia,
   initialDevelopments,
+  initialHiddenDevelopments,
   currentUser,
 }: Props) {
   const [featured, setFeatured] = useState<Set<string>>(new Set(initialFeatured));
@@ -174,8 +179,19 @@ export default function AdminConsole({
           />
         </div>
 
-        {/* Emprendimientos */}
-        <DevelopmentsPanel initial={initialDevelopments} />
+        {/* Emprendimientos · viven en Xintel; el equipo elige cuáles
+            mostrar/ocultar en el sitio público desde acá */}
+        <XintelDevelopmentsPanel
+          initial={initialDevelopments}
+          initialHiddenIds={initialHiddenDevelopments}
+        />
+
+        {/* CRUD manual de emprendimientos · DEPRECATED. Lo dejamos
+            comentado por si en el futuro queremos volver a manejarlos
+            desde acá (Russo no carga emprendimientos manuales por ahora,
+            todo lo cargan en Xintel). El panel + API + tabla developments
+            siguen existiendo en el código. */}
+        {/* <DevelopmentsPanel initial={initialDevelopments} /> */}
 
         {/* Videos de Instagram / TikTok */}
         <MediaPicksPanel initial={initialMedia} />
