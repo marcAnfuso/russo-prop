@@ -138,3 +138,24 @@ export async function reorderMediaPicks(ids: string[]): Promise<void> {
     await db`UPDATE media_picks SET position = ${i} WHERE id = ${ids[i]}`;
   }
 }
+
+export async function updateMediaPick(
+  id: string,
+  changes: { url?: string; title?: string | null; category?: MediaCategory }
+): Promise<void> {
+  await ensureMediaSchema();
+  const db = sql();
+  // Si la URL cambia, recomputamos plataforma y la canonicalizamos.
+  if (changes.url !== undefined) {
+    const url = canonicalizeUrl(changes.url);
+    const platform = detectPlatform(url);
+    await db`UPDATE media_picks SET url = ${url}, platform = ${platform} WHERE id = ${id}`;
+  }
+  if (changes.title !== undefined) {
+    const t = changes.title === "" ? null : changes.title;
+    await db`UPDATE media_picks SET title = ${t} WHERE id = ${id}`;
+  }
+  if (changes.category !== undefined) {
+    await db`UPDATE media_picks SET category = ${changes.category} WHERE id = ${id}`;
+  }
+}

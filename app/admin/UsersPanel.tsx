@@ -75,6 +75,30 @@ export default function UsersPanel({ currentUser }: Props) {
     }
   }
 
+  async function handleChangeRole(
+    id: number,
+    displayName: string,
+    newRole: "owner" | "admin"
+  ) {
+    const verb = newRole === "owner" ? "promover a owner" : "bajar a admin";
+    if (!confirm(`¿${verb.charAt(0).toUpperCase() + verb.slice(1)} a ${displayName}?`)) return;
+    setBusyId(id);
+    try {
+      const res = await fetch("/api/admin/users", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, role: newRole }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data?.error ?? "Error al cambiar rol");
+      await refresh();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Error al cambiar rol");
+    } finally {
+      setBusyId(null);
+    }
+  }
+
   return (
     <section className="space-y-4">
       <div className="flex items-center justify-between gap-4 flex-wrap">
@@ -146,20 +170,13 @@ export default function UsersPanel({ currentUser }: Props) {
                       </div>
                     </td>
                     <td className="px-4 py-3">
-                      <span
-                        className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold ${
-                          u.role === "owner"
-                            ? "bg-magenta/10 text-magenta"
-                            : "bg-navy-50 text-navy"
-                        }`}
-                      >
-                        {u.role === "owner" ? (
-                          <ShieldCheck className="h-3 w-3" />
-                        ) : (
-                          <Shield className="h-3 w-3" />
-                        )}
-                        {u.role === "owner" ? "Owner" : "Admin"}
-                      </span>
+                      <RoleControl
+                        user={u}
+                        isOwner={isOwner}
+                        isMe={isMe}
+                        busy={busyId === u.id}
+                        onChange={(newRole) => handleChangeRole(u.id, u.display_name, newRole)}
+                      />
                     </td>
                     <td className="px-4 py-3 text-gray-600">
                       {formatDate(u.last_login_at)}
@@ -462,5 +479,57 @@ function Field({
       />
       {hint && <p className="text-[11px] text-gray-400 mt-1">{hint}</p>}
     </div>
+  );
+}
+
+function RoleControl({
+  user,
+  isOwner,
+  isMe,
+  busy,
+  onChange,
+}: {
+  user: AdminUserView;
+  isOwner: boolean;
+  isMe: boolean;
+  busy: boolean;
+  onChange: (newRole: "owner" | "admin") => void;
+}) {
+  // Sólo el owner puede tocar roles, y nunca el suyo propio.
+  const canEdit = isOwner && !isMe;
+
+  if (!canEdit) {
+    return (
+      <span
+        className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold ${
+          user.role === "owner"
+            ? "bg-magenta/10 text-magenta"
+            : "bg-navy-50 text-navy"
+        }`}
+      >
+        {user.role === "owner" ? (
+          <ShieldCheck className="h-3 w-3" />
+        ) : (
+          <Shield className="h-3 w-3" />
+        )}
+        {user.role === "owner" ? "Owner" : "Admin"}
+      </span>
+    );
+  }
+
+  return (
+    <select
+      value={user.role}
+      disabled={busy}
+      onChange={(e) => onChange(e.target.value as "owner" | "admin")}
+      className={`text-[11px] font-semibold rounded-full px-2.5 py-1 border outline-none cursor-pointer transition-colors ${
+        user.role === "owner"
+          ? "bg-magenta/10 text-magenta border-magenta/30 hover:bg-magenta/15"
+          : "bg-navy-50 text-navy border-navy-100 hover:bg-navy-100"
+      } disabled:opacity-50`}
+    >
+      <option value="admin">Admin</option>
+      <option value="owner">Owner</option>
+    </select>
   );
 }

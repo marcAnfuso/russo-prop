@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, FormEvent } from "react";
-import { Bell, Video, Film, Trash2, Instagram, ExternalLink } from "lucide-react";
+import { Bell, Video, Film, Trash2, Instagram, ExternalLink, Pencil, X, Check } from "lucide-react";
 
 export type MediaCategory = "campana" | "tour" | "otro";
 export type MediaPlatform = "instagram" | "tiktok" | "youtube" | "otro";
@@ -51,6 +51,54 @@ export default function MediaPicksPanel({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
+
+  // Estado de edición de un item
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editUrl, setEditUrl] = useState("");
+  const [editTitle, setEditTitle] = useState("");
+  const [editCategory, setEditCategory] = useState<MediaCategory>("campana");
+
+  function startEdit(item: MediaPick) {
+    setEditingId(item.id);
+    setEditUrl(item.url);
+    setEditTitle(item.title ?? "");
+    setEditCategory(item.category);
+  }
+  function cancelEdit() {
+    setEditingId(null);
+    setEditUrl("");
+    setEditTitle("");
+  }
+  async function saveEdit(id: string) {
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/admin/media-picks", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id,
+          url: editUrl.trim(),
+          title: editTitle.trim() || null,
+          category: editCategory,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data?.error ?? "No se pudo guardar");
+        return;
+      }
+      const list = await fetch("/api/admin/media-picks").then((r) => r.json());
+      setItems(list.items ?? []);
+      cancelEdit();
+      setToast("Video actualizado");
+      setTimeout(() => setToast(null), 1800);
+    } catch {
+      setError("Error de conexión");
+    } finally {
+      setBusy(false);
+    }
+  }
 
   async function handleAdd(e: FormEvent) {
     e.preventDefault();
@@ -168,6 +216,63 @@ export default function MediaPicksPanel({
         <ul className="space-y-2">
           {items.map((item) => {
             const CatIcon = CATEGORY_ICON[item.category];
+            const isEditing = editingId === item.id;
+
+            if (isEditing) {
+              return (
+                <li
+                  key={item.id}
+                  className="rounded-lg border border-magenta/30 bg-magenta-50/30 px-3 py-3 space-y-2"
+                >
+                  <input
+                    type="url"
+                    value={editUrl}
+                    onChange={(e) => setEditUrl(e.target.value)}
+                    placeholder="URL del video"
+                    className="w-full rounded border border-gray-300 px-3 py-2 text-sm outline-none focus:border-magenta focus:ring-2 focus:ring-magenta/20"
+                  />
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={editTitle}
+                      onChange={(e) => setEditTitle(e.target.value)}
+                      placeholder="Título (opcional)"
+                      className="flex-1 rounded border border-gray-300 px-3 py-2 text-sm outline-none focus:border-magenta focus:ring-2 focus:ring-magenta/20"
+                    />
+                    <select
+                      value={editCategory}
+                      onChange={(e) => setEditCategory(e.target.value as MediaCategory)}
+                      className="rounded border border-gray-300 px-3 py-2 text-sm outline-none focus:border-magenta focus:ring-2 focus:ring-magenta/20"
+                    >
+                      <option value="campana">🔔 La campana</option>
+                      <option value="tour">🎬 Tour</option>
+                      <option value="otro">📌 Otro</option>
+                    </select>
+                  </div>
+                  <div className="flex gap-2 justify-end">
+                    <button
+                      type="button"
+                      onClick={cancelEdit}
+                      disabled={busy}
+                      className="inline-flex items-center gap-1 rounded-md border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-600 hover:bg-gray-50 disabled:opacity-50"
+                    >
+                      <X className="h-3 w-3" />
+                      Cancelar
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => saveEdit(item.id)}
+                      disabled={busy || !editUrl.trim()}
+                      className="inline-flex items-center gap-1 rounded-md bg-magenta px-3 py-1.5 text-xs font-semibold text-white hover:bg-magenta-600 disabled:opacity-50"
+                    >
+                      <Check className="h-3 w-3" />
+                      Guardar
+                    </button>
+                  </div>
+                </li>
+              );
+            }
+
             return (
               <li
                 key={item.id}
@@ -194,14 +299,24 @@ export default function MediaPicksPanel({
                     </a>
                   </p>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => handleRemove(item.id)}
-                  aria-label="Quitar"
-                  className="text-gray-400 hover:text-red-500 transition-colors flex-shrink-0 mt-1"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </button>
+                <div className="flex items-center gap-1 mt-1 flex-shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => startEdit(item)}
+                    aria-label="Editar"
+                    className="text-gray-400 hover:text-navy transition-colors p-1"
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleRemove(item.id)}
+                    aria-label="Quitar"
+                    className="text-gray-400 hover:text-red-500 transition-colors p-1"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
               </li>
             );
           })}

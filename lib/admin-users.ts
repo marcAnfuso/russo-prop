@@ -164,3 +164,22 @@ export async function updateUserPassword(
   const db = sql();
   await db`UPDATE admin_users SET password_hash = ${hash} WHERE id = ${id}`;
 }
+
+export async function updateUserRole(
+  id: number,
+  role: AdminRole
+): Promise<void> {
+  await ensureUsersSchema();
+  const db = sql();
+  await db`UPDATE admin_users SET role = ${role} WHERE id = ${id}`;
+}
+
+/** Cantidad de owners actuales · útil para evitar dejar la app sin owner. */
+export async function countOwners(): Promise<number> {
+  await ensureUsersSchema();
+  const db = sql();
+  const rows = (await db`
+    SELECT COUNT(*)::int AS n FROM admin_users WHERE role = 'owner'
+  `) as unknown as { n: number }[];
+  return rows[0].n;
+}

@@ -5,6 +5,10 @@ import {
   createUser,
   deleteUser,
   updateUserPassword,
+  updateUserRole,
+  findUserById,
+  countOwners,
+  type AdminRole,
 } from "@/lib/admin-users";
 
 export async function GET() {
@@ -90,10 +94,58 @@ export async function PATCH(req: NextRequest) {
   if (!me) return NextResponse.json({ ok: false }, { status: 401 });
 
   const body = await req.json().catch(() => ({}));
-  const { id, password } = body as { id?: number; password?: string };
+  const { id, password, role } = body as {
+    id?: number;
+    password?: string;
+    role?: string;
+  };
 
-  if (!id || !password) {
-    return NextResponse.json({ ok: false, error: "Faltan campos" }, { status: 400 });
+  if (!id) {
+    return NextResponse.json({ ok: false, error: "Falta id" }, { status: 400 });
+  }
+
+  // ── Cambio de rol (sólo owner) ──────────────────────────────────────
+  if (typeof role === "string") {
+    if (me.role !== "owner") {
+      return NextResponse.json(
+        { ok: false, error: "Sólo el owner puede cambiar roles" },
+        { status: 403 }
+      );
+    }
+    if (role !== "owner" && role !== "admin") {
+      return NextResponse.json(
+        { ok: false, error: "Rol inválido" },
+        { status: 400 }
+      );
+    }
+    // Evitar quedarse sin ningún owner si se está bajando al último
+    if (role === "admin") {
+      const target = await findUserById(id);
+      if (target?.role === "owner") {
+        const total = await countOwners();
+        if (total <= 1) {
+          return NextResponse.json(
+            { ok: false, error: "No podés bajar al último owner" },
+            { status: 400 }
+          );
+        }
+      }
+    }
+    try {
+      await updateUserRole(id, role as AdminRole);
+      return NextResponse.json({ ok: true });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Error al cambiar rol";
+      return NextResponse.json({ ok: false, error: msg }, { status: 400 });
+    }
+  }
+
+  // ── Cambio de contraseña ────────────────────────────────────────────
+  if (!password) {
+    return NextResponse.json(
+      { ok: false, error: "Falta password o role" },
+      { status: 400 }
+    );
   }
 
   // Un usuario sólo puede cambiar su propia contraseña; el owner puede
