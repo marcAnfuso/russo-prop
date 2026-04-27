@@ -7,6 +7,7 @@ import FilterBar from "@/components/FilterBar";
 import PropertyCard from "@/components/PropertyCard";
 import PropertyQuickViewModal from "@/components/PropertyQuickViewModal";
 import MapView from "@/components/MapView";
+import SaveSearchAlert, { type AlertCriterion } from "@/components/SaveSearchAlert";
 import type { Property } from "@/data/types";
 
 interface PropertyListWithMapProps {
@@ -32,6 +33,32 @@ export default function PropertyListWithMap({
   const initialPropertyType = searchParams.get("type") || "";
   const initialZonesParam = searchParams.get("zones");
   const initialZones = initialZonesParam ? initialZonesParam.split(",") : [];
+
+  // Criterion para la alerta · construido desde la URL
+  const alertCriterion: AlertCriterion = useMemo(() => {
+    const c: AlertCriterion = { operation: operationType };
+    if (initialPropertyType) {
+      c.types = initialPropertyType.split(",").filter(Boolean);
+    }
+    if (initialZones.length > 0) c.zones = initialZones;
+    return c;
+  }, [operationType, initialPropertyType, initialZones]);
+
+  const alertSummary = useMemo(() => {
+    const parts: string[] = [];
+    parts.push(operationType === "venta" ? "Venta" : "Alquiler");
+    if (alertCriterion.types?.length) {
+      parts.push(
+        alertCriterion.types
+          .map((t) => t.charAt(0).toUpperCase() + t.slice(1))
+          .join(" / ")
+      );
+    }
+    if (alertCriterion.zones?.length) {
+      parts.push(`en ${alertCriterion.zones.join(", ")}`);
+    }
+    return parts.join(" · ");
+  }, [operationType, alertCriterion]);
 
   const [currentPage, setCurrentPage] = useState(0); // 0-indexed
   const [highlightedId, setHighlightedId] = useState<string | null>(null);
@@ -117,14 +144,20 @@ export default function PropertyListWithMap({
         <div className="flex gap-6">
           {/* Left: property list */}
           <div className={`w-full transition-[width] duration-300 ease-out ${desktopMapVisible ? "lg:w-[60%]" : "lg:w-full"}`}>
-            <div className="flex items-center justify-between mb-4 gap-3">
-              <p className="text-sm text-gray-500">
-                {showingFiltered ? (
-                  <>{activeSet.length} {activeSet.length === 1 ? "propiedad" : "propiedades"} · filtradas</>
-                ) : (
-                  <>{activeSet.length} {activeSet.length === 1 ? "propiedad" : "propiedades"} en total</>
-                )}
-              </p>
+            <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
+              <div className="flex items-center gap-3 flex-wrap">
+                <p className="text-sm text-gray-500">
+                  {showingFiltered ? (
+                    <>{activeSet.length} {activeSet.length === 1 ? "propiedad" : "propiedades"} · filtradas</>
+                  ) : (
+                    <>{activeSet.length} {activeSet.length === 1 ? "propiedad" : "propiedades"} en total</>
+                  )}
+                </p>
+                <SaveSearchAlert
+                  criterion={alertCriterion}
+                  summary={alertSummary}
+                />
+              </div>
 
               {/* Desktop map toggle */}
               <button
