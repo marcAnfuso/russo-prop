@@ -734,7 +734,7 @@ export default function FilterBar({
               }`}
             >
               <Star className={`h-3.5 w-3.5 ${destacadas ? "fill-white" : ""}`} />
-              Destacadas
+              Exclusivas
             </button>
             <button
               type="button"

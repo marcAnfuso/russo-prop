@@ -94,8 +94,8 @@ export default async function AyudaPage() {
             <ButtonExplainer
               icon={<Star className="h-5 w-5" />}
               colorClass="text-magenta bg-magenta-50"
-              name="Destacar"
-              effect="Entra al carousel «Propiedades destacadas» del home."
+              name="Marcar exclusiva"
+              effect="Entra al carousel «Propiedades exclusivas» del home."
               detail="Marcá las que más te interesa exhibir. Si marcás varias, la web va rotando 12 por día (no se aburre el visitante). Para sacarla del carousel, le hacés click de nuevo y vuelve a estado normal."
             />
             <ButtonExplainer
@@ -223,7 +223,7 @@ export default async function AyudaPage() {
                 </span>
               </div>
               <ul className="text-sm text-gray-600 leading-relaxed space-y-1 list-disc list-inside">
-                <li>Toda la curaduría (destacar, vender, ocultar emp, videos)</li>
+                <li>Toda la curaduría (marcar exclusiva, vender, ocultar emp, videos)</li>
                 <li>Puede cambiar su propia contraseña</li>
                 <li>No puede crear ni borrar otros usuarios</li>
               </ul>
@@ -253,7 +253,7 @@ export default async function AyudaPage() {
                 <h3 className="font-semibold text-emerald-900">Al toque</h3>
               </div>
               <p className="text-sm text-emerald-900/80 leading-relaxed">
-                Todo lo que hacés en este panel: destacar, marcar como nuevo,
+                Todo lo que hacés en este panel: marcar exclusiva, marcar como nuevo,
                 vender, ocultar emprendimiento, agregar video. Apretás el botón
                 y al refrescar la web ya está.
               </p>

@@ -67,7 +67,7 @@ export default function FeaturedProperties({
             <span className="h-px w-12 bg-magenta/40" aria-hidden="true" />
           </div>
           <h2 className="text-3xl sm:text-4xl font-bold text-navy">
-            Propiedades <span className="text-magenta">destacadas</span>
+            Propiedades <span className="text-magenta">exclusivas</span>
           </h2>
           <p className="mt-3 text-sm italic text-gray-400 max-w-md mx-auto">
             Las que el equipo eligió, una por una.
@@ -107,7 +107,7 @@ export default function FeaturedProperties({
                 key={property.id}
                 className="snap-start shrink-0 w-[82%] sm:w-[48%] md:w-[32%] relative"
               >
-                {/* Cinta diagonal "Destacada" en la esquina superior izq.
+                {/* Cinta diagonal "Exclusiva" en la esquina superior izq.
                     Va por encima del card sin invadir contenido. Saltea
                     el badge de Venta/Alquiler para que no se solape. */}
                 <div
@@ -115,7 +115,7 @@ export default function FeaturedProperties({
                   className="absolute -top-1.5 -left-1.5 z-30 h-28 w-28 overflow-hidden pointer-events-none"
                 >
                   <div className="absolute top-5 -left-6 w-40 rotate-[-45deg] bg-magenta py-1.5 text-center text-[10px] font-bold uppercase tracking-widest text-white shadow-md">
-                    ★ Destacada
+                    ★ Exclusiva
                   </div>
                 </div>
                 <PropertyCard property={property} compact hideOperationBadge />

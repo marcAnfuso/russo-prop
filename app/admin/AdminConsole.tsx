@@ -102,7 +102,7 @@ export default function AdminConsole({
           });
       if (!res.ok) throw new Error("bad response");
       const labels: Record<PickList, string> = {
-        featured: "Destacadas",
+        featured: "Exclusivas",
         new: "Nuevos ingresos",
         sold: "Vendidas",
       };
@@ -171,7 +171,7 @@ export default function AdminConsole({
         {/* Current picks */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           <PickPanel
-            title="Destacadas"
+            title="Exclusivas"
             subtitle="Marcá varias — el sitio las va rotando de a 4 por día."
             icon={<Star className="h-4 w-4" />}
             ids={Array.from(featured)}
@@ -309,7 +309,7 @@ export default function AdminConsole({
                       }`}
                     >
                       <Star className={`h-3 w-3 ${isFeatured ? "fill-white" : ""}`} />
-                      {isFeatured ? "Destacada" : "Destacar"}
+                      {isFeatured ? "Exclusiva" : "Marcar exclusiva"}
                     </button>
                     <button
                       type="button"
