@@ -188,9 +188,12 @@ export default function AnalyticsDashboard({
         <div className="mt-6 space-y-3">
           {funnel.map((step, i) => {
             const top = funnel[0].visitors || 1;
-            const prev = i > 0 ? funnel[i - 1].visitors : top;
+            const prev = i > 0 ? funnel[i - 1].visitors : 0;
             const widthPct = (step.visitors / top) * 100;
-            const stepConvPct = i > 0 && prev > 0 ? (step.visitors / prev) * 100 : 100;
+            // Si el paso anterior tiene 0, no hay denominador real · mostramos "—"
+            // Antes mostraba "100%" por un fallback mal puesto.
+            const hasConv = i > 0 && prev > 0;
+            const stepConvPct = hasConv ? (step.visitors / prev) * 100 : 0;
             return (
               <div key={step.key}>
                 <div className="flex items-baseline justify-between text-sm mb-1.5">
@@ -206,7 +209,7 @@ export default function AnalyticsDashboard({
                     </span>
                     {i > 0 && (
                       <span className="font-mono-price text-magenta tabular-nums">
-                        {stepConvPct.toFixed(1)}%
+                        {hasConv ? `${stepConvPct.toFixed(1)}%` : "—"}
                       </span>
                     )}
                   </div>

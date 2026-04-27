@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowLeft, BarChart3, Smartphone, Monitor, Tablet, MessageCircle } from "lucide-react";
+import { ArrowLeft, BarChart3, Smartphone, Monitor, Tablet, MessageCircle, ChevronRight } from "lucide-react";
 import { getCurrentAdmin } from "@/lib/admin-auth";
 import { listSessions, type SessionRow } from "@/lib/analytics-db";
 import AdminLogin from "../../AdminLogin";
@@ -121,6 +121,7 @@ export default async function SessionsPage({ searchParams }: PageProps) {
                   <th className="text-right px-4 py-3 font-semibold">Eventos</th>
                   <th className="text-right px-4 py-3 font-semibold">Duración</th>
                   <th className="text-center px-4 py-3 font-semibold">Contactó</th>
+                  <th className="px-4 py-3 w-8" />
                 </tr>
               </thead>
               <tbody>
@@ -141,51 +142,82 @@ function SessionRowItem({ session: s }: { session: SessionRow }) {
   const end = new Date(s.last_seen);
   const durSec = Math.max(0, Math.round((end.getTime() - start.getTime()) / 1000));
   const dur = formatDuration(durSec);
+  const href = `/admin/analytics/sessions/${s.id}`;
+
+  // Cell wrapper · cada celda es un Link con padding propio. Mantenemos
+  // las celdas como td pero el contenido es un link para que toda la
+  // fila sea efectivamente clickeable (hover + cursor-pointer + chevron
+  // al final). Más prolijo que un <tr onClick> y respeta semántica.
+  const cellCls =
+    "block px-4 py-3 -mx-4 -my-3 group-hover:bg-magenta-50/40 transition-colors";
+
   return (
-    <tr className="border-t border-gray-100 hover:bg-gray-50/50 transition-colors">
-      <td className="px-4 py-3">
-        <Link
-          href={`/admin/analytics/sessions/${s.id}`}
-          className="text-magenta hover:underline font-mono-price text-xs"
-        >
+    <tr className="border-t border-gray-100 group cursor-pointer">
+      <td className="px-4 py-3 align-middle">
+        <Link href={href} className={`${cellCls} text-magenta font-mono-price text-xs group-hover:text-magenta`}>
           {formatDate(start)}
         </Link>
       </td>
-      <td className="px-4 py-3">
-        <div className="flex items-center gap-2">
-          <DeviceIcon device={s.device} />
-          <div className="text-xs">
-            <p className="font-mono text-gray-500 truncate max-w-[120px]">
-              {s.visitor_id.slice(0, 8)}…
-            </p>
-            <p className="text-gray-400 text-[10px]">
-              {s.browser} · {s.os}
-            </p>
+      <td className="px-4 py-3 align-middle">
+        <Link href={href} className={cellCls}>
+          <div className="flex items-center gap-2">
+            <DeviceIcon device={s.device} />
+            <div className="text-xs">
+              <p className="font-mono text-gray-500 truncate max-w-[120px]">
+                {s.visitor_id.slice(0, 8)}…
+              </p>
+              <p className="text-gray-400 text-[10px]">
+                {s.browser} · {s.os}
+              </p>
+            </div>
           </div>
-        </div>
+        </Link>
       </td>
-      <td className="px-4 py-3 text-xs">
-        <div className="text-navy">
-          {s.country ? `${s.country}${s.city ? ` · ${s.city}` : ""}` : "?"}
-        </div>
-        <div className="text-gray-400 truncate max-w-[200px]">
-          {shortReferrer(s.referrer)}
-        </div>
+      <td className="px-4 py-3 align-middle">
+        <Link href={href} className={`${cellCls} text-xs`}>
+          <div className="text-navy">
+            {s.country ? `${s.country}${s.city ? ` · ${s.city}` : ""}` : "?"}
+          </div>
+          <div className="text-gray-400 truncate max-w-[200px]">
+            {shortReferrer(s.referrer)}
+          </div>
+        </Link>
       </td>
-      <td className="px-4 py-3 text-right tabular-nums">{s.pageview_count}</td>
-      <td className="px-4 py-3 text-right tabular-nums text-gray-500">
-        {s.event_count}
+      <td className="px-4 py-3 align-middle text-right">
+        <Link href={href} className={`${cellCls} text-right tabular-nums`}>
+          {s.pageview_count}
+        </Link>
       </td>
-      <td className="px-4 py-3 text-right tabular-nums text-gray-500">{dur}</td>
-      <td className="px-4 py-3 text-center">
-        {s.contacted ? (
-          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 text-emerald-700 px-2 py-0.5 text-[10px] font-bold">
-            <MessageCircle className="h-3 w-3" />
-            Sí
-          </span>
-        ) : (
-          <span className="text-gray-300 text-[10px]">—</span>
-        )}
+      <td className="px-4 py-3 align-middle text-right">
+        <Link href={href} className={`${cellCls} text-right tabular-nums text-gray-500`}>
+          {s.event_count}
+        </Link>
+      </td>
+      <td className="px-4 py-3 align-middle text-right">
+        <Link href={href} className={`${cellCls} text-right tabular-nums text-gray-500`}>
+          {dur}
+        </Link>
+      </td>
+      <td className="px-4 py-3 align-middle text-center">
+        <Link href={href} className={`${cellCls} text-center`}>
+          {s.contacted ? (
+            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 text-emerald-700 px-2 py-0.5 text-[10px] font-bold">
+              <MessageCircle className="h-3 w-3" />
+              Sí
+            </span>
+          ) : (
+            <span className="text-gray-300 text-[10px]">—</span>
+          )}
+        </Link>
+      </td>
+      <td className="px-4 py-3 align-middle text-right">
+        <Link
+          href={href}
+          className={`${cellCls} text-gray-300 group-hover:text-magenta`}
+          aria-label="Ver detalle"
+        >
+          <ChevronRight className="h-4 w-4 inline-block" />
+        </Link>
       </td>
     </tr>
   );
