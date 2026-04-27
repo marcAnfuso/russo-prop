@@ -6,6 +6,8 @@ import { Search, Star, Sparkles, X, LogOut, CheckCircle2 } from "lucide-react";
 import { formatPrice } from "@/lib/utils";
 import MediaPicksPanel, { type MediaPick } from "./MediaPicksPanel";
 import UsersPanel from "./UsersPanel";
+import DevelopmentsPanel from "./DevelopmentsPanel";
+import type { Development } from "@/data/types";
 
 interface AdminProperty {
   id: string;
@@ -28,6 +30,7 @@ interface Props {
   initialNew: string[];
   initialSold: string[];
   initialMedia: MediaPick[];
+  initialDevelopments: Development[];
   currentUser: {
     id: number;
     username: string;
@@ -42,6 +45,7 @@ export default function AdminConsole({
   initialNew,
   initialSold,
   initialMedia,
+  initialDevelopments,
   currentUser,
 }: Props) {
   const [featured, setFeatured] = useState<Set<string>>(new Set(initialFeatured));
@@ -169,6 +173,9 @@ export default function AdminConsole({
             onRemove={(id) => togglePick(id, "sold")}
           />
         </div>
+
+        {/* Emprendimientos */}
+        <DevelopmentsPanel initial={initialDevelopments} />
 
         {/* Videos de Instagram / TikTok */}
         <MediaPicksPanel initial={initialMedia} />

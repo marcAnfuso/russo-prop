@@ -13,12 +13,13 @@ import Breadcrumb from "@/components/Breadcrumb";
 import Gallery from "@/components/Gallery";
 import ContactSidebar from "@/components/ContactSidebar";
 import MapView from "@/components/MapView";
-import { developments } from "@/data/developments";
+import { getDevelopment, getDevelopmentIds } from "@/lib/developments-db";
 import { formatPrice } from "@/lib/utils";
 import type { DevelopmentStatus } from "@/data/types";
 
-export function generateStaticParams() {
-  return developments.map((d) => ({ id: d.id }));
+export async function generateStaticParams() {
+  const ids = await getDevelopmentIds();
+  return ids.map((id) => ({ id }));
 }
 
 const statusLabels: Record<DevelopmentStatus, string> = {
@@ -41,7 +42,7 @@ export default async function DevelopmentDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const dev = developments.find((d) => d.id === id);
+  const dev = await getDevelopment(id);
 
   if (!dev) {
     return (

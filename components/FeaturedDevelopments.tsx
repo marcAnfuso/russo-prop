@@ -3,8 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { developments } from "@/data/developments";
-import type { DevelopmentStatus } from "@/data/types";
+import type { Development, DevelopmentStatus } from "@/data/types";
 
 const statusLabels: Record<DevelopmentStatus, string> = {
   "pre-venta": "Pre-venta",
@@ -29,8 +28,14 @@ const cardVariants = {
   visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" as const } },
 };
 
-export default function FeaturedDevelopments() {
+interface Props {
+  developments: Development[];
+}
+
+export default function FeaturedDevelopments({ developments }: Props) {
   const featured = developments.filter((d) => d.featured);
+
+  if (featured.length === 0) return null;
 
   return (
     <section className="py-16 px-4 sm:px-6 lg:px-8 bg-navy text-white">

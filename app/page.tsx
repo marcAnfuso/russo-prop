@@ -9,6 +9,7 @@ import HistoriasMudanza from "@/components/HistoriasMudanza";
 import FeaturedOpportunities from "@/components/FeaturedOpportunities";
 import { getHomeFeatured, getHomeNewListings } from "@/lib/homepage-lists";
 import { fetchOpportunityProperties } from "@/lib/opportunities";
+import { listDevelopments } from "@/lib/developments-db";
 
 export const metadata: Metadata = {
   title: "Compra, alquilá y tasá en zona oeste",
@@ -86,6 +87,11 @@ function FeaturedOpportunitiesSkeleton() {
   );
 }
 
+async function FeaturedDevelopmentsLoader() {
+  const developments = await listDevelopments();
+  return <FeaturedDevelopments developments={developments} />;
+}
+
 export default function Home() {
   return (
     <>
@@ -100,7 +106,7 @@ export default function Home() {
       <Suspense fallback={<FeaturedOpportunitiesSkeleton />}>
         <FeaturedOpportunitiesLoader />
       </Suspense>
-      <FeaturedDevelopments />
+      <FeaturedDevelopmentsLoader />
       <HistoriasMudanza />
     </>
   );
