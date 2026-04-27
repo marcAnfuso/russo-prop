@@ -20,6 +20,9 @@ interface PropertyCardProps {
   onHover?: (id: string | null) => void;
   onQuickView?: (property: Property) => void;
   compact?: boolean;
+  /** Esconde el badge "Venta"/"Alquiler" arriba a la izquierda · útil
+   * cuando algo lo pisa (ej. cinta diagonal de Destacadas). */
+  hideOperationBadge?: boolean;
 }
 
 const COMMERCIAL_TYPE_LABEL: Partial<Record<string, string>> = {
@@ -39,6 +42,7 @@ export default function PropertyCard({
   onHover,
   onQuickView,
   compact = false,
+  hideOperationBadge = false,
 }: PropertyCardProps) {
   const {
     id,
@@ -118,13 +122,15 @@ export default function PropertyCard({
 
           <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent transition-opacity duration-300 group-hover:from-black/85" />
 
-          <span
-            className={`absolute top-3 left-3 z-20 rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-white backdrop-blur-sm ${
-              isAlquiler ? "bg-navy/90" : "bg-magenta/90"
-            }`}
-          >
-            {isAlquiler ? "Alquiler" : "Venta"}
-          </span>
+          {!hideOperationBadge && (
+            <span
+              className={`absolute top-3 left-3 z-20 rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-white backdrop-blur-sm ${
+                isAlquiler ? "bg-navy/90" : "bg-magenta/90"
+              }`}
+            >
+              {isAlquiler ? "Alquiler" : "Venta"}
+            </span>
+          )}
 
           {property.sold ? (
             <span className="absolute top-3 right-3 z-20 rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-white bg-emerald-500 shadow-[0_4px_12px_-2px_rgba(16,185,129,0.5)]">

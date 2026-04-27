@@ -108,16 +108,17 @@ export default function FeaturedProperties({
                 className="snap-start shrink-0 w-[82%] sm:w-[48%] md:w-[32%] relative"
               >
                 {/* Cinta diagonal "Destacada" en la esquina superior izq.
-                    Va por encima del card sin invadir contenido. */}
+                    Va por encima del card sin invadir contenido. Saltea
+                    el badge de Venta/Alquiler para que no se solape. */}
                 <div
                   aria-hidden="true"
-                  className="absolute -top-1.5 -left-1.5 z-30 h-20 w-20 overflow-hidden pointer-events-none"
+                  className="absolute -top-1.5 -left-1.5 z-30 h-28 w-28 overflow-hidden pointer-events-none"
                 >
-                  <div className="absolute top-3 -left-7 w-28 rotate-[-45deg] bg-magenta py-1 text-center text-[9px] font-bold uppercase tracking-widest text-white shadow-md">
+                  <div className="absolute top-5 -left-6 w-40 rotate-[-45deg] bg-magenta py-1.5 text-center text-[10px] font-bold uppercase tracking-widest text-white shadow-md">
                     ★ Destacada
                   </div>
                 </div>
-                <PropertyCard property={property} compact />
+                <PropertyCard property={property} compact hideOperationBadge />
               </div>
             ))}
           </div>
