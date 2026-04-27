@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, FormEvent } from "react";
 import { Bot, X, Send, Sparkles, Minus } from "lucide-react";
+import { track } from "@/lib/analytics-client";
 
 interface Message {
   role: "user" | "ai";
@@ -80,6 +81,14 @@ export default function RussiaChatWidget({ propertyId }: Props) {
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
     ask(input);
+  }
+
+  function openChat(source: "bubble_cta" | "avatar") {
+    track("russia_chat_open", {
+      property_id: propertyId,
+      metadata: { source },
+    });
+    setState("open");
   }
 
   // ── Chat panel abierto ───────────────────────────────────────────────
@@ -218,7 +227,7 @@ export default function RussiaChatWidget({ propertyId }: Props) {
           </p>
           <button
             type="button"
-            onClick={() => setState("open")}
+            onClick={() => openChat("bubble_cta")}
             className="mt-2 w-full text-xs font-semibold text-magenta hover:underline text-left"
           >
             Empezar a preguntar →
@@ -227,7 +236,7 @@ export default function RussiaChatWidget({ propertyId }: Props) {
       )}
       <button
         type="button"
-        onClick={() => setState("open")}
+        onClick={() => openChat("avatar")}
         className="relative flex-shrink-0 h-14 w-14 rounded-full bg-gradient-to-br from-magenta to-navy shadow-[0_10px_25px_-5px_rgba(230,0,126,0.5)] flex items-center justify-center hover:scale-105 transition-transform"
         aria-label="Chatear con Russia"
       >

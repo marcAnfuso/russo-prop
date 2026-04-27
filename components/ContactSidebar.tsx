@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { Facebook, Linkedin, Printer, Share2, Mail, MessageCircle, Zap } from "lucide-react";
+import { track } from "@/lib/analytics-client";
 
 interface ContactSidebarProps {
   propertyCode: string;
@@ -79,6 +80,10 @@ export default function ContactSidebar({
 
       if (!res.ok) throw new Error("Error al enviar");
       setSuccess(true);
+      track("form_submit", {
+        property_id: propertyCode.replace(/^RUS/, ""),
+        metadata: { form: "contact_sidebar", code: propertyCode },
+      });
     } catch {
       setSubmitError("No se pudo enviar el mensaje. Intentá de nuevo.");
     } finally {

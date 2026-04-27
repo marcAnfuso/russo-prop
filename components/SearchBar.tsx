@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Search, X, ChevronDown, Check } from "lucide-react";
 import { useLocalities, rankLocalityMatches } from "@/lib/useLocalities";
+import { track } from "@/lib/analytics-client";
 
 interface SearchBarProps {
   variant?: "hero" | "compact";
@@ -131,8 +132,16 @@ export default function SearchBar({
       params.set("type", selectedTypes.join(","));
     }
     const qs = params.toString();
+    track("search", {
+      metadata: {
+        operation,
+        zones: selectedZones,
+        types: selectedTypes,
+        from: variant,
+      },
+    });
     router.push(qs ? `${basePath}?${qs}` : basePath);
-  }, [operation, selectedZones, selectedTypes, router]);
+  }, [operation, selectedZones, selectedTypes, router, variant]);
 
   const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Escape") {
