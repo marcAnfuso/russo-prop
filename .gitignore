@@ -56,3 +56,4 @@ test-results.json
 !public/**/*.jpg
 !public/**/*.png
 russo-presupuesto.pdf
+.mcp.json
