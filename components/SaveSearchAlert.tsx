@@ -70,7 +70,7 @@ export default function SaveSearchAlert({ criterion, summary }: Props) {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="inline-flex items-center gap-1.5 rounded-full border border-magenta/40 bg-magenta-50 text-magenta px-3.5 py-1.5 text-xs font-semibold hover:bg-magenta hover:text-white hover:border-magenta transition-colors"
+        className="inline-flex items-center gap-1.5 rounded-full border border-gray-200 bg-white text-navy px-3.5 py-1.5 text-xs font-semibold hover:bg-magenta hover:text-white hover:border-magenta transition-colors"
       >
         <BellRing className="h-3.5 w-3.5" />
         Avisame cuando entre algo así

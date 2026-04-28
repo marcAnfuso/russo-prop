@@ -166,8 +166,8 @@ export default function PropertyListWithMap({
                 aria-pressed={desktopMapVisible}
                 className={`hidden lg:inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition-all duration-150 active:scale-[0.97] ${
                   desktopMapVisible
-                    ? "border-magenta bg-magenta-50 text-magenta shadow-sm"
-                    : "border-navy-100 text-navy hover:border-navy-300 hover:bg-gray-50"
+                    ? "border-gray-200 bg-white text-navy hover:border-navy-300 hover:bg-gray-50"
+                    : "border-magenta bg-magenta-50 text-magenta shadow-sm"
                 }`}
               >
                 {desktopMapVisible ? (
