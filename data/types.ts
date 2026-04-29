@@ -84,6 +84,10 @@ export interface Property {
    * como vendida, independientemente del precio 9999999 que usa Xintel
    * ambiguamente para reservadas/vendidas/consultar. */
   sold?: boolean;
+  /** Prioridad de visibilidad — número mayor sale primero en listings.
+   * Override del equipo (admin /priorities). Si no hay override, usamos
+   * el `in_ord2` que carga Russo en Xintel. */
+  priority?: number;
 }
 
 export interface Development {

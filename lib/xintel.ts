@@ -48,6 +48,10 @@ interface XintelListFicha {
   amigable?: string;
   img_princ?: string;
   in_des?: string | boolean;
+  /** Prioridad de visibilidad — número que carga Russo en Xintel para
+   * destacar propiedades. Mayor = sale primero. Xintel ya devuelve las
+   * fichas pre-ordenadas por este campo desc. */
+  in_ord2?: string | number;
   video?: string;
   tour360?: string;
   cantidad_dormitorios?: string | number;
@@ -329,6 +333,7 @@ function mapListFicha(ficha: XintelListFicha, imgs: string | string[], amenities
     tour360Url: ficha.tour360 || undefined,
     location: parseCoords(ficha.in_coo),
     featured: String(ficha.in_des) === "True" || ficha.in_des === true,
+    priority: num(ficha.in_ord2) || 0,
   };
 }
 
@@ -480,7 +485,34 @@ export async function fetchAllProperties(
   // que están "por liberarse" sin precio aún. No queremos exponerlas al
   // público hasta que tengan precio real. El sentinel 9999999 (Reservado)
   // sí se mantiene — esa es una propiedad real con precio oculto.
-  return Array.from(byId.values()).filter((p) => p.price > 0);
+  const all = Array.from(byId.values()).filter((p) => p.price > 0);
+
+  // Aplicar overrides de prioridad del admin · si hay un valor en la
+  // tabla property_priority, gana sobre el in_ord2 de Xintel. Si la
+  // DB no está configurada o falla, seguimos con la prioridad de Xintel.
+  try {
+    const { getPriorityMap } = await import("./priorities-db");
+    const overrides = await getPriorityMap();
+    if (overrides.size > 0) {
+      for (const p of all) {
+        const ov = overrides.get(p.id);
+        if (typeof ov === "number") p.priority = ov;
+      }
+    }
+  } catch {
+    // sin DB → respetamos in_ord2 que ya viene en p.priority
+  }
+
+  // Sort por prioridad desc · desempate por id desc (más nuevo primero,
+  // ya que los códigos RUS son incrementales).
+  all.sort((a, b) => {
+    const pa = a.priority ?? 0;
+    const pb = b.priority ?? 0;
+    if (pb !== pa) return pb - pa;
+    return Number(b.id) - Number(a.id);
+  });
+
+  return all;
 }
 
 /**
@@ -653,6 +685,7 @@ export async function fetchProperty(id: string): Promise<Property | null> {
       tour360Url: tour360Url ?? ficha.tour360 ?? undefined,
       location: parseCoords(ficha.in_coo),
       featured: String(ficha.in_des) === "True" || ficha.in_des === true,
+      priority: num(ficha.in_ord2) || 0,
     };
   } catch {
     return null;
