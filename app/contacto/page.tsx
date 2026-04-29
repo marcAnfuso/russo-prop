@@ -4,8 +4,38 @@ import { useState, FormEvent } from "react";
 import { MapPin, Mail, Phone } from "lucide-react";
 import MapView from "@/components/MapView";
 
-const OFFICE_LOCATION = { lat: -34.6833, lng: -58.55 };
-const OFFICE_ADDRESS = "Av. Pte J. D. Peron 3501, San Justo, Buenos Aires";
+interface Office {
+  id: string;
+  name: string;
+  address: string;
+  location: { lat: number; lng: number };
+  /** Si está activa todavía no abrió → mostramos badge "Próxima apertura". */
+  comingSoon?: boolean;
+}
+
+// TODO: confirmar coords exactas con Marc · pasar links de Google Maps
+const OFFICES: Office[] = [
+  {
+    id: "san-justo",
+    name: "San Justo",
+    address: "Av. Pte J. D. Perón 3501, San Justo, Buenos Aires",
+    location: { lat: -34.6757, lng: -58.5605 },
+  },
+  {
+    id: "ramos-mejia",
+    name: "Ramos Mejía",
+    address: "Dirección a confirmar, Ramos Mejía",
+    location: { lat: -34.6440, lng: -58.5667 },
+    comingSoon: true,
+  },
+];
+
+// Centro del mapa: punto medio entre todas las sedes activas (calculado).
+const MAP_CENTER: [number, number] = (() => {
+  const lat = OFFICES.reduce((s, o) => s + o.location.lat, 0) / OFFICES.length;
+  const lng = OFFICES.reduce((s, o) => s + o.location.lng, 0) / OFFICES.length;
+  return [lat, lng];
+})();
 
 const HOW_OPTIONS = [
   "Buscador web",
@@ -18,8 +48,8 @@ const HOW_OPTIONS = [
 const infoCards = [
   {
     icon: MapPin,
-    heading: "Nuestra ubicación",
-    text: OFFICE_ADDRESS,
+    heading: "Nuestras sedes",
+    text: OFFICES.map((o) => o.name).join(" · "),
     href: undefined as string | undefined,
   },
   {
@@ -325,24 +355,47 @@ export default function ContactoPage() {
             )}
           </div>
 
-          {/* Map */}
-          <div className="rounded-lg overflow-hidden shadow min-h-[500px] lg:min-h-0">
-            <MapView
-              center={[OFFICE_LOCATION.lat, OFFICE_LOCATION.lng]}
-              zoom={15}
-              singleMarker
-              properties={[
-                {
-                  id: "office",
-                  title: "Russo Propiedades",
+          {/* Map + sedes */}
+          <div className="flex flex-col gap-4 min-h-[500px]">
+            <div className="rounded-lg overflow-hidden shadow flex-1 min-h-[360px]">
+              <MapView
+                center={MAP_CENTER}
+                zoom={13}
+                singleMarker={OFFICES.length === 1}
+                properties={OFFICES.map((o) => ({
+                  id: o.id,
+                  title: `Russo Propiedades · ${o.name}`,
                   price: 0,
-                  address: OFFICE_ADDRESS,
-                  location: OFFICE_LOCATION,
+                  address: o.address,
+                  location: o.location,
                   images: [],
-                },
-              ]}
-              className="w-full h-full min-h-[500px]"
-            />
+                }))}
+                className="w-full h-full min-h-[360px]"
+              />
+            </div>
+            <ul className="space-y-2">
+              {OFFICES.map((o) => (
+                <li
+                  key={o.id}
+                  className="rounded-lg bg-white border border-gray-100 shadow-sm px-4 py-3 flex items-start gap-3"
+                >
+                  <MapPin className="h-4 w-4 text-magenta flex-shrink-0 mt-0.5" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-navy flex items-center gap-2">
+                      {o.name}
+                      {o.comingSoon && (
+                        <span className="inline-block rounded-full bg-magenta/10 text-magenta px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest">
+                          Próxima apertura
+                        </span>
+                      )}
+                    </p>
+                    <p className="text-xs text-gray-500 leading-relaxed">
+                      {o.address}
+                    </p>
+                  </div>
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
       </section>
