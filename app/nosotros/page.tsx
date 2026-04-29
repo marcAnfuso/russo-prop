@@ -123,7 +123,7 @@ export default function NosotrosPage() {
       {/* Pilares: Historia · Objetivos · Visión */}
       <section className="py-20 lg:py-24 px-4 sm:px-6 lg:px-8 bg-white">
         <div className="mx-auto max-w-6xl">
-          <div className="mb-14 max-w-2xl">
+          <div className="mb-14 max-w-2xl mx-auto text-center">
             <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-magenta mb-4">
               <span className="h-1.5 w-1.5 rounded-full bg-magenta" />
               Quiénes somos
