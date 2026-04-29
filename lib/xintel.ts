@@ -476,7 +476,11 @@ export async function fetchAllProperties(
     if (operation && p.operation !== operation) continue;
     if (!byId.has(p.id)) byId.set(p.id, p);
   }
-  return Array.from(byId.values());
+  // Filtrar propiedades con price=0 · Russo carga en Xintel propiedades
+  // que están "por liberarse" sin precio aún. No queremos exponerlas al
+  // público hasta que tengan precio real. El sentinel 9999999 (Reservado)
+  // sí se mantiene — esa es una propiedad real con precio oculto.
+  return Array.from(byId.values()).filter((p) => p.price > 0);
 }
 
 /**
@@ -614,6 +618,11 @@ export async function fetchProperty(id: string): Promise<Property | null> {
     const price = rawPrice || num(ficha.in_val) || parsePrecio(ficha.precio);
     const currency = mapCurrency(op === "alquiler" ? ficha.alquiler_moneda : ficha.venta_moneda, op);
 
+    // Si la propiedad no tiene precio cargado todavía, no la exponemos.
+    // Russo carga drafts de propiedades por liberar sin precio. Sentinel
+    // 9999999 (Reservado) sí se mantiene — esa es una propiedad real.
+    if (!price || price <= 0) return null;
+
     return {
       id: String(ficha.in_num),
       code: `RUS${ficha.in_num}`,
@@ -669,7 +678,7 @@ export async function fetchFeaturedProperties(): Promise<Property[]> {
     });
     if (!res.ok) {
       const { properties } = await fetchProperties();
-      return properties.filter((p) => p.featured).slice(0, 6);
+      return properties.filter((p) => p.featured && p.price > 0).slice(0, 6);
     }
     const data: XintelListResponse = await res.json();
     const fichas = data?.resultado?.fichas ?? [];
@@ -678,10 +687,13 @@ export async function fetchFeaturedProperties(): Promise<Property[]> {
     // hace .slice(0, count) si necesita limitar. Esto le permite a
     // fetchAllProperties usarnos para mergear y rescatar propiedades
     // que están sólo en este endpoint (activa=0 en Xintel).
-    return fichas.map((f, i) => mapListFicha(f, imgs[i] ?? []));
+    // Filtramos price=0 (drafts que Russo carga sin precio aún).
+    return fichas
+      .map((f, i) => mapListFicha(f, imgs[i] ?? []))
+      .filter((p) => p.price > 0);
   } catch {
     const { properties } = await fetchProperties();
-    return properties.filter((p) => p.featured).slice(0, 6);
+    return properties.filter((p) => p.featured && p.price > 0).slice(0, 6);
   }
 }
 
