@@ -13,19 +13,18 @@ interface Office {
   comingSoon?: boolean;
 }
 
-// TODO: confirmar coords exactas con Marc · pasar links de Google Maps
 const OFFICES: Office[] = [
   {
     id: "san-justo",
     name: "San Justo",
     address: "Av. Pte J. D. Perón 3501, San Justo, Buenos Aires",
-    location: { lat: -34.6757, lng: -58.5605 },
+    location: { lat: -34.6791459, lng: -58.5532921 },
   },
   {
     id: "ramos-mejia",
     name: "Ramos Mejía",
-    address: "Dirección a confirmar, Ramos Mejía",
-    location: { lat: -34.6440, lng: -58.5667 },
+    address: "Belgrano 123, Ramos Mejía, Buenos Aires",
+    location: { lat: -34.6417937, lng: -58.5659481 },
     comingSoon: true,
   },
 ];
