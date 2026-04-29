@@ -25,11 +25,11 @@ export default function Footer() {
           <div>
             <Link href="/" aria-label="Russo Propiedades - Inicio">
               <Image
-                src="/images/logo.png"
+                src="/images/logo-full.webp"
                 alt="Russo Propiedades"
-                width={180}
-                height={48}
-                className="mb-4"
+                width={1000}
+                height={1200}
+                className="mb-4 h-32 w-auto"
               />
             </Link>
             <p className="text-sm leading-relaxed text-gray-500">
@@ -107,7 +107,7 @@ export default function Footer() {
                   >
                     <div className="h-14 w-14 shrink-0 overflow-hidden rounded bg-gray-200">
                       <Image
-                        src={property.images[0] ?? "/images/logo.png"}
+                        src={property.images[0] ?? "/images/logo-placeholder.svg"}
                         alt={property.title}
                         width={56}
                         height={56}
