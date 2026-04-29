@@ -192,6 +192,19 @@ function parsePrecio(precio?: string): number {
   return isNaN(n) ? 0 : n;
 }
 
+/**
+ * Inferir moneda del string "precio" preformateado de Xintel
+ * (ej: "U$S 7.000" → "USD", "$ 250.000" → "ARS"). Devuelve null si no
+ * se puede inferir, para que el caller use otro fallback.
+ */
+function inferCurrencyFromPrecio(precio?: string): "USD" | "ARS" | null {
+  if (!precio) return null;
+  const m = precio.toLowerCase();
+  if (m.includes("u$s") || m.includes("usd") || m.includes("dolar") || m.includes("dólar")) return "USD";
+  if (m.includes("$") || m.includes("ars") || m.includes("peso")) return "ARS";
+  return null;
+}
+
 function parseCoords(coo?: string): { lat: number; lng: number } {
   const fallback = { lat: -34.68, lng: -58.56 }; // San Justo, Russo HQ
   if (!coo) return fallback;
@@ -300,7 +313,14 @@ function mapListFicha(ficha: XintelListFicha, imgs: string | string[], amenities
       : num(ficha.venta_precio);
   // fichas.destacadas returns venta_precio/alquiler_precio as null — fallback to parsed precio
   const price = rawPrice || num(ficha.in_val) || parsePrecio(ficha.precio);
-  const currency = mapCurrency(op === "alquiler" ? ficha.alquiler_moneda : ficha.venta_moneda, op);
+  const monedaField = op === "alquiler" ? ficha.alquiler_moneda : ficha.venta_moneda;
+  // Si caímos al string preformateado (ej: "U$S 7.000"), inferimos moneda
+  // del propio string · sino el default por op (alquiler→ARS) confunde un
+  // alquiler de galpón cargado en USD como pesos.
+  const currency =
+    !rawPrice && !num(ficha.in_val) && ficha.precio && !monedaField
+      ? inferCurrencyFromPrecio(ficha.precio) ?? mapCurrency(monedaField, op)
+      : mapCurrency(monedaField, op);
 
   const imageList = Array.isArray(imgs) ? imgs.filter(Boolean) : [imgs].filter(Boolean);
   const mainImg = ficha.img_princ ?? firstImg(imgs);
@@ -648,7 +668,11 @@ export async function fetchProperty(id: string): Promise<Property | null> {
         ? num(ficha.alquiler_precio)
         : num(ficha.venta_precio);
     const price = rawPrice || num(ficha.in_val) || parsePrecio(ficha.precio);
-    const currency = mapCurrency(op === "alquiler" ? ficha.alquiler_moneda : ficha.venta_moneda, op);
+    const monedaField = op === "alquiler" ? ficha.alquiler_moneda : ficha.venta_moneda;
+    const currency =
+      !rawPrice && !num(ficha.in_val) && ficha.precio && !monedaField
+        ? inferCurrencyFromPrecio(ficha.precio) ?? mapCurrency(monedaField, op)
+        : mapCurrency(monedaField, op);
 
     // Si la propiedad no tiene precio cargado todavía, no la exponemos.
     // Russo carga drafts de propiedades por liberar sin precio. Sentinel
