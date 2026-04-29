@@ -1,7 +1,8 @@
 import Link from "next/link";
 import Image from "next/image";
 import { MapPin, Phone, Mail, Facebook, Instagram } from "lucide-react";
-import { properties } from "@/data/properties";
+import { fetchAllProperties } from "@/lib/xintel";
+import type { Property } from "@/data/types";
 
 const utilityLinks = [
   { label: "Ventas", href: "/ventas" },
@@ -13,8 +14,24 @@ const utilityLinks = [
   { label: "Oficinas", href: "/ventas" },
 ];
 
-export default function Footer() {
-  const latestProperties = properties.slice(-3);
+/**
+ * Las 3 propiedades con id más alto (los códigos RUS son incrementales,
+ * así que id desc = últimas que entraron al inventario). Si Xintel
+ * falla, devolvemos vacío para no romper el footer.
+ */
+async function getLatestProperties(): Promise<Property[]> {
+  try {
+    const all = await fetchAllProperties();
+    return [...all]
+      .sort((a, b) => Number(b.id) - Number(a.id))
+      .slice(0, 3);
+  } catch {
+    return [];
+  }
+}
+
+export default async function Footer() {
+  const latestProperties = await getLatestProperties();
 
   return (
     <footer className="border-t-4 border-navy bg-gray-50 text-gray-700">
