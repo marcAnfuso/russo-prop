@@ -36,6 +36,8 @@ export default function PrioritiesClient({ initial, totalAll, pageSize, pool }: 
   const [offset, setOffset] = useState(initial.length);
   const [total, setTotal] = useState(totalAll);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [page, setPage] = useState(1);
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
   const [query, setQuery] = useState("");
   const [seedRunning, setSeedRunning] = useState(false);
@@ -110,18 +112,22 @@ export default function PrioritiesClient({ initial, totalAll, pageSize, pool }: 
     }
   }
 
-  async function handleLoadMore() {
+  async function goToPage(p: number) {
+    if (p === page) return;
     setLoadingMore(true);
     try {
-      const res = await fetch(`/api/admin/priorities?offset=${offset}&limit=${pageSize}`);
+      const targetOffset = (p - 1) * pageSize;
+      const res = await fetch(`/api/admin/priorities?offset=${targetOffset}&limit=${pageSize}`);
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error ?? "Error al cargar");
       const newRows = (data.rows as PriorityRow[]).map((r) => ({
         ...r,
         property: pool.find((p) => p.id === r.xintel_id) ?? null,
       }));
-      setRows((prev) => [...prev, ...newRows]);
-      setOffset((o) => o + newRows.length);
+      setRows(newRows);
+      setOffset(targetOffset + newRows.length);
+      setPage(p);
+      setTotal(data.totalAll ?? data.total);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Error inesperado");
     } finally {
@@ -150,6 +156,7 @@ export default function PrioritiesClient({ initial, totalAll, pageSize, pool }: 
       setRows(fresh);
       setOffset(fresh.length);
       setTotal(d2.totalAll ?? d2.total);
+      setPage(1);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Error inesperado");
     } finally {
@@ -157,7 +164,7 @@ export default function PrioritiesClient({ initial, totalAll, pageSize, pool }: 
     }
   }
 
-  const hasMore = offset < total && !queryNormalized;
+  const showPagination = totalPages > 1 && !queryNormalized;
 
   return (
     <div className="space-y-4">
@@ -262,18 +269,13 @@ export default function PrioritiesClient({ initial, totalAll, pageSize, pool }: 
         </div>
       )}
 
-      {hasMore && (
-        <div className="text-center">
-          <button
-            type="button"
-            onClick={handleLoadMore}
-            disabled={loadingMore}
-            className="inline-flex items-center gap-1.5 rounded-full border border-gray-300 bg-white px-5 py-2 text-sm font-semibold text-navy hover:border-magenta hover:text-magenta transition-colors disabled:opacity-50"
-          >
-            {loadingMore ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-            Ver más
-          </button>
-        </div>
+      {showPagination && (
+        <Pagination
+          page={page}
+          totalPages={totalPages}
+          loading={loadingMore}
+          onChange={goToPage}
+        />
       )}
     </div>
   );
@@ -433,4 +435,77 @@ function PriorityRowItem({
 function formatPrice(n: number): string {
   if (n >= 9999999) return "Reservado";
   return new Intl.NumberFormat("es-AR").format(n);
+}
+
+function Pagination({
+  page,
+  totalPages,
+  loading,
+  onChange,
+}: {
+  page: number;
+  totalPages: number;
+  loading: boolean;
+  onChange: (page: number) => void;
+}) {
+  const pages: (number | "…")[] = [];
+  const window = 1;
+  for (let i = 1; i <= totalPages; i++) {
+    if (
+      i === 1 ||
+      i === totalPages ||
+      (i >= page - window && i <= page + window)
+    ) {
+      pages.push(i);
+    } else if (
+      (i === page - window - 1 && page - window > 2) ||
+      (i === page + window + 1 && page + window < totalPages - 1)
+    ) {
+      pages.push("…");
+    }
+  }
+
+  const baseBtn =
+    "inline-flex items-center justify-center rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors";
+  const inactive = "bg-white border border-gray-200 text-navy hover:border-magenta hover:text-magenta";
+  const disabled = "bg-gray-100 text-gray-300 pointer-events-none";
+
+  return (
+    <nav aria-label="Paginación" className="flex items-center justify-center gap-1.5 flex-wrap">
+      <button
+        type="button"
+        onClick={() => onChange(Math.max(1, page - 1))}
+        disabled={page === 1 || loading}
+        className={`${baseBtn} ${page === 1 || loading ? disabled : inactive}`}
+      >
+        ← Anterior
+      </button>
+      {pages.map((p, i) =>
+        p === "…" ? (
+          <span key={`e-${i}`} className="px-2 text-gray-400 text-xs" aria-hidden>…</span>
+        ) : (
+          <button
+            key={p}
+            type="button"
+            onClick={() => onChange(p)}
+            disabled={loading}
+            aria-current={p === page ? "page" : undefined}
+            className={`${baseBtn} min-w-[34px] ${
+              p === page ? "bg-magenta text-white shadow-sm" : inactive
+            }`}
+          >
+            {p}
+          </button>
+        )
+      )}
+      <button
+        type="button"
+        onClick={() => onChange(Math.min(totalPages, page + 1))}
+        disabled={page === totalPages || loading}
+        className={`${baseBtn} ${page === totalPages || loading ? disabled : inactive}`}
+      >
+        Siguiente →
+      </button>
+    </nav>
+  );
 }

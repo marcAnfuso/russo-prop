@@ -53,7 +53,12 @@ export default async function AdminLeadsPage() {
           </p>
         </div>
 
-        <LeadsClient initial={data.rows} initialCounts={data.counts} pageSize={PAGE_SIZE} />
+        <LeadsClient
+          initial={data.rows}
+          initialCounts={data.counts}
+          initialTotal={data.total}
+          pageSize={PAGE_SIZE}
+        />
       </div>
     </main>
   );

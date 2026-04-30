@@ -44,23 +44,29 @@ const STATUS_COLOR: Record<string, string> = {
 export default function LeadsClient({
   initial,
   initialCounts,
+  initialTotal,
   pageSize,
 }: {
   initial: LeadRow[];
   initialCounts: Counts;
+  initialTotal: number;
   pageSize: number;
 }) {
   const router = useRouter();
   const [, startTransition] = useTransition();
   const [rows, setRows] = useState<LeadRow[]>(initial);
   const [counts, setCounts] = useState<Counts>(initialCounts);
+  const [total, setTotal] = useState(initialTotal);
+  const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("todos");
   const [typeFilter, setTypeFilter] = useState<TypeFilter>("todos");
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  async function refetch(status: StatusFilter, type: TypeFilter) {
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+
+  async function refetch(status: StatusFilter, type: TypeFilter, p: number = 1) {
     setBusy(true);
     setError(null);
     try {
@@ -68,11 +74,14 @@ export default function LeadsClient({
       if (status !== "todos") params.set("status", status);
       if (type !== "todos") params.set("type", type);
       params.set("limit", String(pageSize));
+      params.set("offset", String((p - 1) * pageSize));
       const res = await fetch(`/api/admin/leads?${params.toString()}`);
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error ?? "Error al cargar");
       setRows(data.rows);
       setCounts(data.counts);
+      setTotal(data.total);
+      setPage(p);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Error inesperado");
     } finally {
@@ -226,7 +235,85 @@ export default function LeadsClient({
           </table>
         </div>
       )}
+
+      {totalPages > 1 && (
+        <Pagination
+          page={page}
+          totalPages={totalPages}
+          onChange={(p) => refetch(statusFilter, typeFilter, p)}
+        />
+      )}
     </div>
+  );
+}
+
+function Pagination({
+  page,
+  totalPages,
+  onChange,
+}: {
+  page: number;
+  totalPages: number;
+  onChange: (page: number) => void;
+}) {
+  const pages: (number | "…")[] = [];
+  const window = 1;
+  for (let i = 1; i <= totalPages; i++) {
+    if (
+      i === 1 ||
+      i === totalPages ||
+      (i >= page - window && i <= page + window)
+    ) {
+      pages.push(i);
+    } else if (
+      (i === page - window - 1 && page - window > 2) ||
+      (i === page + window + 1 && page + window < totalPages - 1)
+    ) {
+      pages.push("…");
+    }
+  }
+
+  const baseBtn =
+    "inline-flex items-center justify-center rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors";
+  const inactive = "bg-white border border-gray-200 text-navy hover:border-magenta hover:text-magenta";
+  const disabled = "bg-gray-100 text-gray-300 pointer-events-none";
+
+  return (
+    <nav aria-label="Paginación" className="flex items-center justify-center gap-1.5 flex-wrap">
+      <button
+        type="button"
+        onClick={() => onChange(Math.max(1, page - 1))}
+        disabled={page === 1}
+        className={`${baseBtn} ${page === 1 ? disabled : inactive}`}
+      >
+        ← Anterior
+      </button>
+      {pages.map((p, i) =>
+        p === "…" ? (
+          <span key={`e-${i}`} className="px-2 text-gray-400 text-xs" aria-hidden>…</span>
+        ) : (
+          <button
+            key={p}
+            type="button"
+            onClick={() => onChange(p)}
+            aria-current={p === page ? "page" : undefined}
+            className={`${baseBtn} min-w-[34px] ${
+              p === page ? "bg-magenta text-white shadow-sm" : inactive
+            }`}
+          >
+            {p}
+          </button>
+        )
+      )}
+      <button
+        type="button"
+        onClick={() => onChange(Math.min(totalPages, page + 1))}
+        disabled={page === totalPages}
+        className={`${baseBtn} ${page === totalPages ? disabled : inactive}`}
+      >
+        Siguiente →
+      </button>
+    </nav>
   );
 }
 
