@@ -95,17 +95,27 @@ export default function PropertyCard({
       >
         <Link
           href={`/propiedad/${id}`}
-          className="absolute inset-0 z-10"
+          className="absolute inset-0 z-0"
           aria-label={`Ver propiedad ${code}`}
         />
 
         <div
-          className="relative flex-shrink-0 overflow-hidden w-full aspect-[4/3] cursor-pointer"
+          className="relative z-10 flex-shrink-0 overflow-hidden w-full aspect-[4/3] cursor-pointer"
+          role={onQuickView ? "button" : undefined}
+          tabIndex={onQuickView ? 0 : undefined}
+          aria-label={onQuickView ? `Vista rápida de ${code}` : undefined}
           onClick={(e) => {
             if (!onQuickView) return;
             e.preventDefault();
             e.stopPropagation();
             onQuickView(property);
+          }}
+          onKeyDown={(e) => {
+            if (!onQuickView) return;
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              onQuickView(property);
+            }
           }}
         >
           {imageSrc ? (
@@ -196,17 +206,27 @@ export default function PropertyCard({
     >
       <Link
         href={`/propiedad/${id}`}
-        className="absolute inset-0 z-10"
+        className="absolute inset-0 z-0"
         aria-label={`Ver propiedad ${code}`}
       />
 
       <div
-        className="relative flex-shrink-0 overflow-hidden cursor-pointer w-full sm:w-[38%] aspect-[4/3] sm:aspect-auto"
+        className="relative z-10 flex-shrink-0 overflow-hidden cursor-pointer w-full sm:w-[38%] aspect-[4/3] sm:aspect-auto"
+        role={onQuickView ? "button" : undefined}
+        tabIndex={onQuickView ? 0 : undefined}
+        aria-label={onQuickView ? `Vista rápida de ${code}` : undefined}
         onClick={(e) => {
           if (!onQuickView) return;
           e.preventDefault();
           e.stopPropagation();
           onQuickView(property);
+        }}
+        onKeyDown={(e) => {
+          if (!onQuickView) return;
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            onQuickView(property);
+          }
         }}
       >
         {imageSrc ? (
