@@ -100,7 +100,9 @@ export default function PropertyCard({
         />
 
         <div
-          className="relative z-10 flex-shrink-0 overflow-hidden w-full aspect-[4/3] cursor-pointer"
+          className={`relative flex-shrink-0 overflow-hidden w-full aspect-[4/3] ${
+            onQuickView ? "z-10 cursor-pointer" : ""
+          }`}
           role={onQuickView ? "button" : undefined}
           tabIndex={onQuickView ? 0 : undefined}
           aria-label={onQuickView ? `Vista rápida de ${code}` : undefined}
@@ -211,7 +213,9 @@ export default function PropertyCard({
       />
 
       <div
-        className="relative z-10 flex-shrink-0 overflow-hidden cursor-pointer w-full sm:w-[38%] aspect-[4/3] sm:aspect-auto"
+        className={`relative flex-shrink-0 overflow-hidden w-full sm:w-[38%] aspect-[4/3] sm:aspect-auto ${
+          onQuickView ? "z-10 cursor-pointer" : ""
+        }`}
         role={onQuickView ? "button" : undefined}
         tabIndex={onQuickView ? 0 : undefined}
         aria-label={onQuickView ? `Vista rápida de ${code}` : undefined}
