@@ -11,9 +11,6 @@ import {
   DonutChart,
   Title,
   Grid,
-  Tab,
-  TabGroup,
-  TabList,
   Badge,
 } from "@tremor/react";
 import Link from "next/link";
@@ -84,11 +81,6 @@ export default function AnalyticsDashboard({
     router.push(`/admin/analytics?${params.toString()}`);
   }
 
-  const currentTabIndex = Math.max(
-    0,
-    RANGES.findIndex((r) => r.days === days)
-  );
-
   return (
     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 space-y-8">
       {/* Header + selector de rango */}
@@ -124,16 +116,26 @@ export default function AnalyticsDashboard({
             <Download className="h-3.5 w-3.5" />
             Exportar CSV
           </a>
-          <TabGroup
-            index={currentTabIndex >= 0 ? currentTabIndex : 1}
-            onIndexChange={(i) => setRange(RANGES[i].days)}
-          >
-            <TabList variant="solid">
-              {RANGES.map((r) => (
-                <Tab key={r.days}>{r.label}</Tab>
-              ))}
-            </TabList>
-          </TabGroup>
+          <div className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white p-1 shadow-sm">
+            {RANGES.map((r) => {
+              const active = r.days === days;
+              return (
+                <button
+                  key={r.days}
+                  type="button"
+                  onClick={() => setRange(r.days)}
+                  aria-pressed={active}
+                  className={`rounded-md px-3.5 py-1.5 text-xs font-semibold transition-colors ${
+                    active
+                      ? "bg-magenta text-white shadow-sm"
+                      : "text-navy hover:bg-gray-50"
+                  }`}
+                >
+                  {r.label}
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
 
