@@ -53,18 +53,26 @@ export default function FeaturedDevelopments({ developments }: Props) {
           </p>
         </div>
 
-        {/* Grid */}
+        {/* Carousel en mobile, grid en desktop */}
         <motion.div
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-60px" }}
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+          className="
+            flex overflow-x-auto snap-x snap-mandatory gap-4 pb-4 -mx-4 px-4 no-scrollbar
+            sm:grid sm:grid-cols-2 sm:gap-6 sm:overflow-visible sm:mx-0 sm:px-0 sm:pb-0
+            lg:grid-cols-3
+          "
         >
           {featured.map((dev) => {
             const imageSrc = dev.images.length > 0 ? dev.images[0] : null;
             return (
-              <motion.div key={dev.id} variants={cardVariants}>
+              <motion.div
+                key={dev.id}
+                variants={cardVariants}
+                className="snap-start shrink-0 w-[88%] sm:w-auto"
+              >
                 <Link
                   href={`/emprendimiento/${dev.id}`}
                   className="group flex flex-col rounded-2xl overflow-hidden bg-white/5 border border-white/10 hover:border-magenta/40 transition-all duration-200"

@@ -69,15 +69,18 @@ export default function FeaturedOpportunities({
             hidden: {},
             visible: { transition: { staggerChildren: 0.1 } },
           }}
-          className="grid grid-cols-1 lg:grid-cols-5 gap-6"
+          className="
+            flex overflow-x-auto snap-x snap-mandatory gap-4 pb-4 -mx-4 px-4 no-scrollbar
+            lg:grid lg:grid-cols-5 lg:gap-6 lg:overflow-visible lg:mx-0 lg:px-0 lg:pb-0
+          "
         >
-          {/* Protagonista — 3 de 5 cols (antes era 2/3, ahora 3/5 = ~60%) */}
+          {/* Protagonista — 3 de 5 cols en desktop, 88% en mobile */}
           <motion.div
             variants={{
               hidden: { opacity: 0, y: 24 },
               visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" as const } },
             }}
-            className="lg:col-span-3"
+            className="snap-start shrink-0 w-[88%] lg:w-auto lg:col-span-3"
           >
             <Link
               href={`/propiedad/${hero.id}`}
@@ -128,8 +131,9 @@ export default function FeaturedOpportunities({
             </Link>
           </motion.div>
 
-          {/* Secundarias — 2 de 5 cols, apiladas estirando al alto de la protagonista */}
-          <div className="lg:col-span-2 flex flex-col gap-6 h-full">
+          {/* Secundarias — display:contents en mobile (las cards quedan
+              como hermanas del hero en el flex outer), grid en desktop */}
+          <div className="contents lg:col-span-2 lg:flex lg:flex-col lg:gap-6 lg:h-full">
             {secondaries.map(({ property: p, drop }) => (
               <motion.div
                 key={p.id}
@@ -137,7 +141,7 @@ export default function FeaturedOpportunities({
                   hidden: { opacity: 0, y: 24 },
                   visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" as const } },
                 }}
-                className="flex-1 min-h-[180px]"
+                className="snap-start shrink-0 w-[88%] lg:w-auto lg:flex-1 lg:min-h-[180px]"
               >
                 <Link
                   href={`/propiedad/${p.id}`}

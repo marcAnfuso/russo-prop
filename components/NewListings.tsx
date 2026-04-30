@@ -35,16 +35,24 @@ export default function NewListings({ properties }: { properties: Property[] }) 
           </h2>
         </motion.div>
 
-        {/* Grid */}
+        {/* Carousel en mobile, grid en desktop */}
         <motion.div
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-60px" }}
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto"
+          className="
+            flex overflow-x-auto snap-x snap-mandatory gap-4 pb-4 -mx-4 px-4 no-scrollbar
+            sm:grid sm:grid-cols-2 sm:gap-6 sm:overflow-visible sm:mx-auto sm:px-0 sm:pb-0
+            lg:grid-cols-3 max-w-5xl
+          "
         >
           {properties.map((property) => (
-            <motion.div key={property.id} variants={itemVariants}>
+            <motion.div
+              key={property.id}
+              variants={itemVariants}
+              className="snap-start shrink-0 w-[82%] sm:w-auto"
+            >
               <div className="relative">
                 <span className="absolute -top-2 -right-2 z-30 rounded-full bg-magenta px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white shadow-sm">
                   Nuevo
