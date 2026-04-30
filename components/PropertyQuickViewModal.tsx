@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { ChevronLeft, ChevronRight, X, Maximize2, Home, Droplets, Car } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { ChevronLeft, ChevronRight, X, Maximize2, Home, Droplets, Car, Loader2 } from "lucide-react";
 import type { Property } from "@/data/types";
 import ContactButtons from "@/components/ContactButtons";
 import { formatPrice } from "@/lib/utils";
@@ -105,38 +105,13 @@ export default function PropertyQuickViewModal({
 
         {/* Image Carousel */}
         {images.length > 0 && (
-          <div className="relative bg-gray-100 aspect-video overflow-hidden rounded-t-2xl">
-            <img
-              src={currentImage}
-              alt={`Propiedad ${code}`}
-              className="w-full h-full object-cover"
-            />
-
-            {/* Navigation Arrows */}
-            {images.length > 1 && (
-              <>
-                <button
-                  onClick={goToPrevImage}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white rounded-full p-2 shadow-lg transition-all"
-                  aria-label="Anterior"
-                >
-                  <ChevronLeft className="w-6 h-6 text-navy" />
-                </button>
-                <button
-                  onClick={goToNextImage}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white rounded-full p-2 shadow-lg transition-all"
-                  aria-label="Siguiente"
-                >
-                  <ChevronRight className="w-6 h-6 text-navy" />
-                </button>
-
-                {/* Image Counter */}
-                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/50 text-white px-3 py-1 rounded-full text-sm font-medium">
-                  {currentImageIndex + 1} / {images.length}
-                </div>
-              </>
-            )}
-          </div>
+          <CarouselImage
+            images={images}
+            currentIndex={currentImageIndex}
+            code={code}
+            onPrev={goToPrevImage}
+            onNext={goToNextImage}
+          />
         )}
 
         {/* Content */}
@@ -227,6 +202,115 @@ export default function PropertyQuickViewModal({
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+/**
+ * Carousel del modal · maneja:
+ *  - Preload de la imagen adyacente (next/prev) para que el usuario no
+ *    vea la foto vieja mientras la nueva se descarga.
+ *  - Spinner si la foto actual aún no está cargada.
+ *  - Cross-fade entre fotos para que el cambio se sienta menos brusco.
+ */
+function CarouselImage({
+  images,
+  currentIndex,
+  code,
+  onPrev,
+  onNext,
+}: {
+  images: string[];
+  currentIndex: number;
+  code: string;
+  onPrev: (e: React.MouseEvent) => void;
+  onNext: (e: React.MouseEvent) => void;
+}) {
+  const [loadedSet, setLoadedSet] = useState<Set<string>>(new Set());
+  const preloadRefs = useRef<HTMLImageElement[]>([]);
+
+  const currentImage = images[currentIndex] || images[0];
+  const isLoaded = loadedSet.has(currentImage);
+
+  // Preload adyacentes · cuando cambia el índice, disparamos un Image()
+  // para next y prev. El browser cachea, así que cuando el usuario
+  // realmente avanza, ya está descargada.
+  useEffect(() => {
+    const toPreload: string[] = [];
+    if (images.length > 1) {
+      const next = images[(currentIndex + 1) % images.length];
+      const prev = images[(currentIndex - 1 + images.length) % images.length];
+      if (next) toPreload.push(next);
+      if (prev) toPreload.push(prev);
+    }
+    if (currentImage) toPreload.push(currentImage);
+
+    preloadRefs.current = [];
+    for (const src of toPreload) {
+      if (loadedSet.has(src)) continue;
+      const img = new Image();
+      img.onload = () => {
+        setLoadedSet((prev) => {
+          if (prev.has(src)) return prev;
+          const next = new Set(prev);
+          next.add(src);
+          return next;
+        });
+      };
+      img.src = src;
+      preloadRefs.current.push(img);
+    }
+  }, [currentIndex, images, currentImage, loadedSet]);
+
+  return (
+    <div className="relative bg-gray-100 aspect-video overflow-hidden rounded-t-2xl">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        key={currentImage}
+        src={currentImage}
+        alt={`Propiedad ${code}`}
+        className={`w-full h-full object-cover transition-opacity duration-200 ${
+          isLoaded ? "opacity-100" : "opacity-0"
+        }`}
+        onLoad={() =>
+          setLoadedSet((prev) => {
+            if (prev.has(currentImage)) return prev;
+            const next = new Set(prev);
+            next.add(currentImage);
+            return next;
+          })
+        }
+      />
+
+      {/* Spinner mientras carga · aparece sobre el placeholder gris */}
+      {!isLoaded && (
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <Loader2 className="w-8 h-8 text-navy/40 animate-spin" />
+        </div>
+      )}
+
+      {images.length > 1 && (
+        <>
+          <button
+            onClick={onPrev}
+            className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white rounded-full p-2 shadow-lg transition-all"
+            aria-label="Anterior"
+          >
+            <ChevronLeft className="w-6 h-6 text-navy" />
+          </button>
+          <button
+            onClick={onNext}
+            className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white rounded-full p-2 shadow-lg transition-all"
+            aria-label="Siguiente"
+          >
+            <ChevronRight className="w-6 h-6 text-navy" />
+          </button>
+
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/50 text-white px-3 py-1 rounded-full text-sm font-medium">
+            {currentIndex + 1} / {images.length}
+          </div>
+        </>
+      )}
     </div>
   );
 }
