@@ -37,16 +37,20 @@ export default async function Footer() {
     <footer className="border-t-4 border-navy bg-gray-50 text-gray-700">
       {/* Main footer content */}
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4 text-center sm:text-left">
           {/* Column 1 - Brand */}
           <div>
-            <Link href="/" aria-label="Russo Propiedades - Inicio">
+            <Link
+              href="/"
+              aria-label="Russo Propiedades - Inicio"
+              className="inline-block"
+            >
               <Image
                 src="/images/logo-full.webp"
                 alt="Russo Propiedades"
                 width={1000}
                 height={1200}
-                className="mb-4 h-32 w-auto"
+                className="mb-4 h-32 w-auto mx-auto sm:mx-0"
               />
             </Link>
             <p className="text-sm leading-relaxed text-gray-500">
@@ -61,11 +65,11 @@ export default async function Footer() {
           <div>
             <h3 className="mb-4 text-lg font-semibold text-navy">Contacto</h3>
             <address className="not-italic space-y-3 text-sm">
-              <div className="flex items-start gap-2">
+              <div className="flex items-start gap-2 justify-center sm:justify-start">
                 <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-magenta" aria-hidden="true" />
                 <span>Av. Pte J. D. Peron 3501, San Justo</span>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 justify-center sm:justify-start">
                 <Phone className="h-4 w-4 shrink-0 text-magenta" aria-hidden="true" />
                 <a
                   href="tel:+541150187340"
@@ -75,7 +79,7 @@ export default async function Footer() {
                   +54 11 5018 7340
                 </a>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 justify-center sm:justify-start">
                 <Mail className="h-4 w-4 shrink-0 text-magenta" aria-hidden="true" />
                 <a
                   href="mailto:info@russopropiedades.com.ar"
@@ -99,7 +103,7 @@ export default async function Footer() {
                   <li key={link.label}>
                     <Link
                       href={link.href}
-                      className="inline-flex items-center gap-1 hover:text-magenta hover:translate-x-1 transition-all duration-200"
+                      className="inline-flex items-center gap-1 hover:text-magenta sm:hover:translate-x-1 transition-all duration-200"
                     >
                       {link.label}
                     </Link>
@@ -119,7 +123,7 @@ export default async function Footer() {
                 <li key={property.id}>
                   <Link
                     href={`/propiedad/${property.id}`}
-                    className="flex items-start gap-3 group"
+                    className="flex items-start gap-3 group justify-center sm:justify-start text-left"
                     aria-label={`Ver propiedad: ${property.title}`}
                   >
                     <div className="h-14 w-14 shrink-0 overflow-hidden rounded bg-gray-200">
