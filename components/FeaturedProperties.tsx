@@ -109,12 +109,15 @@ export default function FeaturedProperties({
               >
                 {/* Cinta diagonal "Exclusiva" en la esquina superior izq.
                     Va por encima del card sin invadir contenido. Saltea
-                    el badge de Venta/Alquiler para que no se solape. */}
+                    el badge de Venta/Alquiler para que no se solape. La
+                    banda está centrada sobre la diagonal del container
+                    (top-11 + ancho 40 hace que los extremos caigan en
+                    las esquinas opuestas del cuadrado de 112px). */}
                 <div
                   aria-hidden="true"
                   className="absolute -top-1.5 -left-1.5 z-30 h-28 w-28 overflow-hidden pointer-events-none"
                 >
-                  <div className="absolute top-5 -left-6 w-40 rotate-[-45deg] bg-magenta py-1.5 text-center text-[10px] font-bold uppercase tracking-widest text-white shadow-md">
+                  <div className="absolute top-11 -left-6 w-40 rotate-[-45deg] bg-magenta py-1.5 text-center text-[10px] font-bold uppercase tracking-widest text-white shadow-md">
                     ★ Exclusiva
                   </div>
                 </div>
