@@ -7,6 +7,7 @@ import FeaturedDevelopments from "@/components/FeaturedDevelopments";
 import StatsSection from "@/components/StatsSection";
 import HistoriasMudanza from "@/components/HistoriasMudanza";
 import FeaturedOpportunities from "@/components/FeaturedOpportunities";
+import NewWebsitePopup from "@/components/NewWebsitePopup";
 import { getHomeFeatured, getHomeNewListings } from "@/lib/homepage-lists";
 import { fetchOpportunityProperties } from "@/lib/opportunities";
 import { fetchPublicDevelopments } from "@/lib/xintel-developments";
@@ -95,6 +96,7 @@ async function FeaturedDevelopmentsLoader() {
 export default function Home() {
   return (
     <>
+      <NewWebsitePopup />
       <Hero />
       <StatsSection />
       <Suspense fallback={<FeaturedPropertiesSkeleton />}>
