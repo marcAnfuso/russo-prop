@@ -2,8 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowLeft, BarChart3, Smartphone, Monitor, Tablet, MessageCircle, ChevronRight } from "lucide-react";
 import { getCurrentAdmin } from "@/lib/admin-auth";
-import { listSessions, type SessionRow } from "@/lib/analytics-db";
+import { listSessions, countSessions, type SessionRow } from "@/lib/analytics-db";
 import AdminLogin from "../../AdminLogin";
+
+const PAGE_SIZE = 25;
 
 export const metadata: Metadata = {
   title: "Sesiones · Analytics",
@@ -14,21 +16,27 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 interface PageProps {
-  searchParams: Promise<{ days?: string; contacted?: string }>;
+  searchParams: Promise<{ days?: string; contacted?: string; page?: string }>;
 }
 
 export default async function SessionsPage({ searchParams }: PageProps) {
   const me = await getCurrentAdmin();
   if (!me) return <AdminLogin />;
 
-  const { days: daysParam, contacted } = await searchParams;
+  const { days: daysParam, contacted, page: pageParam } = await searchParams;
   const days = (() => {
     const n = Number(daysParam);
     return Number.isFinite(n) && n > 0 && n <= 365 ? n : 7;
   })();
   const onlyContacted = contacted === "1";
+  const page = Math.max(1, Number(pageParam) || 1);
+  const offset = (page - 1) * PAGE_SIZE;
 
-  const sessions = await listSessions(days, { limit: 100, onlyContacted });
+  const [sessions, total] = await Promise.all([
+    listSessions(days, { limit: PAGE_SIZE, offset, onlyContacted }),
+    countSessions(days, { onlyContacted }),
+  ]);
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   return (
     <main className="min-h-screen bg-gray-50">
@@ -56,8 +64,9 @@ export default async function SessionsPage({ searchParams }: PageProps) {
             Sesiones recientes
           </h1>
           <p className="text-sm text-gray-500 mt-1">
-            Últimos {days} días · {sessions.length} sesiones
+            Últimos {days} días · {total} {total === 1 ? "sesión" : "sesiones"}
             {onlyContacted ? " que contactaron" : ""}
+            {totalPages > 1 ? ` · página ${page} de ${totalPages}` : ""}
           </p>
         </div>
 
@@ -132,8 +141,105 @@ export default async function SessionsPage({ searchParams }: PageProps) {
             </table>
           </div>
         )}
+
+        {totalPages > 1 && (
+          <Pagination
+            page={page}
+            totalPages={totalPages}
+            buildHref={(p) => {
+              const params = new URLSearchParams();
+              params.set("days", String(days));
+              if (onlyContacted) params.set("contacted", "1");
+              if (p > 1) params.set("page", String(p));
+              return `/admin/analytics/sessions?${params.toString()}`;
+            }}
+          />
+        )}
       </div>
     </main>
+  );
+}
+
+function Pagination({
+  page,
+  totalPages,
+  buildHref,
+}: {
+  page: number;
+  totalPages: number;
+  buildHref: (page: number) => string;
+}) {
+  // Mostrar 5 páginas alrededor de la actual: 1 ... 4 5 [6] 7 8 ... 20
+  const pages: (number | "…")[] = [];
+  const window = 1;
+  const add = (n: number | "…") => pages.push(n);
+  for (let i = 1; i <= totalPages; i++) {
+    if (
+      i === 1 ||
+      i === totalPages ||
+      (i >= page - window && i <= page + window)
+    ) {
+      add(i);
+    } else if (
+      (i === page - window - 1 && page - window > 2) ||
+      (i === page + window + 1 && page + window < totalPages - 1)
+    ) {
+      add("…");
+    }
+  }
+
+  return (
+    <nav
+      aria-label="Paginación"
+      className="flex items-center justify-center gap-1.5 flex-wrap"
+    >
+      <Link
+        href={buildHref(Math.max(1, page - 1))}
+        aria-disabled={page === 1}
+        className={`inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
+          page === 1
+            ? "bg-gray-100 text-gray-300 pointer-events-none"
+            : "bg-white border border-gray-200 text-navy hover:border-magenta hover:text-magenta"
+        }`}
+      >
+        ← Anterior
+      </Link>
+      {pages.map((p, i) =>
+        p === "…" ? (
+          <span
+            key={`ellipsis-${i}`}
+            className="px-2 text-gray-400 text-xs"
+            aria-hidden
+          >
+            …
+          </span>
+        ) : (
+          <Link
+            key={p}
+            href={buildHref(p)}
+            aria-current={p === page ? "page" : undefined}
+            className={`inline-flex items-center justify-center min-w-[34px] rounded-lg px-2 py-1.5 text-xs font-semibold transition-colors ${
+              p === page
+                ? "bg-magenta text-white shadow-sm"
+                : "bg-white border border-gray-200 text-navy hover:border-magenta hover:text-magenta"
+            }`}
+          >
+            {p}
+          </Link>
+        )
+      )}
+      <Link
+        href={buildHref(Math.min(totalPages, page + 1))}
+        aria-disabled={page === totalPages}
+        className={`inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
+          page === totalPages
+            ? "bg-gray-100 text-gray-300 pointer-events-none"
+            : "bg-white border border-gray-200 text-navy hover:border-magenta hover:text-magenta"
+        }`}
+      >
+        Siguiente →
+      </Link>
+    </nav>
   );
 }
 

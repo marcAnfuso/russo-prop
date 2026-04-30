@@ -483,6 +483,7 @@ export async function listSessions(
   daysBack: number,
   options: {
     limit?: number;
+    offset?: number;
     onlyContacted?: boolean;
     onlyContactProperties?: boolean;
   } = {}
@@ -490,6 +491,7 @@ export async function listSessions(
   await ensureAnalyticsSchema();
   const db = sql();
   const limit = options.limit ?? 100;
+  const offset = Math.max(0, options.offset ?? 0);
   const onlyContacted = options.onlyContacted ?? false;
 
   // Joineamos sesión con sus eventos para contar y detectar si contactó
@@ -518,9 +520,35 @@ export async function listSessions(
       AND s.is_bot = FALSE
       AND (NOT ${onlyContacted} OR stats.contacted = TRUE)
     ORDER BY s.last_seen DESC
-    LIMIT ${limit}
+    LIMIT ${limit} OFFSET ${offset}
   `) as unknown as SessionRow[];
   return rows;
+}
+
+export async function countSessions(
+  daysBack: number,
+  options: { onlyContacted?: boolean } = {}
+): Promise<number> {
+  await ensureAnalyticsSchema();
+  const db = sql();
+  const onlyContacted = options.onlyContacted ?? false;
+  const rows = (await db`
+    WITH stats AS (
+      SELECT
+        session_id,
+        bool_or(type IN ('contact_click', 'form_submit', 'russia_chat_open')) AS contacted
+      FROM analytics_events
+      WHERE ts >= now() - (${daysBack}::int * INTERVAL '1 day')
+      GROUP BY session_id
+    )
+    SELECT COUNT(*)::int AS n
+    FROM analytics_sessions s
+    LEFT JOIN stats ON stats.session_id = s.id
+    WHERE s.last_seen >= now() - (${daysBack}::int * INTERVAL '1 day')
+      AND s.is_bot = FALSE
+      AND (NOT ${onlyContacted} OR stats.contacted = TRUE)
+  `) as Array<{ n: number }>;
+  return rows[0]?.n ?? 0;
 }
 
 export async function getSession(id: string): Promise<SessionRow | null> {
