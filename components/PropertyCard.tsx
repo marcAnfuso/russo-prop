@@ -125,6 +125,13 @@ export default function PropertyCard({
             }
           }}
         >
+          {!onQuickView && (
+            <Link
+              href={`/propiedad/${id}`}
+              className="absolute inset-0 z-30"
+              aria-label={`Ver propiedad ${code}`}
+            />
+          )}
           {imageSrc ? (
             <Image
               src={imageSrc}
@@ -238,6 +245,13 @@ export default function PropertyCard({
           }
         }}
       >
+        {!onQuickView && (
+          <Link
+            href={`/propiedad/${id}`}
+            className="absolute inset-0 z-30"
+            aria-label={`Ver propiedad ${code}`}
+          />
+        )}
         {imageSrc ? (
           <Image
             src={imageSrc}
