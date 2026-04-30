@@ -144,6 +144,15 @@ export default function PropertyListWithMap({
         <div className="flex gap-6">
           {/* Left: property list */}
           <div className={`w-full transition-[width] duration-300 ease-out ${desktopMapVisible ? "lg:w-[60%]" : "lg:w-full"}`}>
+            {/* Title visible solo en mobile · en desktop ya se identifica
+                la vista por el navbar marcado */}
+            <div className="lg:hidden mb-3 flex items-center gap-2">
+              <span className={`inline-block h-6 w-1 rounded-full ${operationType === "venta" ? "bg-magenta" : "bg-navy"}`} />
+              <h1 className="font-display text-2xl font-bold text-navy">
+                {operationType === "venta" ? "Propiedades en venta" : "Propiedades en alquiler"}
+              </h1>
+            </div>
+
             <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
               <div className="flex items-center gap-3 flex-wrap">
                 <p className="text-sm text-gray-500">

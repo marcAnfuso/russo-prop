@@ -309,6 +309,11 @@ export default function FilterBar({
   /* sort */
   const [sortBy, setSortBy] = useState("recent");
 
+  /* Mobile filters drawer · cuando está cerrado mostramos sólo un
+   * botón "Filtros" en lugar de la fila completa, que en mobile
+   * ocupaba demasiada altura sticky al scrollear. */
+  const [mobileOpen, setMobileOpen] = useState(false);
+
   /* refs */
   const zoneInputRef = useRef<HTMLDivElement>(null);
 
@@ -353,6 +358,17 @@ export default function FilterBar({
     if (conVideo) n++;
     return n;
   }, [ambientes, dormitorios, banos, superficieMin, superficieMax, cochera, antiguedad, selectedAmenities, destacadas, conVideo]);
+
+  /* ---- count ALL active filters (incluye los del row principal) para
+   * el badge del botón "Filtros" en mobile. */
+  const totalActiveCount = useMemo(() => {
+    let n = expandedFilterCount;
+    if (zones.length > 0) n++;
+    if (propertyType) n++;
+    if (priceMin || priceMax) n++;
+    if (currency) n++;
+    return n;
+  }, [expandedFilterCount, zones, propertyType, priceMin, priceMax, currency]);
 
   /* ---- filter + sort logic ---- */
   const applyFilters = useCallback(() => {
@@ -574,8 +590,43 @@ export default function FilterBar({
 
   return (
     <div className="sticky top-[72px] z-30 bg-white/80 backdrop-blur-md border-b border-white/50 shadow-[0_1px_0_rgba(26,34,81,0.04),0_8px_24px_-12px_rgba(26,34,81,0.08)]">
+      {/* Mobile toggle · cuando el row principal está oculto, mostramos
+          un botón compacto "Filtros (X)" que despliega todo */}
+      <div className="sm:hidden mx-auto max-w-7xl px-4 py-2 flex items-center justify-between gap-2">
+        <button
+          type="button"
+          onClick={() => setMobileOpen((v) => !v)}
+          aria-expanded={mobileOpen}
+          aria-controls="filter-bar-mobile"
+          className="inline-flex items-center gap-2 rounded-full border border-navy-100 bg-white px-3.5 py-1.5 text-sm font-semibold text-navy hover:border-magenta hover:text-magenta transition-colors"
+        >
+          <SlidersHorizontal className="h-4 w-4" />
+          Filtros
+          {totalActiveCount > 0 && (
+            <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] rounded-full bg-magenta px-1 text-[10px] font-bold text-white">
+              {totalActiveCount}
+            </span>
+          )}
+          <ChevronDown
+            className={`h-4 w-4 transition-transform duration-200 ${mobileOpen ? "rotate-180" : ""}`}
+          />
+        </button>
+        {totalActiveCount > 0 && !mobileOpen && (
+          <button
+            type="button"
+            onClick={clearAllFilters}
+            className="text-xs text-magenta font-semibold hover:underline"
+          >
+            Limpiar
+          </button>
+        )}
+      </div>
+
       {/* ---- Main filter row ---- */}
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-3">
+      <div
+        id="filter-bar-mobile"
+        className={`mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-3 ${mobileOpen ? "block" : "hidden sm:block"}`}
+      >
         <div className="flex flex-wrap items-center gap-2">
           {/* Zone chips */}
           {zones.map((z) => (
