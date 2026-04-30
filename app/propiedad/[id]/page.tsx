@@ -268,7 +268,7 @@ export default async function PropertyDetailPage({ params }: PageProps) {
           <p className="text-3xl font-bold text-gray-900">
             {property.sold
               ? "Vendida"
-              : `${property.currency === "ARS" ? "$" : "USD"} ${formatPrice(property.price)}${isAlquiler ? "/mes" : ""}`}
+              : `${property.currency === "ARS" ? "$" : "USD"} ${formatPrice(property.price)}`}
           </p>
 
           {/* Features grid */}

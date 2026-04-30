@@ -145,7 +145,6 @@ export default function MapViewInner({
                 <p className="font-semibold text-sm text-gray-900">
                   {openProperty.currency === "ARS" ? "$" : "USD"}{" "}
                   {formatPrice(openProperty.price)}
-                  {openProperty.operation === "alquiler" ? "/mes" : ""}
                 </p>
                 <p className="text-xs text-gray-600 line-clamp-2">
                   {openProperty.address}

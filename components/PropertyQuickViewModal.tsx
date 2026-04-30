@@ -18,17 +18,40 @@ export default function PropertyQuickViewModal({
   onClose,
 }: PropertyQuickViewModalProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [fullImages, setFullImages] = useState<string[] | null>(null);
 
   // Reset image index and lock body scroll when modal opens
   useEffect(() => {
     if (!isOpen) return;
     setCurrentImageIndex(0);
+    setFullImages(null);
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => {
       document.body.style.overflow = prev;
     };
   }, [isOpen]);
+
+  // Lazy fetch · el listing pasa sólo 1 imagen (toListProperty) para no
+  // hinchar el HTML. Cuando se abre el modal traemos las completas.
+  useEffect(() => {
+    if (!isOpen || !property) return;
+    let cancelled = false;
+    fetch(`/api/properties/${property.id}/images`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (cancelled || !data?.images) return;
+        if (Array.isArray(data.images) && data.images.length > 1) {
+          setFullImages(data.images);
+        }
+      })
+      .catch(() => {
+        // silencioso · si falla mostramos sólo la imagen del listing
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [isOpen, property]);
 
   // Close on Escape
   useEffect(() => {
@@ -42,7 +65,8 @@ export default function PropertyQuickViewModal({
 
   if (!isOpen || !property) return null;
 
-  const { code, price, currency, address, locality, district, images, features } = property;
+  const { code, price, currency, address, locality, district, features } = property;
+  const images = fullImages ?? property.images;
   const currencyLabel = currency === "ARS" ? "$" : "USD";
   const priceLabel =
     price === 9999999

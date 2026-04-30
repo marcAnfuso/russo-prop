@@ -65,7 +65,7 @@ export default function PropertyCard({
     ? "Vendida"
     : price === 9999999
     ? "Reservado"
-    : `${currencyLabel} ${formatPrice(price)}${isAlquiler ? "/mes" : ""}`;
+    : `${currencyLabel} ${formatPrice(price)}`;
   const imageSrc = images.length > 0 ? images[0] : null;
   const badgeLabel = subtype ?? COMMERCIAL_TYPE_LABEL[type];
 
