@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { Search, X, ChevronDown, SlidersHorizontal, Check, Star, Video } from "lucide-react";
 import type { Property } from "@/data/types";
 import { useLocalities, rankLocalityMatches } from "@/lib/useLocalities";
@@ -285,6 +286,7 @@ export default function FilterBar({
   initialZones = [],
   initialQuery = "",
 }: FilterBarProps) {
+  const router = useRouter();
   const localities = useLocalities();
   /* ---- filter state ---- */
   const [zones, setZones] = useState<string[]>(initialZones);
@@ -692,21 +694,52 @@ export default function FilterBar({
             </span>
           ))}
 
-          {/* Zone search input */}
+          {/* Search input · acepta zona, calle, barrio o código RUS.
+              Enter dispara una búsqueda inteligente igual que el del home. */}
           <div ref={zoneInputRef} className="relative">
             <div className="flex items-center gap-1.5 rounded-lg border border-navy-100 bg-white px-3 py-2 text-sm focus-within:border-magenta focus-within:ring-1 focus-within:ring-magenta">
               <Search className="h-4 w-4 text-navy-300" />
               <input
                 type="text"
-                placeholder="¿Dónde querés mudarte?"
+                placeholder="Calle, barrio o código RUS"
                 value={zoneQuery}
                 onChange={(e) => {
                   setZoneQuery(e.target.value);
                   setZoneDropdownOpen(true);
                 }}
                 onFocus={() => setZoneDropdownOpen(true)}
-                className="w-44 bg-transparent outline-none placeholder:text-navy-200 text-navy"
-                aria-label="Buscar zona"
+                onKeyDown={(e) => {
+                  if (e.key !== "Enter") return;
+                  e.preventDefault();
+                  const raw = zoneQuery.trim();
+                  if (!raw) return;
+
+                  // Código RUS → al detalle
+                  const rus = raw.match(/^\s*(?:rus)?\s*(\d{4,6})\s*$/i);
+                  if (rus) {
+                    router.push(`/propiedad/${rus[1]}`);
+                    return;
+                  }
+
+                  // Si matchea una zona conocida (case-insensitive,
+                  // primera sugerencia exacta o la única), la elegimos
+                  // como chip · sino, queda como filtro de texto libre.
+                  const norm = (s: string) => s.toLowerCase().trim();
+                  const exact = zoneSuggestions.find(
+                    (loc) => norm(loc.name) === norm(raw)
+                  );
+                  if (exact) {
+                    addZone(exact.name);
+                    return;
+                  }
+
+                  // Texto libre · activa el filtro de búsqueda
+                  setTextQuery(raw);
+                  setZoneQuery("");
+                  setZoneDropdownOpen(false);
+                }}
+                className="w-56 bg-transparent outline-none placeholder:text-navy-200 text-navy"
+                aria-label="Buscar zona, calle o código"
               />
             </div>
 
