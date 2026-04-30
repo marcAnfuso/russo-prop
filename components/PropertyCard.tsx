@@ -23,6 +23,10 @@ interface PropertyCardProps {
   /** Esconde el badge "Venta"/"Alquiler" arriba a la izquierda · útil
    * cuando algo lo pisa (ej. cinta diagonal de Destacadas). */
   hideOperationBadge?: boolean;
+  /** Esconde los botones de Consultar/Phone/Mail · útil en contextos
+   * donde el usuario está en una propiedad y no tiene sentido contactar
+   * por una similar antes de verla (ej. "Propiedades similares"). */
+  hideContactButtons?: boolean;
 }
 
 const COMMERCIAL_TYPE_LABEL: Partial<Record<string, string>> = {
@@ -43,6 +47,7 @@ export default function PropertyCard({
   onQuickView,
   compact = false,
   hideOperationBadge = false,
+  hideContactButtons = false,
 }: PropertyCardProps) {
   const {
     id,
@@ -294,17 +299,19 @@ export default function PropertyCard({
         {featureItems.length > 0 && (
           <ul className="flex flex-wrap gap-x-4 gap-y-1.5">
             {featureItems.map((item) => (
-              <li key={item.key} className="flex items-center gap-1.5 text-xs text-gray-500">
-                <span className="text-navy-300">{item.icon}</span>
+              <li key={item.key} className="flex items-center gap-1.5 text-xs font-medium text-navy">
+                <span className="text-magenta">{item.icon}</span>
                 <span>{item.value}</span>
               </li>
             ))}
           </ul>
         )}
 
-        <div className="relative z-20 flex justify-end pt-2 border-t border-gray-50">
-          <ContactButtons propertyCode={code} size="sm" compact={compact} />
-        </div>
+        {!hideContactButtons && (
+          <div className="relative z-20 flex justify-end pt-2 border-t border-gray-50">
+            <ContactButtons propertyCode={code} size="sm" compact={compact} />
+          </div>
+        )}
       </div>
     </article>
   );
