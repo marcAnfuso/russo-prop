@@ -173,13 +173,12 @@ export default function NosotrosPage() {
           </div>
 
           <div className="grid md:grid-cols-2 gap-6 lg:gap-8">
-            {/* TODO: reemplazar foto por una del frente del local cuando Ramita las pase. */}
             <SedeCard
               tag="Sede histórica"
               name="Pte. J. D. Perón 3501"
               locality="San Justo"
-              image="/images/neighborhoods/san-justo.jpg"
-              imageAlt="Sede de Russo Propiedades en San Justo"
+              image="/images/sedes/san-justo.webp"
+              imageAlt="Frente del local de Russo Propiedades en Av. Perón 3501, San Justo"
               description="Donde empezamos en 1992. La atención del equipo se hace por WhatsApp, mail o coordinando una cita previa."
             />
             <SedeCard
