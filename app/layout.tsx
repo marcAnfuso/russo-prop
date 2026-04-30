@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { Suspense } from "react";
+import NextTopLoader from "nextjs-toploader";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import WhatsAppFAB from "@/components/WhatsAppFAB";
@@ -88,6 +89,13 @@ export default function RootLayout({
         )}
       </head>
       <body>
+        <NextTopLoader
+          color="#e6007e"
+          height={3}
+          showSpinner={false}
+          shadow="0 0 10px #e6007e, 0 0 5px #e6007e"
+          speed={250}
+        />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
