@@ -24,6 +24,22 @@ export default function Gallery({ images, videoUrl, plans, tour360Url, title }: 
   const lightboxRef = useRef<HTMLDivElement>(null);
   const hasImages = images.length > 0;
 
+  // ---------- Lightbox zoom + pan ----------
+  // Zoom simple sin librería · click para zoom in/out, drag para mover.
+  // Reseteamos al cambiar de imagen para no quedar pan-eados en la siguiente.
+  const ZOOM_LEVEL = 2.5;
+  const [zoom, setZoom] = useState(1);
+  const [pan, setPan] = useState({ x: 0, y: 0 });
+  const [origin, setOrigin] = useState({ x: 50, y: 50 });
+  const dragRef = useRef<{ startX: number; startY: number; basePanX: number; basePanY: number } | null>(null);
+  const movedRef = useRef(false);
+
+  const resetZoom = useCallback(() => {
+    setZoom(1);
+    setPan({ x: 0, y: 0 });
+    setOrigin({ x: 50, y: 50 });
+  }, []);
+
   // ---------- Navigation helpers ----------
 
   const goTo = useCallback(
@@ -34,18 +50,28 @@ export default function Gallery({ images, videoUrl, plans, tour360Url, title }: 
     [hasImages, images.length],
   );
 
-  const goPrev = useCallback(() => goTo(currentIndex - 1), [goTo, currentIndex]);
-  const goNext = useCallback(() => goTo(currentIndex + 1), [goTo, currentIndex]);
+  const goPrev = useCallback(() => {
+    resetZoom();
+    goTo(currentIndex - 1);
+  }, [goTo, currentIndex, resetZoom]);
+  const goNext = useCallback(() => {
+    resetZoom();
+    goTo(currentIndex + 1);
+  }, [goTo, currentIndex, resetZoom]);
 
   // ---------- Lightbox ----------
 
   const openLightbox = (index?: number) => {
     if (!hasImages) return;
     if (index !== undefined) setCurrentIndex(index);
+    resetZoom();
     setLightboxOpen(true);
   };
 
-  const closeLightbox = useCallback(() => setLightboxOpen(false), []);
+  const closeLightbox = useCallback(() => {
+    resetZoom();
+    setLightboxOpen(false);
+  }, [resetZoom]);
 
   // Keyboard navigation in lightbox
   useEffect(() => {
@@ -559,19 +585,140 @@ export default function Gallery({ images, videoUrl, plans, tour360Url, title }: 
             <ChevronLeft className="w-7 h-7" />
           </button>
 
-          {/* Image */}
+          {/* Image · zoom + pan
+              Click → toggle zoom in/out con origen en el punto clickeado.
+              Drag (mouse o touch) → mover cuando está zoomed.
+              Doble-tap funciona naturalmente como dos clicks.
+              touch-action: none para que iOS no interprete el drag como
+              scroll de página. */}
           <div
-            className="relative w-full max-w-5xl mx-8 aspect-video"
+            className="relative w-full max-w-5xl mx-8 aspect-video overflow-hidden select-none"
+            style={{ touchAction: "none" }}
             onClick={(e) => e.stopPropagation()}
+            onMouseDown={(e) => {
+              if (zoom <= 1) return;
+              dragRef.current = {
+                startX: e.clientX,
+                startY: e.clientY,
+                basePanX: pan.x,
+                basePanY: pan.y,
+              };
+              movedRef.current = false;
+            }}
+            onMouseMove={(e) => {
+              if (!dragRef.current) return;
+              const dx = e.clientX - dragRef.current.startX;
+              const dy = e.clientY - dragRef.current.startY;
+              if (Math.abs(dx) > 3 || Math.abs(dy) > 3) movedRef.current = true;
+              setPan({
+                x: dragRef.current.basePanX + dx,
+                y: dragRef.current.basePanY + dy,
+              });
+            }}
+            onMouseUp={() => {
+              dragRef.current = null;
+            }}
+            onMouseLeave={() => {
+              dragRef.current = null;
+            }}
+            onTouchStart={(e) => {
+              if (zoom <= 1) return;
+              const t = e.touches[0];
+              dragRef.current = {
+                startX: t.clientX,
+                startY: t.clientY,
+                basePanX: pan.x,
+                basePanY: pan.y,
+              };
+              movedRef.current = false;
+            }}
+            onTouchMove={(e) => {
+              if (!dragRef.current) return;
+              const t = e.touches[0];
+              const dx = t.clientX - dragRef.current.startX;
+              const dy = t.clientY - dragRef.current.startY;
+              if (Math.abs(dx) > 3 || Math.abs(dy) > 3) movedRef.current = true;
+              setPan({
+                x: dragRef.current.basePanX + dx,
+                y: dragRef.current.basePanY + dy,
+              });
+            }}
+            onTouchEnd={() => {
+              dragRef.current = null;
+            }}
           >
-            <Image
-              src={images[currentIndex]}
-              alt={`${title} - imagen ${currentIndex + 1}`}
-              fill
-              sizes="100vw"
-              className="object-contain"
-              priority
-            />
+            <div
+              className="absolute inset-0 cursor-zoom-in"
+              style={{
+                transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
+                transformOrigin: `${origin.x}% ${origin.y}%`,
+                transition: dragRef.current ? "none" : "transform 0.2s ease-out",
+                cursor: zoom > 1 ? (dragRef.current ? "grabbing" : "grab") : "zoom-in",
+              }}
+              onClick={(e) => {
+                e.stopPropagation();
+                // Si el usuario arrastró, no toggleamos zoom.
+                if (movedRef.current) {
+                  movedRef.current = false;
+                  return;
+                }
+                if (zoom > 1) {
+                  resetZoom();
+                  return;
+                }
+                const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+                const px = ((e.clientX - rect.left) / rect.width) * 100;
+                const py = ((e.clientY - rect.top) / rect.height) * 100;
+                setOrigin({ x: px, y: py });
+                setPan({ x: 0, y: 0 });
+                setZoom(ZOOM_LEVEL);
+              }}
+            >
+              <Image
+                src={images[currentIndex]}
+                alt={`${title} - imagen ${currentIndex + 1}`}
+                fill
+                sizes="100vw"
+                className="object-contain pointer-events-none"
+                priority
+                draggable={false}
+              />
+            </div>
+          </div>
+
+          {/* Zoom controls */}
+          <div className="absolute top-4 left-4 z-10 flex items-center gap-1.5 bg-black/60 text-white rounded-full px-2 py-1">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (zoom <= 1) return;
+                resetZoom();
+              }}
+              aria-label="Alejar"
+              className="p-1 hover:text-magenta-300 disabled:opacity-40"
+              disabled={zoom <= 1}
+            >
+              <ZoomOut className="w-4 h-4" />
+            </button>
+            <span className="text-[11px] font-mono tabular-nums w-10 text-center">
+              {Math.round(zoom * 100)}%
+            </span>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (zoom >= ZOOM_LEVEL) return;
+                setOrigin({ x: 50, y: 50 });
+                setPan({ x: 0, y: 0 });
+                setZoom(ZOOM_LEVEL);
+              }}
+              aria-label="Acercar"
+              className="p-1 hover:text-magenta-300 disabled:opacity-40"
+              disabled={zoom >= ZOOM_LEVEL}
+            >
+              <ZoomIn className="w-4 h-4" />
+            </button>
           </div>
 
           {/* Next arrow */}
