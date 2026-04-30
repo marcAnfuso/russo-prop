@@ -10,7 +10,7 @@ import {
   Car,
   Calendar,
 } from "lucide-react";
-import { fetchProperty, fetchPropertyIds } from "@/lib/xintel";
+import { fetchProperty } from "@/lib/xintel";
 import { listPicks } from "@/lib/picks";
 import type { Property } from "@/data/types";
 import { formatPrice } from "@/lib/utils";
@@ -27,21 +27,12 @@ import Breadcrumb from "@/components/Breadcrumb";
 import SimilarProperties from "@/components/SimilarProperties";
 import { fetchProperties } from "@/lib/xintel";
 
-// Pre-genera ids para algunas páginas en build · si Xintel hace
-// timeout (build de Vercel tiene 10s por fetch), devolvemos [] y las
-// páginas se renderizan dinámicamente al primer request.
-export async function generateStaticParams() {
-  try {
-    const ids = await fetchPropertyIds();
-    return ids.map((id) => ({ id }));
-  } catch {
-    return [];
-  }
-}
-
-// Las páginas no pre-generadas se renderizan on-demand sin romper el
-// build. La caché interna del fetch (revalidate:60) sigue funcionando.
-export const dynamicParams = true;
+// Render dinámico · prerender'ar las ~700 propiedades en build agota
+// el tiempo de Vercel (cada una hace fetch al detalle de Xintel y
+// hay 60s por página). Render on-demand con caché de 60s en el fetch
+// interno · el primer request "calienta" la caché y los siguientes
+// son rápidos.
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
