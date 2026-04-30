@@ -439,16 +439,21 @@ export async function getScrollDepthDistribution(daysBack: number): Promise<
   }));
 }
 
-/** Distribución por canal de contact_click (wpp / phone / email). */
+/** Distribución por canal de contacto: clicks (wpp / phone / email)
+ * + form_submit (formulario web). Cada form_submit cuenta como un
+ * lead vía "formulario". */
 export async function getContactBreakdown(daysBack: number): Promise<TopItem[]> {
   await ensureAnalyticsSchema();
   const db = sql();
   const rows = (await db`
     SELECT
-      COALESCE(metadata->>'channel', 'otro') AS key,
+      CASE
+        WHEN type = 'form_submit' THEN 'formulario'
+        ELSE COALESCE(metadata->>'channel', 'otro')
+      END AS key,
       COUNT(*)::int AS count
     FROM analytics_events
-    WHERE type = 'contact_click'
+    WHERE type IN ('contact_click', 'form_submit')
       AND ts >= now() - (${daysBack}::int * INTERVAL '1 day')
     GROUP BY 1
     ORDER BY count DESC

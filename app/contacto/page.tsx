@@ -3,6 +3,7 @@
 import { useState, FormEvent } from "react";
 import { MapPin, Mail, Phone } from "lucide-react";
 import MapView from "@/components/MapView";
+import { track } from "@/lib/analytics-client";
 
 interface Office {
   id: string;
@@ -115,6 +116,9 @@ export default function ContactoPage() {
       });
 
       if (!res.ok) throw new Error("Error al enviar");
+      track("form_submit", {
+        metadata: { form: "contact_page", type: "contacto", channel: "email" },
+      });
       setSubmitted(true);
     } catch {
       setSubmitError("No se pudo enviar el mensaje. Intentá de nuevo.");

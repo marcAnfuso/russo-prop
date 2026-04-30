@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Search, Star, Sparkles, X, LogOut, CheckCircle2, HelpCircle, BarChart3, Bell, ListOrdered } from "lucide-react";
+import { Search, Star, Sparkles, X, LogOut, CheckCircle2, HelpCircle, BarChart3, Bell, ListOrdered, Inbox } from "lucide-react";
 import { formatPrice } from "@/lib/utils";
 import MediaPicksPanel, { type MediaPick } from "./MediaPicksPanel";
 import UsersPanel from "./UsersPanel";
@@ -147,6 +147,13 @@ export default function AdminConsole({
             >
               <BarChart3 className="h-3.5 w-3.5" />
               Analytics
+            </Link>
+            <Link
+              href="/admin/leads"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-white/20 px-3 py-1.5 text-xs font-semibold hover:bg-white/10 transition-colors"
+            >
+              <Inbox className="h-3.5 w-3.5" />
+              Leads
             </Link>
             <Link
               href="/admin/alerts"

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sendContactEmails, type ContactPayload } from "@/lib/contact-email";
+import { createLead } from "@/lib/leads-db";
 
 export async function POST(req: NextRequest) {
   try {
@@ -18,6 +19,25 @@ export async function POST(req: NextRequest) {
         { error: "Tipo de consulta inválido" },
         { status: 400 }
       );
+    }
+
+    // Persistir lead en DB · si la DB falla, no rompemos la UX al
+    // usuario; el mail va igual y el admin debería notar el error.
+    const sourcePath = req.headers.get("referer") || null;
+    const userAgent = req.headers.get("user-agent") || null;
+    try {
+      await createLead({
+        type: body.type,
+        name: body.name,
+        email: body.email,
+        phone: body.phone,
+        message: body.message,
+        propertyCode: body.propertyCode,
+        sourcePath: sourcePath || undefined,
+        userAgent: userAgent || undefined,
+      });
+    } catch (err) {
+      console.error("[contact] persist lead error:", err);
     }
 
     // Manda el email a info@ y acuse al usuario · si no hay
