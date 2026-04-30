@@ -33,6 +33,7 @@ export default function PropertyListWithMap({
   const initialPropertyType = searchParams.get("type") || "";
   const initialZonesParam = searchParams.get("zones");
   const initialZones = initialZonesParam ? initialZonesParam.split(",") : [];
+  const initialQuery = searchParams.get("q") || "";
 
   // Criterion para la alerta · construido desde la URL
   const alertCriterion: AlertCriterion = useMemo(() => {
@@ -92,6 +93,10 @@ export default function PropertyListWithMap({
       if (filters.zones.length > 0) {
         params.set("zones", filters.zones.join(","));
       }
+      // Preservar `q` si vino del SearchBar del home · sino el URL
+      // sync borraría el filtro de texto al primer render.
+      const currentQ = new URLSearchParams(window.location.search).get("q");
+      if (currentQ) params.set("q", currentQ);
       const newUrl = params.toString() ? `${basePath}?${params.toString()}` : basePath;
       const currentUrl = window.location.pathname + window.location.search;
       if (currentUrl !== newUrl) {
@@ -138,6 +143,7 @@ export default function PropertyListWithMap({
         operationType={operationType}
         initialPropertyType={initialPropertyType}
         initialZones={initialZones}
+        initialQuery={initialQuery}
       />
 
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6">

@@ -44,6 +44,9 @@ interface FilterBarProps {
   operationType?: "venta" | "alquiler";
   initialPropertyType?: string;
   initialZones?: string[];
+  /** Búsqueda libre por calle/dirección/locality (texto que viene del
+   * input del home cuando no es código RUS ni zona conocida). */
+  initialQuery?: string;
 }
 
 /* ------------------------------------------------------------------ */
@@ -280,6 +283,7 @@ export default function FilterBar({
   onFilterStateChange,
   initialPropertyType = "",
   initialZones = [],
+  initialQuery = "",
 }: FilterBarProps) {
   const localities = useLocalities();
   /* ---- filter state ---- */
@@ -308,6 +312,10 @@ export default function FilterBar({
 
   /* sort */
   const [sortBy, setSortBy] = useState("recent");
+
+  /* Búsqueda libre · viene del SearchBar del home cuando el user
+   * tipea calle/barrio/dirección que no matchea zona conocida. */
+  const [textQuery, setTextQuery] = useState(initialQuery);
 
   /* Mobile filters drawer · cuando está cerrado mostramos sólo un
    * botón "Filtros" en lugar de la fila completa, que en mobile
@@ -367,8 +375,9 @@ export default function FilterBar({
     if (propertyType) n++;
     if (priceMin || priceMax) n++;
     if (currency) n++;
+    if (textQuery.trim()) n++;
     return n;
-  }, [expandedFilterCount, zones, propertyType, priceMin, priceMax, currency]);
+  }, [expandedFilterCount, zones, propertyType, priceMin, priceMax, currency, textQuery]);
 
   /* ---- filter + sort logic ---- */
   const applyFilters = useCallback(() => {
@@ -482,6 +491,24 @@ export default function FilterBar({
       result = result.filter((p) => !!p.videoUrl);
     }
 
+    // text query · matchea contra address, locality, district y code
+    // (case-insensitive, sin acentos). Soporta búsquedas libres del
+    // SearchBar del home (calle, barrio, código RUS).
+    if (textQuery.trim()) {
+      const norm = (s: string) =>
+        s
+          .toLowerCase()
+          .normalize("NFD")
+          .replace(/[̀-ͯ]/g, "");
+      const q = norm(textQuery.trim());
+      result = result.filter((p) => {
+        const haystack = norm(
+          [p.address, p.locality, p.district, p.code].filter(Boolean).join(" ")
+        );
+        return haystack.includes(q);
+      });
+    }
+
     // sort
     if (sortBy === "price-asc") {
       result.sort((a, b) => a.price - b.price);
@@ -507,6 +534,7 @@ export default function FilterBar({
     selectedAmenities,
     destacadas,
     conVideo,
+    textQuery,
     sortBy,
     onFilterChange,
   ]);
@@ -559,6 +587,7 @@ export default function FilterBar({
     setSelectedAmenities(new Set());
     setDestacadas(false);
     setConVideo(false);
+    setTextQuery("");
   };
 
   const hasAnyFilter =
@@ -628,6 +657,23 @@ export default function FilterBar({
         className={`mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-3 ${mobileOpen ? "block" : "hidden sm:block"}`}
       >
         <div className="flex flex-wrap items-center gap-2">
+          {/* Search query chip · viene del SearchBar del home con texto
+              libre (calle/dirección) que no matcheó zona conocida. */}
+          {textQuery.trim() && (
+            <span className="inline-flex items-center gap-1 rounded-full bg-magenta-50 px-3 py-1 text-sm font-medium text-magenta">
+              <Search className="h-3 w-3" />
+              <span className="truncate max-w-[180px]">&ldquo;{textQuery}&rdquo;</span>
+              <button
+                type="button"
+                onClick={() => setTextQuery("")}
+                aria-label={`Quitar búsqueda ${textQuery}`}
+                className="ml-0.5 rounded-full p-0.5 hover:bg-magenta-100 transition-colors"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </span>
+          )}
+
           {/* Zone chips */}
           {zones.map((z) => (
             <span

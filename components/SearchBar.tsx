@@ -121,6 +121,21 @@ export default function SearchBar({
   }, []);
 
   const handleSearch = useCallback(() => {
+    const rawQuery = query.trim();
+
+    // ¿Es un código RUS? · "RUS10989", "rus 10989", "10989" sólo si el
+    // user pareciera tipearlo así (5+ dígitos sin contexto). Para evitar
+    // falsos positivos con números de calle (ej. "Salta 2700"), sólo
+    // tratamos como RUS cuando matchea explícitamente.
+    const rusMatch = rawQuery.match(/^\s*(?:rus)?\s*(\d{4,6})\s*$/i);
+    if (rusMatch) {
+      track("search", {
+        metadata: { operation, query: rawQuery, from: variant, target: "rus" },
+      });
+      router.push(`/propiedad/${rusMatch[1]}`);
+      return;
+    }
+
     const basePath = operation === "comprar" ? "/ventas" : "/alquileres";
     const params = new URLSearchParams();
     if (selectedZones.length > 0) {
@@ -131,17 +146,23 @@ export default function SearchBar({
       // selections from the hero survive the navigation.
       params.set("type", selectedTypes.join(","));
     }
+    // Texto libre (calle, barrio que no matcheó zona, etc.) viaja como
+    // `q` y FilterBar lo aplica como búsqueda en address/locality.
+    if (rawQuery && selectedZones.length === 0) {
+      params.set("q", rawQuery);
+    }
     const qs = params.toString();
     track("search", {
       metadata: {
         operation,
         zones: selectedZones,
         types: selectedTypes,
+        query: rawQuery || undefined,
         from: variant,
       },
     });
     router.push(qs ? `${basePath}?${qs}` : basePath);
-  }, [operation, selectedZones, selectedTypes, router, variant]);
+  }, [operation, selectedZones, selectedTypes, query, router, variant]);
 
   const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Escape") {
@@ -163,8 +184,11 @@ export default function SearchBar({
     if (e.key === "Enter") {
       e.preventDefault();
       if (activeIndex >= 0 && activeIndex < suggestions.length) {
+        // El user navegó con flechas a una sugerencia · la elegimos
         selectZone(suggestions[activeIndex].name);
-      } else if (suggestions.length === 0 && query.trim() === "") {
+      } else {
+        // Sino, disparamos la búsqueda con lo que tipeó (puede ser
+        // código RUS, calle, barrio fuera del catálogo, o vacío).
         handleSearch();
       }
       return;
