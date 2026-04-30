@@ -19,6 +19,11 @@ export const metadata: Metadata = {
   alternates: { canonical: "https://russo-prop.vercel.app" },
 };
 
+// Render dinámico · Vercel se queda sin tiempo (10s) prerender'ando
+// las queries a Xintel. El fetch interno tiene revalidate:60 así que
+// igual hay caché del lado del server.
+export const dynamic = "force-dynamic";
+
 async function FeaturedPropertiesLoader() {
   const featured = await getHomeFeatured(12);
   return <FeaturedProperties properties={featured} />;

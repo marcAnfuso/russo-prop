@@ -13,6 +13,11 @@ export const metadata = {
   },
 };
 
+// Render dinámico · evita timeouts de Xintel durante el build (Vercel
+// tenía 10s para prerender estáticamente y a veces no alcanzaba). El
+// fetch interno tiene revalidate:60, así que igual hay caché.
+export const dynamic = "force-dynamic";
+
 async function AlquileresContent() {
   const [properties, soldIds] = await Promise.all([
     fetchAllProperties("alquiler"),

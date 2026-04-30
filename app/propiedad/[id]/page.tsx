@@ -27,10 +27,21 @@ import Breadcrumb from "@/components/Breadcrumb";
 import SimilarProperties from "@/components/SimilarProperties";
 import { fetchProperties } from "@/lib/xintel";
 
+// Pre-genera ids para algunas páginas en build · si Xintel hace
+// timeout (build de Vercel tiene 10s por fetch), devolvemos [] y las
+// páginas se renderizan dinámicamente al primer request.
 export async function generateStaticParams() {
-  const ids = await fetchPropertyIds();
-  return ids.map((id) => ({ id }));
+  try {
+    const ids = await fetchPropertyIds();
+    return ids.map((id) => ({ id }));
+  } catch {
+    return [];
+  }
 }
+
+// Las páginas no pre-generadas se renderizan on-demand sin romper el
+// build. La caché interna del fetch (revalidate:60) sigue funcionando.
+export const dynamicParams = true;
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
