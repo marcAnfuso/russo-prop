@@ -1,8 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
 import { MapPin, Phone, Mail, Facebook, Instagram } from "lucide-react";
-import { fetchAllProperties } from "@/lib/xintel";
-import type { Property } from "@/data/types";
 
 const utilityLinks = [
   { label: "Ventas", href: "/ventas" },
@@ -14,30 +12,13 @@ const utilityLinks = [
   { label: "Oficinas", href: "/ventas" },
 ];
 
-/**
- * Las 3 propiedades con id más alto (los códigos RUS son incrementales,
- * así que id desc = últimas que entraron al inventario). Si Xintel
- * falla, devolvemos vacío para no romper el footer.
- */
-async function getLatestProperties(): Promise<Property[]> {
-  try {
-    const all = await fetchAllProperties();
-    return [...all]
-      .sort((a, b) => Number(b.id) - Number(a.id))
-      .slice(0, 3);
-  } catch {
-    return [];
-  }
-}
-
-export default async function Footer() {
-  const latestProperties = await getLatestProperties();
+export default function Footer() {
 
   return (
     <footer className="border-t-4 border-navy bg-gray-50 text-gray-700">
       {/* Main footer content */}
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4 text-center sm:text-left">
+        <div className="grid grid-cols-1 gap-8 sm:grid-cols-3 text-center sm:text-left">
           {/* Column 1 - Brand */}
           <div>
             <Link
@@ -113,47 +94,13 @@ export default async function Footer() {
             </nav>
           </div>
 
-          {/* Column 4 - Últimas Propiedades */}
-          <div>
-            <h3 className="mb-4 text-lg font-semibold text-navy">
-              Últimas Propiedades
-            </h3>
-            <ul className="space-y-3">
-              {latestProperties.map((property) => (
-                <li key={property.id}>
-                  <Link
-                    href={`/propiedad/${property.id}`}
-                    className="flex items-start gap-3 group justify-center sm:justify-start text-left"
-                    aria-label={`Ver propiedad: ${property.title}`}
-                  >
-                    <div className="h-14 w-14 shrink-0 overflow-hidden rounded bg-gray-200">
-                      <Image
-                        src={property.images[0] ?? "/images/logo-placeholder.svg"}
-                        alt={property.title}
-                        width={56}
-                        height={56}
-                        className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
-                      />
-                    </div>
-                    <div className="text-sm">
-                      <p className="font-bold leading-tight group-hover:text-magenta transition-colors">
-                        {property.title}
-                      </p>
-                      <p className="text-gray-500">{property.locality}</p>
-                      <p className="text-xs text-gray-400">{property.code}</p>
-                    </div>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
         </div>
       </div>
 
       {/* Bottom bar */}
       <div className="border-t border-gray-200 bg-white">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-4 py-4 sm:flex-row sm:px-6 lg:px-8">
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-gray-500 text-center sm:text-left">
             &copy; 2026 Russo Propiedades. Todos los derechos reservados. ·{" "}
             <Link
               href="/creditos"
