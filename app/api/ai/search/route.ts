@@ -1,14 +1,29 @@
 import { NextRequest, NextResponse } from "next/server";
-import { Type } from "@google/genai";
+import { Type, type FunctionDeclaration } from "@google/genai";
 import { gemini, FLASH_MODEL } from "@/lib/gemini";
-import { searchProperties, type SearchFilters } from "@/lib/property-search";
+import {
+  searchProperties,
+  searchPropertiesNear,
+  type SearchFilters,
+  type NearSearchInput,
+} from "@/lib/property-search";
 import type { Property } from "@/data/types";
+import { listPOILabels } from "@/lib/pois";
 
 export const maxDuration = 30;
 
+const POI_LIST = listPOILabels().join(", ");
+
 const SYSTEM = `Sos Russia, la asistente de IA de Russo Propiedades, una inmobiliaria de zona oeste (Buenos Aires, Argentina) con más de 30 años de experiencia.
 
-Tu trabajo es ayudar al usuario a encontrar la propiedad ideal en el catálogo de Russo. Cuando describa lo que busca (compra/alquiler, zona, ambientes, presupuesto, características), llamás a la función search_properties con los filtros que extraigas.
+Tu trabajo es ayudar al usuario a encontrar la propiedad ideal en el catálogo de Russo. Tenés DOS herramientas:
+
+1. **search_properties**: búsqueda general por filtros (operación, zona, precio, ambientes, etc).
+2. **search_properties_near**: búsqueda geo-espacial. **Usá esta cuando el usuario mencione un punto de referencia** ("cerca de la estación de Ramos", "a X cuadras del hospital Paroissien", "cerca de UNLaM", "próximo a Av. Perón 3500"). Combina el punto con todos los demás filtros normales.
+
+PUNTOS DE INTERÉS conocidos (zona oeste · siempre disponibles para search_properties_near sin costo extra): ${POI_LIST}.
+
+Si el punto NO está en esa lista (ej. "cerca del Starbucks de Ramos", "a 3 cuadras de tal calle específica"), igual usá search_properties_near · el sistema hace fallback a geocodificación.
 
 REGLAS DE EXTRACCIÓN DE FILTROS:
 - "Comprar" / "venta" / "compra" → operation: "venta"
@@ -91,8 +106,40 @@ function toCard(p: Property): PropertyCard {
   };
 }
 
-const SEARCH_TOOL = {
+const SEARCH_TOOL: { functionDeclarations: FunctionDeclaration[] } = {
   functionDeclarations: [
+    {
+      name: "search_properties_near",
+      description:
+        "Busca propiedades CERCA de un punto de referencia (estación, plaza, hospital, dirección concreta, calle específica). Usalo cuando el usuario mencione 'cerca de X', 'a Y cuadras de Z', 'próximo a', etc. Combinable con todos los filtros normales (precio, ambientes, tipo).",
+      parameters: {
+        type: Type.OBJECT,
+        properties: {
+          referencePoint: {
+            type: Type.STRING,
+            description:
+              "Punto de referencia textual ('estación de Ramos Mejía', 'plaza San Justo', 'UNLaM', 'Av. Perón 3500', etc).",
+          },
+          radiusMeters: {
+            type: Type.NUMBER,
+            description:
+              "Radio de búsqueda en metros. Default 1500 (~12 cuadras). 1 cuadra ≈ 100m. Para 'a 5 cuadras' usar 500.",
+          },
+          operation: { type: Type.STRING, enum: ["venta", "alquiler"] },
+          types: { type: Type.ARRAY, items: { type: Type.STRING } },
+          priceMax: { type: Type.NUMBER },
+          priceMin: { type: Type.NUMBER },
+          priceCurrency: { type: Type.STRING, enum: ["USD", "ARS"] },
+          roomsMin: { type: Type.NUMBER },
+          bedroomsMin: { type: Type.NUMBER },
+          bathroomsMin: { type: Type.NUMBER },
+          hasGarage: { type: Type.BOOLEAN },
+          hasVideo: { type: Type.BOOLEAN },
+          amenities: { type: Type.ARRAY, items: { type: Type.STRING } },
+        },
+        required: ["referencePoint"],
+      },
+    },
     {
       name: "search_properties",
       description:
@@ -206,9 +253,13 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // Ejecutar la búsqueda
-    const filters = (fnCall.args ?? {}) as SearchFilters;
-    const result = await searchProperties(filters, 5);
+    // Ejecutar la búsqueda · routing por nombre de la función
+    const args = (fnCall.args ?? {}) as Record<string, unknown>;
+    const result =
+      fnCall.name === "search_properties_near"
+        ? await searchPropertiesNear(args as unknown as NearSearchInput, 5)
+        : await searchProperties(args as SearchFilters, 5);
+    const filters = args;
 
     // Segundo call · le pasamos los resultados a Gemini para que
     // componga la respuesta final natural
@@ -225,11 +276,17 @@ export async function POST(req: NextRequest) {
           parts: [
             {
               functionResponse: {
-                name: "search_properties",
+                name: fnCall.name ?? "search_properties",
                 response: {
                   total: result.total,
                   shown: result.matches.length,
                   hint: result.hint,
+                  reference_point: result.referencePoint
+                    ? {
+                        label: result.referencePoint.label,
+                        source: result.referencePoint.source,
+                      }
+                    : undefined,
                   matches: result.matches.map((p) => ({
                     code: p.code,
                     type: p.type,
@@ -242,6 +299,7 @@ export async function POST(req: NextRequest) {
                     bedrooms: p.features.bedrooms,
                     bathrooms: p.features.bathrooms,
                     garage: p.features.garage,
+                    distance_meters: result.distancesById?.[p.id] ?? null,
                   })),
                   filters_applied: filters,
                 },
@@ -259,6 +317,17 @@ export async function POST(req: NextRequest) {
 
     const finalText = (followUp.text ?? "").trim();
 
+    const cards = result.matches.map(toCard);
+    // Sumarle la distancia a cada card si la búsqueda fue geo-espacial
+    if (result.distancesById) {
+      for (const c of cards) {
+        const d = result.distancesById[c.id];
+        if (typeof d === "number") {
+          (c as PropertyCard & { distanceMeters?: number }).distanceMeters = d;
+        }
+      }
+    }
+
     return NextResponse.json({
       ok: true,
       answer:
@@ -266,9 +335,10 @@ export async function POST(req: NextRequest) {
         (result.matches.length > 0
           ? `Encontré ${result.matches.length} propiedades que matchean.`
           : "No encontré propiedades con esos criterios. ¿Querés flexibilizar algo (zona, presupuesto)?"),
-      properties: result.matches.map(toCard),
+      properties: cards,
       filters,
       total: result.total,
+      referencePoint: result.referencePoint,
     });
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);

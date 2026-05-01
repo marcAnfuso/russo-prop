@@ -21,6 +21,7 @@ interface PropertyCard {
   garage: number | null;
   totalArea: number | null;
   image: string | null;
+  distanceMeters?: number;
 }
 
 type ChatRole = "user" | "model";
@@ -32,15 +33,25 @@ interface ChatMessage {
 }
 
 const SUGGESTIONS = [
-  "Busco depto en Ramos Mejía, 2 ambientes, hasta USD 100.000",
+  "Departamento cerca de la estación de Ramos, 2 amb, hasta USD 100.000",
   "Casa en venta en San Justo con cochera",
-  "Alquiler de departamento bajo $500.000 en La Matanza",
-  "Locales comerciales en Haedo o Morón",
+  "Algo a 5 cuadras de la UNLaM",
+  "Alquiler de depto en Ramos Mejía bajo $500.000",
 ];
 
 function formatPrice(n: number): string {
   if (n >= 9999999) return "Reservado";
   return new Intl.NumberFormat("es-AR").format(n);
+}
+
+function formatDistance(meters: number): string {
+  if (meters < 100) return `${meters} m`;
+  if (meters < 1000) {
+    // Redondeo a múltiplos de 50m → "350 m", "650 m"
+    const rounded = Math.round(meters / 50) * 50;
+    return `${rounded} m`;
+  }
+  return `${(meters / 1000).toFixed(1).replace(".", ",")} km`;
 }
 
 export default function RussiaSearchChat() {
@@ -272,6 +283,11 @@ function PropertyResultCard({ property: p }: { property: PropertyCard }) {
           <p className="text-[11px] text-gray-400 flex items-center gap-1 truncate mb-1.5">
             <MapPin className="h-3 w-3 inline" />
             {p.locality}
+            {typeof p.distanceMeters === "number" && (
+              <span className="ml-1 inline-flex items-center rounded-full bg-magenta/10 text-magenta px-1.5 py-0.5 text-[10px] font-bold">
+                a {formatDistance(p.distanceMeters)}
+              </span>
+            )}
           </p>
           <div className="flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-navy font-medium">
             {p.totalArea ? (
