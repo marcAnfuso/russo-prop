@@ -133,7 +133,97 @@ export const POIS: Record<string, POI> = {
     aliases: ["utn", "utn san justo", "utn buenos aires"],
   },
 
-  // ── Aeropuertos / accesos importantes ─────────────────────────────────
+  // ── Universidades adicionales ─────────────────────────────────────────
+  untref_caseros: {
+    lat: -34.6052,
+    lng: -58.5631,
+    label: "UNTREF (Universidad Nacional de Tres de Febrero)",
+    aliases: ["untref", "universidad tres de febrero", "tres de febrero"],
+  },
+
+  // ── Plazas y centros adicionales ──────────────────────────────────────
+  plaza_haedo: {
+    lat: -34.6450,
+    lng: -58.5910,
+    label: "Plaza Haedo",
+    aliases: ["plaza haedo", "centro haedo"],
+  },
+  plaza_castelar: {
+    lat: -34.6480,
+    lng: -58.6450,
+    label: "Plaza Castelar",
+    aliases: ["plaza castelar", "centro castelar"],
+  },
+  plaza_ituzaingo: {
+    lat: -34.6541,
+    lng: -58.6716,
+    label: "Plaza San Martín (Ituzaingó)",
+    aliases: ["plaza ituzaingo", "plaza san martin ituzaingo", "centro ituzaingo"],
+  },
+  plaza_villa_luzuriaga: {
+    lat: -34.6638,
+    lng: -58.5803,
+    label: "Plaza Villa Luzuriaga",
+    aliases: ["plaza villa luzuriaga", "centro villa luzuriaga"],
+  },
+  plaza_liniers: {
+    lat: -34.6402,
+    lng: -58.5197,
+    label: "Plaza Liniers",
+    aliases: ["plaza liniers", "centro liniers"],
+  },
+
+  // ── Hospitales adicionales ────────────────────────────────────────────
+  hospital_eva_peron_san_martin: {
+    lat: -34.5755,
+    lng: -58.5331,
+    label: "Hospital Eva Perón (San Martín)",
+    aliases: ["hospital eva peron", "eva peron"],
+  },
+  hospital_italiano_san_justo: {
+    lat: -34.6755,
+    lng: -58.5598,
+    label: "Hospital Italiano (San Justo)",
+    aliases: ["hospital italiano", "italiano san justo"],
+  },
+
+  // ── Centros comerciales / shoppings ───────────────────────────────────
+  plaza_oeste_shopping: {
+    lat: -34.6543,
+    lng: -58.6195,
+    label: "Plaza Oeste Shopping (Morón)",
+    aliases: ["plaza oeste", "shopping moron", "plaza oeste shopping"],
+  },
+  centro_comercial_san_justo: {
+    lat: -34.6783,
+    lng: -58.5609,
+    label: "Centro comercial San Justo (Av. Perón)",
+    aliases: ["centro san justo", "av peron san justo", "avenida peron"],
+  },
+  devoto_mall: {
+    lat: -34.6011,
+    lng: -58.5172,
+    label: "Devoto Shopping",
+    aliases: ["devoto mall", "devoto shopping", "shopping devoto"],
+  },
+
+  // ── Estadios / deportes ───────────────────────────────────────────────
+  estadio_almirante_brown: {
+    lat: -34.6890,
+    lng: -58.5602,
+    label: "Estadio Almirante Brown (San Justo)",
+    aliases: ["cancha almirante brown", "almirante brown", "estadio almirante", "ar bro"],
+  },
+
+  // ── Mercado Central / accesos ─────────────────────────────────────────
+  mercado_central: {
+    lat: -34.7000,
+    lng: -58.5650,
+    label: "Mercado Central de Buenos Aires",
+    aliases: ["mercado central", "mercado central buenos aires"],
+  },
+
+  // ── Aeropuertos y accesos ─────────────────────────────────────────────
   aeropuerto_ezeiza: {
     lat: -34.8222,
     lng: -58.5358,
@@ -145,6 +235,26 @@ export const POIS: Record<string, POI> = {
     lng: -58.5610,
     label: "Rotonda San Justo",
     aliases: ["rotonda san justo", "rotonda"],
+  },
+  acceso_oeste: {
+    lat: -34.6515,
+    lng: -58.6680,
+    label: "Acceso Oeste (Ituzaingó)",
+    aliases: ["acceso oeste", "autopista del oeste"],
+  },
+  autopista_25_de_mayo: {
+    lat: -34.6480,
+    lng: -58.5400,
+    label: "Autopista 25 de Mayo (acceso La Matanza)",
+    aliases: ["au 25 de mayo", "autopista 25 de mayo", "25 de mayo"],
+  },
+
+  // ── Transbordos / subte ───────────────────────────────────────────────
+  estacion_once: {
+    lat: -34.6093,
+    lng: -58.4061,
+    label: "Estación Once / Plaza Miserere",
+    aliases: ["once", "plaza miserere", "miserere", "estacion once", "estacion miserere"],
   },
 };
 

@@ -13,12 +13,34 @@ export interface SearchFilters {
   priceMax?: number;
   priceMin?: number;
   priceCurrency?: "USD" | "ARS";
-  /** Ambientes mínimos. */
+
+  /** Ambientes EXACTOS. Si el user dice "3 ambientes" → solo 3.
+   *  Tiene prioridad sobre roomsMin/Max. */
+  roomsExact?: number;
+  /** Ambientes mínimos (≥). "Al menos 3", "3 o más". */
   roomsMin?: number;
-  /** Dormitorios mínimos. */
+  /** Ambientes máximos (≤). "Hasta 3 ambientes". */
+  roomsMax?: number;
+
+  bedroomsExact?: number;
   bedroomsMin?: number;
+  bedroomsMax?: number;
+
+  bathroomsExact?: number;
   bathroomsMin?: number;
+
+  /** Cocheras MÍNIMAS (≥). "Cochera doble" → 2. "Con cochera" → 1. */
+  garageMin?: number;
   hasGarage?: boolean;
+
+  /** Antigüedad máxima en años. "A estrenar" → 0. "Hasta 10 años" → 10. */
+  ageMax?: number;
+  /** Superficie cubierta mínima (m²). */
+  areaMin?: number;
+  areaMax?: number;
+  /** Expensas máximas (en pesos ARS). "Sin expensas altas". */
+  expensesMaxARS?: number;
+
   hasVideo?: boolean;
   /** Amenities deseados (matchea cualquiera por substring case-insensitive). */
   amenities?: string[];
@@ -49,6 +71,65 @@ function matchesAmenities(p: Property, wanted: string[]): boolean {
     const wn = norm(w);
     return have.some((h) => h.includes(wn));
   });
+}
+
+/** Aplica todos los filtros estructurados. exactos > rangos · si el
+ * user dijo "3 ambientes" (exact) gana sobre cualquier min/max. */
+function matchesAllFilters(p: Property, f: SearchFilters): boolean {
+  if (f.zones?.length && !matchesZones(p, f.zones)) return false;
+  if (f.types?.length && !f.types.includes(p.type)) return false;
+  if (f.priceCurrency && p.currency !== f.priceCurrency) return false;
+  if (typeof f.priceMax === "number" && p.price > f.priceMax) return false;
+  if (typeof f.priceMin === "number" && p.price < f.priceMin) return false;
+
+  // Ambientes · exact gana sobre min/max
+  const rooms = p.features.rooms ?? 0;
+  if (typeof f.roomsExact === "number") {
+    if (rooms !== f.roomsExact) return false;
+  } else {
+    if (typeof f.roomsMin === "number" && rooms < f.roomsMin) return false;
+    if (typeof f.roomsMax === "number" && rooms > f.roomsMax) return false;
+  }
+
+  // Dormitorios
+  const beds = p.features.bedrooms ?? 0;
+  if (typeof f.bedroomsExact === "number") {
+    if (beds !== f.bedroomsExact) return false;
+  } else {
+    if (typeof f.bedroomsMin === "number" && beds < f.bedroomsMin) return false;
+    if (typeof f.bedroomsMax === "number" && beds > f.bedroomsMax) return false;
+  }
+
+  // Baños
+  const baths = p.features.bathrooms ?? 0;
+  if (typeof f.bathroomsExact === "number") {
+    if (baths !== f.bathroomsExact) return false;
+  } else if (typeof f.bathroomsMin === "number" && baths < f.bathroomsMin) {
+    return false;
+  }
+
+  // Cocheras
+  const garages = p.features.garage ?? 0;
+  if (typeof f.garageMin === "number" && garages < f.garageMin) return false;
+  if (f.hasGarage && garages === 0) return false;
+
+  // Antigüedad
+  if (typeof f.ageMax === "number") {
+    const age = p.features.age;
+    if (typeof age !== "number" || age > f.ageMax) return false;
+  }
+
+  // Superficie
+  const area = p.features.coveredArea ?? p.features.totalArea ?? 0;
+  if (typeof f.areaMin === "number" && area < f.areaMin) return false;
+  if (typeof f.areaMax === "number" && area > f.areaMax) return false;
+
+  // Otros
+  if (f.hasVideo && !p.videoUrl) return false;
+  if (f.amenities?.length && !matchesAmenities(p, f.amenities)) return false;
+  if (f.text && !matchesText(p, f.text)) return false;
+
+  return true;
 }
 
 export interface SearchResult {
@@ -96,21 +177,7 @@ export async function searchProperties(
 ): Promise<SearchResult> {
   const all = await fetchAllProperties(filters.operation);
 
-  const filtered = all.filter((p) => {
-    if (filters.zones?.length && !matchesZones(p, filters.zones)) return false;
-    if (filters.types?.length && !filters.types.includes(p.type)) return false;
-    if (filters.priceCurrency && p.currency !== filters.priceCurrency) return false;
-    if (filters.priceMax && p.price > filters.priceMax) return false;
-    if (filters.priceMin && p.price < filters.priceMin) return false;
-    if (filters.roomsMin && (p.features.rooms ?? 0) < filters.roomsMin) return false;
-    if (filters.bedroomsMin && (p.features.bedrooms ?? 0) < filters.bedroomsMin) return false;
-    if (filters.bathroomsMin && (p.features.bathrooms ?? 0) < filters.bathroomsMin) return false;
-    if (filters.hasGarage && (p.features.garage ?? 0) === 0) return false;
-    if (filters.hasVideo && !p.videoUrl) return false;
-    if (filters.amenities?.length && !matchesAmenities(p, filters.amenities)) return false;
-    if (filters.text && !matchesText(p, filters.text)) return false;
-    return true;
-  });
+  const filtered = all.filter((p) => matchesAllFilters(p, filters));
 
   // Si no hubo match y el user fijó priceMax + priceCurrency, sugerimos
   // ampliación de presupuesto.
@@ -180,19 +247,7 @@ export async function searchPropertiesNear(
 
   // 2) Filtros normales primero (sin geo) · partimos del listado completo
   const all = await fetchAllProperties(input.operation);
-  const filtered = all.filter((p) => {
-    if (input.types?.length && !input.types.includes(p.type)) return false;
-    if (input.priceCurrency && p.currency !== input.priceCurrency) return false;
-    if (input.priceMax && p.price > input.priceMax) return false;
-    if (input.priceMin && p.price < input.priceMin) return false;
-    if (input.roomsMin && (p.features.rooms ?? 0) < input.roomsMin) return false;
-    if (input.bedroomsMin && (p.features.bedrooms ?? 0) < input.bedroomsMin) return false;
-    if (input.bathroomsMin && (p.features.bathrooms ?? 0) < input.bathroomsMin) return false;
-    if (input.hasGarage && (p.features.garage ?? 0) === 0) return false;
-    if (input.hasVideo && !p.videoUrl) return false;
-    if (input.amenities?.length && !matchesAmenities(p, input.amenities)) return false;
-    return true;
-  });
+  const filtered = all.filter((p) => matchesAllFilters(p, input));
 
   // 3) Calcular distancias y filtrar por radio
   const radius = Math.max(200, Math.min(5000, input.radiusMeters ?? 1500));

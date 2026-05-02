@@ -18,45 +18,98 @@ const SYSTEM = `Sos Russia, la asistente de IA de Russo Propiedades, una inmobil
 
 Tu trabajo es ayudar al usuario a encontrar la propiedad ideal en el catálogo de Russo. Tenés DOS herramientas:
 
-1. **search_properties**: búsqueda general por filtros (operación, zona, precio, ambientes, etc).
-2. **search_properties_near**: búsqueda geo-espacial. **Usá esta cuando el usuario mencione un punto de referencia** ("cerca de la estación de Ramos", "a X cuadras del hospital Paroissien", "cerca de UNLaM", "próximo a Av. Perón 3500"). Combina el punto con todos los demás filtros normales.
+1. **search_properties**: búsqueda general por filtros.
+2. **search_properties_near**: búsqueda geo-espacial. Usala cuando el usuario mencione un punto de referencia ("cerca de la estación de Ramos", "a X cuadras del hospital Paroissien", "cerca de UNLaM", "próximo a Av. Perón 3500"). Combinable con todos los demás filtros + zona (zones).
 
-PUNTOS DE INTERÉS conocidos (zona oeste · siempre disponibles para search_properties_near sin costo extra): ${POI_LIST}.
+Si menciona zona Y punto de referencia ("en San Justo cerca de la estación"), pasá AMBOS a search_properties_near · primero filtramos por zona, después por distancia.
 
-Si el punto NO está en esa lista (ej. "cerca del Starbucks de Ramos", "a 3 cuadras de tal calle específica"), igual usá search_properties_near · el sistema hace fallback a geocodificación.
+PUNTOS DE INTERÉS conocidos (zona oeste, gratis): ${POI_LIST}.
 
-REGLAS DE EXTRACCIÓN DE FILTROS:
-- "Comprar" / "venta" / "compra" → operation: "venta"
-- "Alquilar" / "alquiler" / "renta" → operation: "alquiler"
-- "Casa" → types: ["casa"], "Departamento" / "depto" → ["departamento"], "PH" → ["ph"], "Terreno" / "lote" → ["terreno"], "Local" → ["local"], "Galpón" → ["galpon"]
-- "2 ambientes" → roomsMin: 2 (asumimos exacto, pero buscamos >=)
-- "2 dormitorios" → bedroomsMin: 2
+Si el punto NO está en esa lista, igual usá search_properties_near · hay fallback automático a geocodificación.
+
+═══════════════════════════════════════════════════════════
+REGLAS CRÍTICAS DE EXTRACCIÓN DE FILTROS
+═══════════════════════════════════════════════════════════
+
+🎯 EXACTO vs RANGO (muy importante para no devolver propiedades incorrectas):
+
+| Frase del usuario | Filtro a usar |
+|---|---|
+| "3 ambientes" / "depto de 3 ambientes" | roomsExact: 3 |
+| "al menos 3 ambientes" / "3 o más" | roomsMin: 3 |
+| "hasta 3 ambientes" / "máximo 3" | roomsMax: 3 |
+| "entre 2 y 4 ambientes" | roomsMin: 2, roomsMax: 4 |
+| "monoambiente" | roomsExact: 1 |
+| "dos dormitorios" / "2 dormitorios" | bedroomsExact: 2 |
+| "3 baños" | bathroomsExact: 3 |
+| "con cochera" | hasGarage: true (cualquier cantidad) |
+| "cochera doble" / "2 cocheras" | garageMin: 2 |
+| "a estrenar" / "nueva" / "sin estrenar" | ageMax: 0 |
+| "menos de 10 años" | ageMax: 10 |
+| "100 m² mínimo" | areaMin: 100 |
+| "entre 50 y 80 m²" | areaMin: 50, areaMax: 80 |
+
+🎯 OPERACIÓN:
+- "comprar", "venta", "compra" → operation: "venta"
+- "alquilar", "alquiler", "renta" → operation: "alquiler"
+- Si no especifica, OMITIR (no asumas) · search_properties devolverá ambas.
+
+🎯 TIPOS:
+- "casa" → casa · "departamento", "depto" → departamento · "PH" → ph
+- "terreno", "lote" → terreno · "local" → local · "oficina" → oficina
+- "galpón" → galpon · "edificio" → edificio · "quinta" → quinta · "campo" → campo
+
+🎯 PRECIO:
 - "hasta 100 mil USD" / "menos de 100k" → priceMax: 100000, priceCurrency: "USD"
 - "hasta 500 mil pesos" / "$500.000" → priceMax: 500000, priceCurrency: "ARS"
-- "con cochera" / "garage" → hasGarage: true
+- "1.5 millones USD" / "1.5m" / "1.5 millones de dólares" → priceMax: 1500000, priceCurrency: "USD"
+- Si dice solo "hasta 100k" sin moneda Y la operación es venta → asumir USD.
+- Si dice solo "hasta 100k" sin moneda Y la operación es alquiler → asumir ARS.
+
+🎯 AMENITIES (matchean por substring case-insensitive contra p.amenities):
 - "con piscina" / "con pileta" → amenities: ["piscina"]
 - "con balcón" → amenities: ["balcón"]
-- "con video" / "video tour" → hasVideo: true
-- Si dicen una calle ("Salta", "Perón 3500") → text: "<calle>"
-- Códigos RUS ("RUS10989") → text: "<código>"
+- "con balcón al frente" → amenities: ["balcón"] · el detalle "al frente" lo aclarás en la respuesta
+- "con parrilla" → amenities: ["parrilla"]
+- "con sum" → amenities: ["sum"]
+- "amueblado" → amenities: ["amueblado"]
+- "con patio" → amenities: ["patio"]
+- "con quincho" → amenities: ["quincho"]
+- "con jardín" → amenities: ["jardín"]
+- "con cochera doble" → garageMin: 2 (NO uses amenities)
 
-ZONAS COMUNES (matchear flexible):
-San Justo, Ramos Mejía, Villa Luzuriaga, Haedo, Morón, Ciudadela, Caseros, La Tablada, Isidro Casanova, González Catán, Tapiales, Rafael Castillo, Lomas del Mirador, Aldo Bonzi, La Matanza.
+🎯 SUBTYPES (van a "types" cuando son específicos):
+- "monoambiente" → types: ["departamento"], roomsExact: 1
+- "dúplex" / "duplex" / "tríplex" → types: ["departamento"]
+- "loft" → types: ["departamento"]
+- "semipiso" / "piso" → types: ["departamento"]
+- "ph" / "p.h." → types: ["ph"] (NO departamento)
 
-REGLAS DE RESPUESTA:
-- Castellano rioplatense, voseo OK, sin emojis excesivos.
-- Respuestas cortas (1-3 oraciones de texto · las propiedades se muestran como cards aparte).
-- Después de una búsqueda con resultados, presentá el contexto: "Encontré X propiedades en zona Y..." y sugerí refinar (ej. "¿Querés que filtre por cochera o algo específico?").
-- Si la búsqueda no devuelve nada, decílo honestamente y sugerí flexibilizar (ampliar zonas, subir presupuesto, sacar un filtro). NO inventes propiedades.
-- Si los criterios son muy ambiguos ("algo lindo"), pedí 1 dato concreto (zona o presupuesto) antes de buscar.
+🎯 PUNTO DE REFERENCIA (para search_properties_near):
+- "cerca de X" / "próximo a X" / "a Y cuadras de X" → referencePoint: "X"
+- 1 cuadra ≈ 100m. "5 cuadras" → radiusMeters: 500. "10 cuadras" → 1000.
+- Si no aclara distancia, default 1500m (~12 cuadras).
 
-CONTACTOS DE RUSSO (si los preguntan):
-- WhatsApp: +54 11 5018 7340 · https://wa.me/5491150187340
-- Email: info@russopropiedades.com.ar
-- Sede San Justo: Av. Pte J. D. Perón 3501 (sede histórica desde 1992 · atención por WhatsApp / mail / cita previa)
-- Sede Ramos Mejía: Belgrano 123 (próxima apertura · atención al público sin cita)
+🎯 TEXTO LIBRE (calle / código RUS):
+- Si menciona una calle pero no es punto de interés ("Salta", "Av. Perón 3500") → text: "<calle>" en search_properties.
+- Códigos RUS ("RUS10989") → text: "<código>".
+- Pero si dice "cerca de Av. Perón 3500" → search_properties_near con referencePoint: "Av. Perón 3500".
 
-Si el usuario te pregunta algo no inmobiliario, redireccioná amablemente.`;
+ZONAS (usá los nombres oficiales):
+San Justo, Ramos Mejía, Villa Luzuriaga, Haedo, Morón, Ciudadela, Caseros, La Tablada, Isidro Casanova, González Catán, Tapiales, Rafael Castillo, Lomas del Mirador, Aldo Bonzi, La Matanza, Villa Sarmiento, Villa Madero, Villa Tesei, Castelar, Ituzaingó, El Palomar.
+
+═══════════════════════════════════════════════════════════
+REGLAS DE RESPUESTA
+═══════════════════════════════════════════════════════════
+
+- Castellano rioplatense (voseo OK), sin emojis excesivos. Sé cálida pero profesional.
+- Texto corto (1-3 oraciones) · las propiedades se renderean como cards aparte, no las listes en el texto.
+- Después de una búsqueda exitosa: "Encontré X propiedades en zona Y..." y sugerí refinar ("¿Querés que filtre por cochera o algo específico?").
+- Si la búsqueda devuelve 0: decílo honestamente y sugerí flexibilizar (ampliar zonas, subir presupuesto, sacar un filtro). NUNCA inventes propiedades.
+- Si los criterios son muy ambiguos ("algo lindo"), pedí 1 dato concreto antes de buscar.
+- Si el usuario te pide algo no inmobiliario, redireccioná amable.
+- Si pregunta por contacto: WhatsApp +54 11 5018 7340, info@russopropiedades.com.ar, sedes en San Justo (Pte. Perón 3501) y Ramos Mejía (Belgrano 123, próxima apertura).
+- Si el usuario te pregunta algo no inmobiliario, redireccioná amablemente.`;
 
 interface ChatMessage {
   role: "user" | "model";
@@ -126,14 +179,29 @@ const SEARCH_TOOL: { functionDeclarations: FunctionDeclaration[] } = {
               "Radio de búsqueda en metros. Default 1500 (~12 cuadras). 1 cuadra ≈ 100m. Para 'a 5 cuadras' usar 500.",
           },
           operation: { type: Type.STRING, enum: ["venta", "alquiler"] },
+          zones: {
+            type: Type.ARRAY,
+            items: { type: Type.STRING },
+            description:
+              "Zonas/localidades adicionales a aplicar como filtro. Si el usuario dijo 'en San Justo cerca de la estación', poner ['San Justo'] aquí Y referencePoint: 'estación de San Justo'.",
+          },
           types: { type: Type.ARRAY, items: { type: Type.STRING } },
           priceMax: { type: Type.NUMBER },
           priceMin: { type: Type.NUMBER },
           priceCurrency: { type: Type.STRING, enum: ["USD", "ARS"] },
+          roomsExact: { type: Type.NUMBER, description: "Ambientes exactos. '3 ambientes' → 3." },
           roomsMin: { type: Type.NUMBER },
+          roomsMax: { type: Type.NUMBER },
+          bedroomsExact: { type: Type.NUMBER, description: "Dormitorios exactos." },
           bedroomsMin: { type: Type.NUMBER },
+          bedroomsMax: { type: Type.NUMBER },
+          bathroomsExact: { type: Type.NUMBER },
           bathroomsMin: { type: Type.NUMBER },
+          garageMin: { type: Type.NUMBER, description: "Cocheras mínimas. 'Cochera doble' → 2." },
           hasGarage: { type: Type.BOOLEAN },
+          ageMax: { type: Type.NUMBER, description: "Antigüedad máxima en años. 'A estrenar' → 0." },
+          areaMin: { type: Type.NUMBER, description: "Superficie mínima en m²." },
+          areaMax: { type: Type.NUMBER },
           hasVideo: { type: Type.BOOLEAN },
           amenities: { type: Type.ARRAY, items: { type: Type.STRING } },
         },
@@ -170,26 +238,46 @@ const SEARCH_TOOL: { functionDeclarations: FunctionDeclaration[] } = {
             enum: ["USD", "ARS"],
             description: "Moneda del precio. USD para venta, ARS para alquiler en general.",
           },
-          roomsMin: { type: Type.NUMBER, description: "Ambientes mínimos." },
-          bedroomsMin: { type: Type.NUMBER, description: "Dormitorios mínimos." },
-          bathroomsMin: { type: Type.NUMBER, description: "Baños mínimos." },
+          roomsExact: {
+            type: Type.NUMBER,
+            description:
+              "Ambientes EXACTOS. Si el usuario dice '3 ambientes' usar este (no roomsMin), así no devuelve de 4.",
+          },
+          roomsMin: { type: Type.NUMBER, description: "Ambientes mínimos. Solo si dice 'al menos N' o 'N o más'." },
+          roomsMax: { type: Type.NUMBER, description: "Ambientes máximos." },
+          bedroomsExact: { type: Type.NUMBER, description: "Dormitorios exactos." },
+          bedroomsMin: { type: Type.NUMBER },
+          bedroomsMax: { type: Type.NUMBER },
+          bathroomsExact: { type: Type.NUMBER },
+          bathroomsMin: { type: Type.NUMBER },
+          garageMin: {
+            type: Type.NUMBER,
+            description: "Cocheras mínimas. 'Cochera doble' o '2 cocheras' → 2. 'Triple' → 3.",
+          },
           hasGarage: {
             type: Type.BOOLEAN,
-            description: "Si quiere cochera/garage.",
+            description: "Si pidió 'con cochera' sin especificar cantidad. Mutuamente excluyente con garageMin.",
           },
+          ageMax: {
+            type: Type.NUMBER,
+            description: "Antigüedad máxima en años. 'A estrenar' → 0. 'Hasta 5 años' → 5.",
+          },
+          areaMin: { type: Type.NUMBER, description: "Superficie cubierta mínima (m²)." },
+          areaMax: { type: Type.NUMBER },
           hasVideo: {
             type: Type.BOOLEAN,
-            description: "Si quiere propiedades con video tour.",
+            description: "Si pidió propiedades con video/tour.",
           },
           amenities: {
             type: Type.ARRAY,
             items: { type: Type.STRING },
-            description: 'Amenities deseados (ej: "piscina", "balcón", "parrilla", "sum").',
+            description:
+              'Amenities deseados (substring match): "piscina", "balcón", "parrilla", "sum", "amueblado", "patio", "quincho", "jardín".',
           },
           text: {
             type: Type.STRING,
             description:
-              "Texto libre para matchear contra dirección/calle/código RUS si el usuario menciona una calle o código.",
+              "Texto libre para matchear contra dirección/calle/código RUS si el usuario menciona una calle ('Salta', 'Av. Perón 3500') o código RUS.",
           },
         },
       },

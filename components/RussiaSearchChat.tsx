@@ -54,7 +54,11 @@ function formatDistance(meters: number): string {
   return `${(meters / 1000).toFixed(1).replace(".", ",")} km`;
 }
 
-export default function RussiaSearchChat() {
+export default function RussiaSearchChat({
+  presetMessage,
+}: {
+  presetMessage?: string;
+} = {}) {
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       role: "model",
@@ -67,6 +71,7 @@ export default function RussiaSearchChat() {
   const [error, setError] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const presetFiredRef = useRef(false);
 
   // Auto-scroll a la última respuesta
   useEffect(() => {
@@ -75,6 +80,16 @@ export default function RussiaSearchChat() {
       behavior: "smooth",
     });
   }, [messages, loading]);
+
+  // Auto-disparar el preset al montarse · una sola vez por instancia.
+  // Sin setTimeout porque strict mode lo cancelaría en el doble-mount;
+  // el ref persiste entre mounts y bloquea la segunda ejecución.
+  useEffect(() => {
+    if (!presetMessage || presetFiredRef.current) return;
+    presetFiredRef.current = true;
+    sendMessage(presetMessage);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [presetMessage]);
 
   async function sendMessage(message: string) {
     const trimmed = message.trim();
@@ -139,7 +154,7 @@ export default function RussiaSearchChat() {
         <div className="flex items-center justify-center h-10 w-10 rounded-full bg-white/20 backdrop-blur">
           <Bot className="h-5 w-5" />
         </div>
-        <div>
+        <div className="flex-1 min-w-0">
           <p className="font-semibold text-sm flex items-center gap-1.5">
             Russia
             <Sparkles className="h-3.5 w-3.5" />
@@ -148,6 +163,12 @@ export default function RussiaSearchChat() {
             IA inmobiliaria de Russo · busca en el catálogo en tiempo real
           </p>
         </div>
+        <Link
+          href="/russia"
+          className="text-[10px] font-bold uppercase tracking-widest text-white/80 hover:text-white border border-white/25 rounded-full px-2.5 py-1 hover:bg-white/10 transition-colors flex-shrink-0"
+        >
+          Cómo funciona
+        </Link>
       </div>
 
       {/* Messages */}

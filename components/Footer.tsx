@@ -5,11 +5,11 @@ import { MapPin, Phone, Mail, Facebook, Instagram } from "lucide-react";
 const utilityLinks = [
   { label: "Ventas", href: "/ventas" },
   { label: "Alquileres", href: "/alquileres" },
-  { label: "Edificios", href: "/ventas" },
+  { label: "Tasaciones", href: "/tasaciones" },
+  { label: "Russia · IA", href: "/russia" },
   { label: "Casas", href: "/ventas" },
   { label: "Departamentos", href: "/ventas" },
   { label: "Locales", href: "/ventas" },
-  { label: "Oficinas", href: "/ventas" },
 ];
 
 export default function Footer() {

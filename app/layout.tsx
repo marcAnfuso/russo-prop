@@ -6,6 +6,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import WhatsAppFAB from "@/components/WhatsAppFAB";
 import AnalyticsTracker from "@/components/AnalyticsTracker";
+import RussiaWidget from "@/components/RussiaWidget";
 
 const SITE_URL = "https://russo-prop.vercel.app";
 
@@ -126,6 +127,7 @@ export default function RootLayout({
         <div className="pt-[72px]">{children}</div>
         <Footer />
         <WhatsAppFAB />
+        <RussiaWidget />
         {/* Tracker propio · pageviews + base para fases siguientes */}
         <Suspense fallback={null}>
           <AnalyticsTracker />
