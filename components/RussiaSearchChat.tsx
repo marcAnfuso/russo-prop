@@ -278,34 +278,39 @@ function PropertyResultCard({ property: p }: { property: PropertyCard }) {
       rel="noopener noreferrer"
       className="block rounded-xl bg-white border border-gray-200 hover:border-magenta/40 hover:shadow-md transition-all duration-200 overflow-hidden"
     >
-      <div className="flex gap-3">
-        <div className="relative h-24 w-32 flex-shrink-0 bg-gray-100">
+      <div className="flex gap-2.5">
+        <div className="relative h-24 w-24 sm:w-28 flex-shrink-0 bg-gray-100">
           {p.image ? (
             <Image
               src={p.image}
               alt={p.address}
               fill
-              sizes="128px"
+              sizes="(max-width: 640px) 96px, 112px"
               className="object-cover"
             />
           ) : (
             <div className="absolute inset-0 bg-gradient-to-br from-navy-100 to-navy-200" />
           )}
-          <span className={`absolute top-2 left-2 rounded-full px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-white ${isAlquiler ? "bg-navy/90" : "bg-magenta/90"}`}>
+          <span className={`absolute top-1.5 left-1.5 rounded-full px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-white ${isAlquiler ? "bg-navy/90" : "bg-magenta/90"}`}>
             {isAlquiler ? "Alquiler" : "Venta"}
           </span>
         </div>
         <div className="flex-1 min-w-0 py-2 pr-3">
-          <div className="flex items-baseline justify-between gap-2 mb-0.5">
-            <p className="font-bold text-navy text-sm truncate">{priceLabel}</p>
-            <span className="text-[10px] text-gray-400 font-mono">{p.code}</span>
-          </div>
-          <p className="text-xs text-gray-700 truncate">{p.address}</p>
-          <p className="text-[11px] text-gray-400 flex items-center gap-1 truncate mb-1.5">
-            <MapPin className="h-3 w-3 inline" />
-            {p.locality}
+          {/* Precio en su propia línea, sin compartir con código RUS */}
+          <p className="font-bold text-navy text-base leading-tight truncate">
+            {priceLabel}
+          </p>
+          {/* Dirección + código RUS chiquito al lado */}
+          <p className="text-[11px] text-gray-700 truncate mt-0.5">
+            <span>{p.address}</span>
+            <span className="text-gray-300 mx-1">·</span>
+            <span className="text-gray-400 font-mono">{p.code}</span>
+          </p>
+          <p className="text-[10px] text-gray-400 flex items-center gap-1 truncate mb-1.5">
+            <MapPin className="h-3 w-3 inline flex-shrink-0" />
+            <span className="truncate">{p.locality}</span>
             {typeof p.distanceMeters === "number" && (
-              <span className="ml-1 inline-flex items-center rounded-full bg-magenta/10 text-magenta px-1.5 py-0.5 text-[10px] font-bold">
+              <span className="ml-1 inline-flex items-center rounded-full bg-magenta/10 text-magenta px-1.5 py-0.5 text-[10px] font-bold flex-shrink-0">
                 a {formatDistance(p.distanceMeters)}
               </span>
             )}
