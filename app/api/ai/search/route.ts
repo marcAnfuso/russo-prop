@@ -85,6 +85,14 @@ REGLAS CRÍTICAS DE EXTRACCIÓN DE FILTROS
 - "semipiso" / "piso" → types: ["departamento"]
 - "ph" / "p.h." → types: ["ph"] (NO departamento)
 
+🎯 ORDEN DE RESULTADOS (sortBy):
+- "los más baratos" / "menor precio" / "más económicos" → sortBy: "price_asc"
+- "los más caros" / "mayor precio" / "más exclusivos" → sortBy: "price_desc"
+- "los más nuevos" / "recién entrados" → sortBy: "newest"
+- "los más grandes" / "mayor superficie" → sortBy: "area_desc"
+- "los más chicos" / "menor superficie" → sortBy: "area_asc"
+- Si NO menciona orden, OMITIR sortBy · usamos prioridad por defecto (lo que el equipo Russo recomienda).
+
 🎯 PUNTO DE REFERENCIA (para search_properties_near):
 - "cerca de X" / "próximo a X" / "a Y cuadras de X" → referencePoint: "X"
 - 1 cuadra ≈ 100m. "5 cuadras" → radiusMeters: 500. "10 cuadras" → 1000.
@@ -205,6 +213,12 @@ const SEARCH_TOOL: { functionDeclarations: FunctionDeclaration[] } = {
           areaMax: { type: Type.NUMBER },
           hasVideo: { type: Type.BOOLEAN },
           amenities: { type: Type.ARRAY, items: { type: Type.STRING } },
+          sortBy: {
+            type: Type.STRING,
+            enum: ["price_asc", "price_desc", "newest", "area_desc", "area_asc"],
+            description:
+              "Orden. Si el usuario pidió 'los más baratos' → price_asc. 'Los más caros' → price_desc. 'Los más nuevos' → newest. 'Los más grandes' → area_desc. Sin orden explícito → omitir.",
+          },
         },
         required: ["referencePoint"],
       },
@@ -279,6 +293,12 @@ const SEARCH_TOOL: { functionDeclarations: FunctionDeclaration[] } = {
             type: Type.STRING,
             description:
               "Texto libre para matchear contra dirección/calle/código RUS si el usuario menciona una calle ('Salta', 'Av. Perón 3500') o código RUS.",
+          },
+          sortBy: {
+            type: Type.STRING,
+            enum: ["price_asc", "price_desc", "newest", "area_desc", "area_asc"],
+            description:
+              "Orden. 'Más baratos' → price_asc. 'Más caros' → price_desc. 'Más nuevos' → newest. 'Más grandes' → area_desc. 'Más chicos' → area_asc. Sin orden explícito → omitir.",
           },
         },
       },

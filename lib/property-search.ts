@@ -46,6 +46,14 @@ export interface SearchFilters {
   amenities?: string[];
   /** Texto libre para matchear contra dirección/locality/code (calle/barrio/RUS). */
   text?: string;
+  /** Orden de los resultados.
+   *  - "price_asc": más baratos primero ("los más baratos", "menor precio")
+   *  - "price_desc": más caros primero ("los más caros", "mayor precio")
+   *  - "newest": los más nuevos por id desc (RUS más alto)
+   *  - "area_desc": más grandes primero ("los más grandes")
+   *  - "area_asc": más chicos primero
+   *  - default (omitir): por prioridad del equipo Russo + id desc */
+  sortBy?: "price_asc" | "price_desc" | "newest" | "area_desc" | "area_asc";
 }
 
 const norm = (s: string) =>
@@ -71,6 +79,45 @@ function matchesAmenities(p: Property, wanted: string[]): boolean {
     const wn = norm(w);
     return have.some((h) => h.includes(wn));
   });
+}
+
+/** Sentinel de Xintel para "Reservado / Consultar precio". No es un
+ * precio real · al ordenar por precio lo tratamos como "sin precio". */
+const RESERVED_PRICE = 9999999;
+
+/** Ordena el array in-place según el sortBy del filtro. Si no hay
+ * sortBy, deja el orden default de fetchAllProperties (priority desc). */
+function applySort(arr: Property[], sortBy?: SearchFilters["sortBy"]): void {
+  if (!sortBy) return;
+  const areaOf = (p: Property) =>
+    p.features.coveredArea || p.features.totalArea || 0;
+  // Para sort por precio · las "Reservado" (sentinel) van al final
+  // independientemente de la dirección · no tienen precio real visible.
+  const priceForSort = (p: Property): number =>
+    p.price === RESERVED_PRICE ? Number.MAX_SAFE_INTEGER : p.price;
+  switch (sortBy) {
+    case "price_asc":
+      arr.sort((a, b) => priceForSort(a) - priceForSort(b));
+      break;
+    case "price_desc":
+      arr.sort((a, b) => {
+        const aReserved = a.price === RESERVED_PRICE;
+        const bReserved = b.price === RESERVED_PRICE;
+        if (aReserved && !bReserved) return 1; // a al final
+        if (!aReserved && bReserved) return -1; // b al final
+        return b.price - a.price;
+      });
+      break;
+    case "newest":
+      arr.sort((a, b) => Number(b.id) - Number(a.id));
+      break;
+    case "area_desc":
+      arr.sort((a, b) => areaOf(b) - areaOf(a));
+      break;
+    case "area_asc":
+      arr.sort((a, b) => areaOf(a) - areaOf(b));
+      break;
+  }
 }
 
 /** Aplica todos los filtros estructurados. exactos > rangos · si el
@@ -178,6 +225,7 @@ export async function searchProperties(
   const all = await fetchAllProperties(filters.operation);
 
   const filtered = all.filter((p) => matchesAllFilters(p, filters));
+  applySort(filtered, filters.sortBy);
 
   // Si no hubo match y el user fijó priceMax + priceCurrency, sugerimos
   // ampliación de presupuesto.
@@ -249,12 +297,23 @@ export async function searchPropertiesNear(
   const all = await fetchAllProperties(input.operation);
   const filtered = all.filter((p) => matchesAllFilters(p, input));
 
-  // 3) Calcular distancias y filtrar por radio
+  // 3) Calcular distancias y filtrar por radio · default sort por
+  //    distancia ASC; si el usuario pidió otro sort (price_asc, etc.),
+  //    ese tiene prioridad sobre la distancia.
   const radius = Math.max(200, Math.min(5000, input.radiusMeters ?? 1500));
   const withDistance = filtered
     .map((p) => ({ p, d: haversineMeters(p.location, refPoint!) }))
-    .filter(({ d }) => d <= radius)
-    .sort((a, b) => a.d - b.d);
+    .filter(({ d }) => d <= radius);
+  if (input.sortBy) {
+    const sorted = withDistance.map((x) => x.p);
+    applySort(sorted, input.sortBy);
+    // Reordenar withDistance siguiendo el orden de `sorted`
+    withDistance.sort(
+      (a, b) => sorted.indexOf(a.p) - sorted.indexOf(b.p)
+    );
+  } else {
+    withDistance.sort((a, b) => a.d - b.d);
+  }
 
   let hint: string | undefined;
   if (withDistance.length === 0) {
