@@ -178,9 +178,11 @@ export default function RussiaWidget() {
             className="absolute bottom-3 left-3 h-20 w-20 rounded-full border-2 border-magenta/70 animate-russia-ring pointer-events-none"
             style={{ boxShadow: "0 0 0 9999px rgba(0,0,0,0.45)" }}
           />
-          {/* Tarjeta del tip · esquina inferior izquierda, encima del FAB */}
+          {/* Tarjeta del tip · esquina inferior izquierda, encima del FAB.
+              En mobile: bottom-28 left-4 right-4 (full-width con padding).
+              En desktop: ancho fijo desde la izq. */}
           <div
-            className="absolute bottom-28 left-6 max-w-[340px] rounded-2xl bg-white shadow-[0_30px_70px_-20px_rgba(26,34,81,0.45),0_8px_24px_-12px_rgba(26,34,81,0.25)] ring-1 ring-gray-100/80 overflow-hidden animate-russia-pop"
+            className="absolute bottom-28 left-4 right-4 sm:right-auto sm:left-6 sm:max-w-[340px] rounded-2xl bg-white shadow-[0_30px_70px_-20px_rgba(26,34,81,0.45),0_8px_24px_-12px_rgba(26,34,81,0.25)] ring-1 ring-gray-100/80 overflow-hidden animate-russia-pop"
             style={{ pointerEvents: "auto" }}
           >
             {/* Cinta magenta arriba */}
