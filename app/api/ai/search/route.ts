@@ -44,7 +44,7 @@ REGLAS CRÍTICAS DE EXTRACCIÓN DE FILTROS
 | "3 baños" | bathroomsExact: 3 |
 | "con cochera" | hasGarage: true (cualquier cantidad) |
 | "cochera doble" / "2 cocheras" | garageMin: 2 |
-| "a estrenar" / "nueva" / "sin estrenar" | ageMax: 0 |
+| "a estrenar" / "nueva" / "sin estrenar" / "primera mano" | ageMax: 0 (SIEMPRE — incluso si combinas con otros filtros) |
 | "menos de 10 años" | ageMax: 10 |
 | "100 m² mínimo" | areaMin: 100 |
 | "entre 50 y 80 m²" | areaMin: 50, areaMax: 80 |
@@ -93,6 +93,19 @@ REGLAS CRÍTICAS DE EXTRACCIÓN DE FILTROS
 - "los más chicos" / "menor superficie" → sortBy: "area_asc"
 - Si NO menciona orden, OMITIR sortBy · usamos prioridad por defecto (lo que el equipo Russo recomienda).
 
+🎯 EJEMPLOS COMPLETOS (cómo extraer múltiples filtros en una sola llamada):
+
+User: "Casa con cochera doble en San Justo a estrenar"
+→ search_properties({ types: ["casa"], zones: ["San Justo"], garageMin: 2, ageMax: 0 })
+
+User: "Depto a estrenar con balcón en Ramos hasta 150k USD"
+→ search_properties({ types: ["departamento"], zones: ["Ramos Mejía"], amenities: ["balcón"], ageMax: 0, priceMax: 150000, priceCurrency: "USD" })
+
+User: "Los más baratos terrenos a estrenar en Villa Luzuriaga"
+→ search_properties({ types: ["terreno"], zones: ["Villa Luzuriaga"], ageMax: 0, sortBy: "price_asc" })
+
+⚠️ NUNCA omitas un filtro que el usuario menciona explícitamente. Si dice "a estrenar", incluí ageMax: 0 SIEMPRE, incluso si la búsqueda termina sin resultados — el usuario quiere ver SI hay propiedades con esa característica.
+
 🎯 PUNTO DE REFERENCIA (para search_properties_near):
 - "cerca de X" / "próximo a X" / "a Y cuadras de X" → referencePoint: "X"
 - 1 cuadra ≈ 100m. "5 cuadras" → radiusMeters: 500. "10 cuadras" → 1000.
@@ -103,8 +116,31 @@ REGLAS CRÍTICAS DE EXTRACCIÓN DE FILTROS
 - Códigos RUS ("RUS10989") → text: "<código>".
 - Pero si dice "cerca de Av. Perón 3500" → search_properties_near con referencePoint: "Av. Perón 3500".
 
-ZONAS (usá los nombres oficiales):
+ZONAS válidas (usá los nombres oficiales · NUNCA inventes una zona):
 San Justo, Ramos Mejía, Villa Luzuriaga, Haedo, Morón, Ciudadela, Caseros, La Tablada, Isidro Casanova, González Catán, Tapiales, Rafael Castillo, Lomas del Mirador, Aldo Bonzi, La Matanza, Villa Sarmiento, Villa Madero, Villa Tesei, Castelar, Ituzaingó, El Palomar.
+
+⚠️ "Zona oeste", "el oeste", "Gran Buenos Aires Oeste", "GBA Oeste" → NO son zonas válidas para el filtro zones. Son la región general donde opera Russo. Si el usuario los menciona, OMITÍ el filtro zones (todo el catálogo es zona oeste de todos modos).
+
+⚠️ "La Matanza" es un partido grande que incluye varias zonas. Si dicen "La Matanza" sin más contexto, podés usarla pero aclarale al usuario que abarca varias localidades y ofrecele filtrar por una específica.
+
+═══════════════════════════════════════════════════════════
+CUÁNDO BUSCAR vs CUÁNDO PEDIR MÁS INFO
+═══════════════════════════════════════════════════════════
+
+🎯 REGLA DE ORO: si el mensaje del usuario contiene AL MENOS UN dato concreto (zona, tipo, presupuesto, ambientes, punto de referencia, amenity, modificador como "a estrenar"), **LLAMÁ SIEMPRE a la función de búsqueda**. NO pidas aclaración. Es mejor traer 0 resultados con honestidad que pedir más info y frustrar al usuario.
+
+🎯 BUSCÁ DIRECTO si tenés AL MENOS uno de estos: zona, tipo de propiedad, presupuesto, ambientes, punto de referencia, o amenities específicos.
+
+Ejemplos que tienen suficiente info para buscar:
+- "Casa con piscina en Villa Luzuriaga" → SÍ buscar (zona + tipo + amenity)
+- "PH con patio hasta 150k USD" → SÍ buscar (tipo + amenity + presupuesto, aunque falte zona)
+- "Departamento en Ramos" → SÍ buscar (tipo + zona)
+- "Algo barato cerca de UNLaM" → SÍ buscar (sort + ref point)
+
+🎯 PEDÍ ACLARACIÓN solo si es genuinamente ambiguo:
+- "Algo lindo" → pedí 1 dato concreto.
+- "Quiero comprar" → preguntá tipo o zona.
+- Mensaje vacío de criterios.
 
 ═══════════════════════════════════════════════════════════
 REGLAS DE RESPUESTA
@@ -342,7 +378,7 @@ export async function POST(req: NextRequest) {
       contents,
       config: {
         systemInstruction: SYSTEM,
-        temperature: 0.3,
+        temperature: 0.15,
         maxOutputTokens: 1500,
         tools: [SEARCH_TOOL],
       },
