@@ -294,6 +294,13 @@ function PropertyResultCard({ property: p }: { property: PropertyCard }) {
           <span className={`absolute top-1.5 left-1.5 rounded-full px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-white ${isAlquiler ? "bg-navy/90" : "bg-magenta/90"}`}>
             {isAlquiler ? "Alquiler" : "Venta"}
           </span>
+          {/* Distancia visible sobre la imagen · solo en geo-search */}
+          {typeof p.distanceMeters === "number" && (
+            <span className="absolute bottom-1.5 left-1.5 right-1.5 inline-flex items-center justify-center gap-1 rounded-full bg-magenta text-white px-2 py-0.5 text-[10px] font-bold shadow-md">
+              <MapPin className="h-2.5 w-2.5" />
+              a {formatDistance(p.distanceMeters)}
+            </span>
+          )}
         </div>
         <div className="flex-1 min-w-0 py-2 pr-3">
           {/* Precio en su propia línea, sin compartir con código RUS */}
@@ -309,11 +316,6 @@ function PropertyResultCard({ property: p }: { property: PropertyCard }) {
           <p className="text-[10px] text-gray-400 flex items-center gap-1 truncate mb-1.5">
             <MapPin className="h-3 w-3 inline flex-shrink-0" />
             <span className="truncate">{p.locality}</span>
-            {typeof p.distanceMeters === "number" && (
-              <span className="ml-1 inline-flex items-center rounded-full bg-magenta/10 text-magenta px-1.5 py-0.5 text-[10px] font-bold flex-shrink-0">
-                a {formatDistance(p.distanceMeters)}
-              </span>
-            )}
           </p>
           <div className="flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-navy font-medium">
             {p.totalArea ? (
