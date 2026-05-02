@@ -124,12 +124,6 @@ export default function RussiaInfoPage() {
           }}
         />
         <div className="relative mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 pt-20 pb-16 text-center">
-          {/* Badge */}
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-magenta/8 border border-magenta/20 px-3.5 py-1.5 text-[11px] font-black uppercase tracking-[2px] text-magenta backdrop-blur-sm mb-6">
-            <Sparkles className="h-3 w-3" />
-            Asistente de IA · Inédito en zona oeste
-          </span>
-
           {/* Avatar Russia · círculo gradient con glow */}
           <div className="relative mx-auto mb-7 h-24 w-24">
             <div
