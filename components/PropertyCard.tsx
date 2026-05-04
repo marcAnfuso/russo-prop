@@ -13,6 +13,7 @@ import {
 import type { Property } from "@/data/types";
 import ContactButtons from "@/components/ContactButtons";
 import FavoriteButton from "@/components/FavoriteButton";
+import ShareButton from "@/components/ShareButton";
 import { formatPrice } from "@/lib/utils";
 
 interface PropertyCardProps {
@@ -165,7 +166,10 @@ export default function PropertyCard({
               Reservado
             </span>
           ) : (
-            <FavoriteButton propertyId={id} />
+            <>
+              <FavoriteButton propertyId={id} />
+              <ShareButton property={property} />
+            </>
           )}
 
           <div className="absolute bottom-3 left-3 right-3 z-20 flex items-end justify-between gap-2">
@@ -281,7 +285,10 @@ export default function PropertyCard({
             Reservado
           </span>
         ) : (
-          <FavoriteButton propertyId={id} />
+          <>
+            <FavoriteButton propertyId={id} />
+            <ShareButton property={property} />
+          </>
         )}
 
         <div className="absolute inset-0 z-[5] bg-black/0 group-hover:bg-black/25 transition-all duration-300 flex items-center justify-center pointer-events-none">
