@@ -203,52 +203,42 @@ interface XintelFichasResponse {
   resultado: {
     fichas: XintelListFicha[];
     img?: (string | string[])[];
-    datos?: { cantidad?: number; paginas?: number | string };
   };
 }
 
 /**
  * Trae todas las fichas (unidades) de un emprendimiento cargadas en
- * Xintel. Pagina si hay más de las que entran en una sola request.
+ * Xintel.
+ *
+ * Pedimos `rppagina=200` para traer todo en una sola request: el
+ * parámetro `pag` que ofrece la API tiene un bug · Xintel devuelve
+ * siempre la misma página 1, sin importar el `pag` que le pases. Con
+ * rppagina alto evitamos la paginación rota completamente. Si algún
+ * emprendimiento llega a tener > 200 unidades hay que repensarlo,
+ * pero hoy el más grande tiene 17.
  */
 export async function fetchDevelopmentUnits(
   developmentXintelId: string
 ): Promise<Property[]> {
-  const fetchPage = async (page: number): Promise<{
-    units: Property[];
-    morePages: number;
-  }> => {
-    const url = new URL(BASE);
-    url.searchParams.set("json", "resultados.fichas");
-    url.searchParams.set("inm", INM);
-    url.searchParams.set("apiK", API_KEY);
-    url.searchParams.set("id_emprendimiento", developmentXintelId);
-    url.searchParams.set("pag", String(page));
+  const url = new URL(BASE);
+  url.searchParams.set("json", "resultados.fichas");
+  url.searchParams.set("inm", INM);
+  url.searchParams.set("apiK", API_KEY);
+  url.searchParams.set("id_emprendimiento", developmentXintelId);
+  url.searchParams.set("rppagina", "200");
 
-    try {
-      const res = await fetch(url.toString(), {
-        next: { revalidate: REVALIDATE },
-      });
-      if (!res.ok) return { units: [], morePages: 0 };
-      const data = (await res.json()) as XintelFichasResponse;
-      const fichas = data?.resultado?.fichas ?? [];
-      const imgs = data?.resultado?.img ?? [];
-      const totalPaginas = Number(data?.resultado?.datos?.paginas ?? 0);
-      const units = fichas.map((f, i) => mapListFicha(f, imgs[i] ?? ""));
-      return { units, morePages: totalPaginas };
-    } catch {
-      return { units: [], morePages: 0 };
-    }
-  };
-
-  const first = await fetchPage(1);
-  if (first.morePages <= 1) return first.units;
-
-  const restPages = Array.from({ length: first.morePages - 1 }, (_, i) => i + 2);
-  const restResults = await Promise.all(restPages.map((p) => fetchPage(p)));
-  const all = [first.units];
-  for (const r of restResults) all.push(r.units);
-  return all.flat();
+  try {
+    const res = await fetch(url.toString(), {
+      next: { revalidate: REVALIDATE },
+    });
+    if (!res.ok) return [];
+    const data = (await res.json()) as XintelFichasResponse;
+    const fichas = data?.resultado?.fichas ?? [];
+    const imgs = data?.resultado?.img ?? [];
+    return fichas.map((f, i) => mapListFicha(f, imgs[i] ?? ""));
+  } catch {
+    return [];
+  }
 }
 
 // ── Public API ──────────────────────────────────────────────────────────
