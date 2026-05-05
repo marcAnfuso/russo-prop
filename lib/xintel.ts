@@ -18,7 +18,7 @@ export const REVALIDATE = 1800;
 
 // ─── Raw API types ─────────────────────────────────────────────────────────
 
-interface XintelListFicha {
+export interface XintelListFicha {
   in_num: string;
   in_fic: string;
   titulo?: string;
@@ -41,6 +41,9 @@ interface XintelListFicha {
   in_sup?: string;
   in_cub?: string;
   in_amb?: string | number;
+  /** Baños · campo real en la API de Xintel. `in_bau` parece ser un
+   * legacy de "bauleras" siempre vacío, no usarlo. */
+  in_bao?: string | number;
   in_bau?: string | number;
   in_coc?: string | number;
   garage?: string | number;
@@ -305,7 +308,7 @@ function firstImg(entry: string | string[]): string {
   return entry ?? "";
 }
 
-function mapListFicha(ficha: XintelListFicha, imgs: string | string[], amenities?: string[]): Property {
+export function mapListFicha(ficha: XintelListFicha, imgs: string | string[], amenities?: string[]): Property {
   const op = mapOperation(ficha.operacion);
   const rawPrice =
     op === "alquiler"
@@ -343,7 +346,7 @@ function mapListFicha(ficha: XintelListFicha, imgs: string | string[], amenities
       totalArea: num(ficha.in_sup),
       coveredArea: num(ficha.in_cub),
       rooms: num(ficha.in_amb),
-      bathrooms: num(ficha.in_bau),
+      bathrooms: num(ficha.in_bao) || num(ficha.in_bau),
       bedrooms: num(ficha.cantidad_dormitorios),
       garage: num(ficha.in_coc) || num(ficha.garage),
     },

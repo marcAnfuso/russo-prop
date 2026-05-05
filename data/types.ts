@@ -115,6 +115,8 @@ export interface Development {
   location: { lat: number; lng: number };
   elevators?: number;
   featured: boolean;
+  /** Unidades reales del emprendimiento traídas de Xintel · vacío si no fetcheamos detalle */
+  units?: Property[];
 }
 
 export interface Review {

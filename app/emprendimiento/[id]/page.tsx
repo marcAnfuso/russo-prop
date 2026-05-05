@@ -13,6 +13,7 @@ import Breadcrumb from "@/components/Breadcrumb";
 import Gallery from "@/components/Gallery";
 import ContactSidebar from "@/components/ContactSidebar";
 import MapView from "@/components/MapView";
+import PropertyCard from "@/components/PropertyCard";
 import { fetchDevelopment, fetchDevelopmentIds } from "@/lib/xintel-developments";
 import { listPicks } from "@/lib/picks";
 import { formatPrice } from "@/lib/utils";
@@ -179,6 +180,36 @@ export default async function DevelopmentDetailPage({
               />
             )}
           </div>
+
+          {/* Unidades del emprendimiento · cards clickeables · solo
+              las que tienen precio cargado (las que aún no liberaron
+              quedan ocultas, igual que en el listado general) */}
+          {(() => {
+            const publishable = dev.units?.filter((u) => u.price > 0) ?? [];
+            if (publishable.length === 0) return null;
+            return (
+              <section>
+                <div className="mb-4 flex items-center justify-between">
+                  <h2 className="text-xl font-semibold text-navy">
+                    Unidades del emprendimiento
+                  </h2>
+                  <span className="text-sm text-gray-500">
+                    {dev.availableUnits} de {dev.totalUnits} disponibles
+                  </span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {publishable.map((unit) => (
+                    <PropertyCard
+                      key={unit.id}
+                      property={unit}
+                      compact
+                      hideContactButtons
+                    />
+                  ))}
+                </div>
+              </section>
+            );
+          })()}
 
           {/* Description */}
           <section>

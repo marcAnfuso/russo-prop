@@ -1,5 +1,6 @@
-import type { Development, DevelopmentStatus } from "@/data/types";
+import type { Development, DevelopmentStatus, Property } from "@/data/types";
 import { listPicks } from "./picks";
+import { mapListFicha, type XintelListFicha } from "./xintel";
 
 const BASE = "https://xintelapi.com.ar/";
 const INM = "RUS";
@@ -117,7 +118,8 @@ function imagesFor(idx: number, imgs?: string[][]): string[] {
 
 function fichaToDevelopment(
   f: XintelEmpFicha,
-  imageList: string[]
+  imageList: string[],
+  units: Property[] = []
 ): Development {
   const idl = f.ed_idl;
   const images = imageList.length > 0
@@ -125,6 +127,46 @@ function fichaToDevelopment(
     : f.img_princ
     ? [f.img_princ]
     : [];
+
+  // Calculamos totalUnits / availableUnits / bathrooms / áreas a partir
+  // de las fichas reales que carga el equipo en Xintel — la API de
+  // emprendimientos no los expone directamente.
+  const totalUnits = units.length;
+  const availableUnits = units.filter(
+    (u) => u.price > 0 && u.price !== 9999999
+  ).length;
+
+  const baths = units
+    .map((u) => u.features.bathrooms ?? 0)
+    .filter((n) => n > 0)
+    .sort((a, b) => a - b);
+  const bathrooms = baths.length > 0 ? baths[Math.floor(baths.length / 2)] : 0;
+
+  const totalAreas = units
+    .map((u) => u.features.totalArea ?? 0)
+    .filter((n) => n > 0);
+  const coveredAreas = units
+    .map((u) => u.features.coveredArea ?? 0)
+    .filter((n) => n > 0);
+  const areaRange = totalAreas.length
+    ? `${Math.min(...totalAreas)}-${Math.max(...totalAreas)} m²`
+    : "";
+  const coveredAreaRange = coveredAreas.length
+    ? `${Math.min(...coveredAreas)}-${Math.max(...coveredAreas)} m²`
+    : "";
+
+  // Si no hay ed_amb cargado en el emprendimiento, derivamos el rango
+  // desde las unidades reales.
+  const fichaRoomsRange = deriveRoomsRange(f);
+  let roomsRange = fichaRoomsRange;
+  if (!roomsRange && units.length > 0) {
+    const ambs = units.map((u) => u.features.rooms ?? 0).filter((n) => n > 0);
+    if (ambs.length > 0) {
+      const min = Math.min(...ambs);
+      const max = Math.max(...ambs);
+      roomsRange = min === max ? String(min) : `${min}-${max}`;
+    }
+  }
 
   return {
     id: `rus${idl}`,
@@ -139,26 +181,82 @@ function fichaToDevelopment(
     category: f.ed_cat ?? "",
     priceFrom: num(f.valor_desde),
     priceTo: num(f.valor_hasta),
-    totalUnits: 0,        // Xintel no expone este campo
-    availableUnits: 0,    // Xintel no expone este campo
-    roomsRange: deriveRoomsRange(f),
-    areaRange: "",
-    coveredAreaRange: "",
-    bathrooms: 0,
+    totalUnits,
+    availableUnits,
+    roomsRange,
+    areaRange,
+    coveredAreaRange,
+    bathrooms,
     amenities: [],
     images,
     videoUrl: f.ed_vid || undefined,
     location: parseCoords(f.ed_coo),
     elevators: num(f.ed_asc) || undefined,
     featured: num(f.ed_ord) > 0 && num(f.ed_ord) <= 3, // top 3 por orden manual
+    units: units.length > 0 ? units : undefined,
   };
+}
+
+// ── Unidades por emprendimiento ─────────────────────────────────────────
+
+interface XintelFichasResponse {
+  resultado: {
+    fichas: XintelListFicha[];
+    img?: (string | string[])[];
+    datos?: { cantidad?: number; paginas?: number | string };
+  };
+}
+
+/**
+ * Trae todas las fichas (unidades) de un emprendimiento cargadas en
+ * Xintel. Pagina si hay más de las que entran en una sola request.
+ */
+export async function fetchDevelopmentUnits(
+  developmentXintelId: string
+): Promise<Property[]> {
+  const fetchPage = async (page: number): Promise<{
+    units: Property[];
+    morePages: number;
+  }> => {
+    const url = new URL(BASE);
+    url.searchParams.set("json", "resultados.fichas");
+    url.searchParams.set("inm", INM);
+    url.searchParams.set("apiK", API_KEY);
+    url.searchParams.set("id_emprendimiento", developmentXintelId);
+    url.searchParams.set("pag", String(page));
+
+    try {
+      const res = await fetch(url.toString(), {
+        next: { revalidate: REVALIDATE },
+      });
+      if (!res.ok) return { units: [], morePages: 0 };
+      const data = (await res.json()) as XintelFichasResponse;
+      const fichas = data?.resultado?.fichas ?? [];
+      const imgs = data?.resultado?.img ?? [];
+      const totalPaginas = Number(data?.resultado?.datos?.paginas ?? 0);
+      const units = fichas.map((f, i) => mapListFicha(f, imgs[i] ?? ""));
+      return { units, morePages: totalPaginas };
+    } catch {
+      return { units: [], morePages: 0 };
+    }
+  };
+
+  const first = await fetchPage(1);
+  if (first.morePages <= 1) return first.units;
+
+  const restPages = Array.from({ length: first.morePages - 1 }, (_, i) => i + 2);
+  const restResults = await Promise.all(restPages.map((p) => fetchPage(p)));
+  const all = [first.units];
+  for (const r of restResults) all.push(r.units);
+  return all.flat();
 }
 
 // ── Public API ──────────────────────────────────────────────────────────
 
 /**
  * Lista todos los emprendimientos cargados en Xintel.
- * Cacheado vía Next.js fetch (revalidate 30min).
+ * Para cada uno, también traemos sus unidades reales en paralelo para
+ * calcular total/disponibles correctamente. Cacheado 30min.
  */
 export async function fetchDevelopments(): Promise<Development[]> {
   const url = new URL(BASE);
@@ -174,8 +272,15 @@ export async function fetchDevelopments(): Promise<Development[]> {
     const data = (await res.json()) as XintelEmpResponse;
     const fichas = data?.resultado?.emprendimiento ?? [];
     const imgs = data?.resultado?.img;
+
+    // Fetch de unidades de cada emprendimiento en paralelo. Con cache
+    // de Next, después de la primera carga es gratis durante 30min.
+    const unitsPerDev = await Promise.all(
+      fichas.map((f) => fetchDevelopmentUnits(f.ed_idl))
+    );
+
     return fichas
-      .map((f, i) => fichaToDevelopment(f, imagesFor(i, imgs)))
+      .map((f, i) => fichaToDevelopment(f, imagesFor(i, imgs), unitsPerDev[i]))
       // Orden por ed_ord asc (los con orden válido primero)
       .sort((a, b) => Number(b.featured) - Number(a.featured));
   } catch {
