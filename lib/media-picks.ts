@@ -11,6 +11,8 @@ export interface MediaPick {
   title: string | null;
   position: number;
   added_at: string;
+  /** Código RUS opcional · si está, la card es clickeable y va a /propiedad/<id> */
+  property_id: string | null;
 }
 
 export async function ensureMediaSchema(): Promise<void> {
@@ -26,6 +28,8 @@ export async function ensureMediaSchema(): Promise<void> {
       added_at TIMESTAMPTZ NOT NULL DEFAULT now()
     )
   `;
+  // Migración aditiva · agregar property_id a tablas pre-existentes
+  await db`ALTER TABLE media_picks ADD COLUMN IF NOT EXISTS property_id TEXT`;
   await db`
     CREATE INDEX IF NOT EXISTS idx_media_position
       ON media_picks (position ASC, added_at DESC)
@@ -103,7 +107,7 @@ export async function listMediaPicks(): Promise<MediaPick[]> {
   await ensureMediaSchema();
   const db = sql();
   const rows = (await db`
-    SELECT id, url, platform, category, title, position, added_at
+    SELECT id, url, platform, category, title, position, added_at, property_id
     FROM media_picks
     ORDER BY position ASC, added_at DESC
   `) as unknown as MediaPick[];
@@ -115,14 +119,15 @@ export async function addMediaPick(params: {
   url: string;
   category: MediaCategory;
   title?: string;
+  propertyId?: string | null;
 }): Promise<void> {
   await ensureMediaSchema();
   const db = sql();
   const platform = detectPlatform(params.url);
   const url = canonicalizeUrl(params.url);
   await db`
-    INSERT INTO media_picks (id, url, platform, category, title)
-    VALUES (${params.id}, ${url}, ${platform}, ${params.category}, ${params.title ?? null})
+    INSERT INTO media_picks (id, url, platform, category, title, property_id)
+    VALUES (${params.id}, ${url}, ${platform}, ${params.category}, ${params.title ?? null}, ${params.propertyId ?? null})
   `;
 }
 
@@ -141,7 +146,7 @@ export async function reorderMediaPicks(ids: string[]): Promise<void> {
 
 export async function updateMediaPick(
   id: string,
-  changes: { url?: string; title?: string | null; category?: MediaCategory }
+  changes: { url?: string; title?: string | null; category?: MediaCategory; propertyId?: string | null }
 ): Promise<void> {
   await ensureMediaSchema();
   const db = sql();
@@ -157,5 +162,9 @@ export async function updateMediaPick(
   }
   if (changes.category !== undefined) {
     await db`UPDATE media_picks SET category = ${changes.category} WHERE id = ${id}`;
+  }
+  if (changes.propertyId !== undefined) {
+    const pid = changes.propertyId ? changes.propertyId.replace(/\D+/g, "") : null;
+    await db`UPDATE media_picks SET property_id = ${pid || null} WHERE id = ${id}`;
   }
 }

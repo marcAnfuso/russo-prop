@@ -16,6 +16,7 @@ export interface MediaPick {
   title: string | null;
   position: number;
   added_at: string;
+  property_id: string | null;
 }
 
 const CATEGORY_LABEL: Record<MediaCategory, string> = {
@@ -50,6 +51,7 @@ export default function MediaPicksPanel({
   const [url, setUrl] = useState("");
   const [category, setCategory] = useState<MediaCategory>("campana");
   const [title, setTitle] = useState("");
+  const [propertyId, setPropertyId] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
@@ -59,6 +61,7 @@ export default function MediaPicksPanel({
   const [editUrl, setEditUrl] = useState("");
   const [editTitle, setEditTitle] = useState("");
   const [editCategory, setEditCategory] = useState<MediaCategory>("campana");
+  const [editPropertyId, setEditPropertyId] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
 
   useEffect(() => {
@@ -75,6 +78,7 @@ export default function MediaPicksPanel({
     setEditUrl(item.url);
     setEditTitle(item.title ?? "");
     setEditCategory(item.category);
+    setEditPropertyId(item.property_id ?? "");
   }
   function cancelEdit() {
     setEditingId(null);
@@ -93,6 +97,7 @@ export default function MediaPicksPanel({
           url: editUrl.trim(),
           title: editTitle.trim() || null,
           category: editCategory,
+          property_id: editPropertyId.trim() || null,
         }),
       });
       const data = await res.json();
@@ -121,7 +126,12 @@ export default function MediaPicksPanel({
       const res = await fetch("/api/admin/media-picks", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: url.trim(), category, title: title.trim() }),
+        body: JSON.stringify({
+          url: url.trim(),
+          category,
+          title: title.trim(),
+          property_id: propertyId.trim() || null,
+        }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -133,6 +143,7 @@ export default function MediaPicksPanel({
       setItems(list.items ?? []);
       setUrl("");
       setTitle("");
+      setPropertyId("");
       setToast("Video agregado");
       setTimeout(() => setToast(null), 2000);
     } catch {
@@ -184,6 +195,14 @@ export default function MediaPicksPanel({
               onChange={(e) => setEditTitle(e.target.value)}
               placeholder="Título (opcional)"
               className="flex-1 rounded border border-gray-300 px-3 py-2 text-sm outline-none focus:border-magenta focus:ring-2 focus:ring-magenta/20"
+            />
+            <input
+              type="text"
+              value={editPropertyId}
+              onChange={(e) => setEditPropertyId(e.target.value)}
+              placeholder="RUS opcional"
+              className="w-[140px] rounded border border-gray-300 px-3 py-2 text-sm outline-none focus:border-magenta focus:ring-2 focus:ring-magenta/20"
+              title="Código RUS para linkear esta historia a una ficha de propiedad"
             />
             <select
               value={editCategory}
@@ -301,6 +320,14 @@ export default function MediaPicksPanel({
             onChange={(e) => setTitle(e.target.value)}
             maxLength={80}
             className="flex-1 min-w-[200px] rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none transition-colors focus:border-magenta focus:ring-2 focus:ring-magenta/30"
+          />
+          <input
+            type="text"
+            placeholder="Código RUS (opcional · ej: 10942)"
+            value={propertyId}
+            onChange={(e) => setPropertyId(e.target.value)}
+            className="w-[180px] rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none transition-colors focus:border-magenta focus:ring-2 focus:ring-magenta/30"
+            title="Si la historia es de una propiedad puntual, pegá el código y la card va a linkear a su ficha"
           />
           <select
             value={category}

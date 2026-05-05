@@ -49,12 +49,16 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  const propertyId =
+    typeof body.property_id === "string" ? body.property_id.replace(/\D+/g, "") : "";
+
   const id = randomUUID();
   await addMediaPick({
     id,
     url,
     category: category as MediaCategory,
     title: title || undefined,
+    propertyId: propertyId || null,
   });
   revalidatePath("/historias");
   return NextResponse.json({ ok: true, id });
@@ -85,7 +89,7 @@ export async function PATCH(req: NextRequest) {
   // Caso 1: edición de un media pick (id + cualquier subset de url/title/category)
   if (typeof body.id === "string" && body.id) {
     const id = body.id;
-    const changes: { url?: string; title?: string | null; category?: MediaCategory } = {};
+    const changes: { url?: string; title?: string | null; category?: MediaCategory; propertyId?: string | null } = {};
     if (typeof body.url === "string") {
       const url = body.url.trim();
       if (!/^https?:\/\//.test(url)) {
@@ -107,6 +111,12 @@ export async function PATCH(req: NextRequest) {
         );
       }
       changes.category = body.category as MediaCategory;
+    }
+    if (typeof body.property_id === "string" || body.property_id === null) {
+      changes.propertyId =
+        typeof body.property_id === "string"
+          ? body.property_id.replace(/\D+/g, "") || null
+          : null;
     }
     if (Object.keys(changes).length === 0) {
       return NextResponse.json(
