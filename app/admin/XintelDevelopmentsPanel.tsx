@@ -1,8 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Building2, Eye, EyeOff, ExternalLink, RefreshCw } from "lucide-react";
+import { Building2, Eye, EyeOff, ExternalLink, RefreshCw, X as XIcon } from "lucide-react";
 import type { Development } from "@/data/types";
+
+const PREVIEW_COUNT = 3;
 
 interface Props {
   initial: Development[];
@@ -22,6 +24,17 @@ export default function XintelDevelopmentsPanel({ initial, initialHiddenIds }: P
   const [busyId, setBusyId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
+
+  // Cerrar modal con ESC
+  useEffect(() => {
+    if (!modalOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setModalOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [modalOpen]);
 
   const flashToast = useCallback((m: string) => {
     setToast(m);
@@ -88,85 +101,70 @@ export default function XintelDevelopmentsPanel({ initial, initialHiddenIds }: P
       )}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {items.map((d) => {
-          const isHidden = hidden.has(d.id);
-          return (
-            <div
-              key={d.id}
-              className={`rounded-xl border overflow-hidden flex flex-col transition-opacity ${
-                isHidden ? "border-gray-200 bg-gray-50 opacity-60" : "border-gray-200 bg-white"
-              }`}
-            >
-              <div className="aspect-[16/9] bg-gray-100 relative">
-                {d.images[0] ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={d.images[0]}
-                    alt={d.name}
-                    className="absolute inset-0 w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="absolute inset-0 flex items-center justify-center text-gray-300 text-xs">
-                    Sin imagen
-                  </div>
-                )}
-                <span className="absolute top-2 left-2 inline-block rounded-full bg-navy/85 backdrop-blur-sm px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white">
-                  {STATUS_LABEL[d.status] ?? d.status}
-                </span>
-                {isHidden && (
-                  <span className="absolute top-2 right-2 inline-flex items-center gap-1 rounded-full bg-amber-500 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white">
-                    <EyeOff className="h-2.5 w-2.5" /> Oculto
-                  </span>
-                )}
-              </div>
-              <div className="p-3 flex flex-col gap-2 flex-1">
-                <div className="flex items-center justify-between gap-2">
-                  <p className="text-[10px] font-mono text-gray-400">{d.code}</p>
-                  <a
-                    href={`/emprendimiento/${d.id}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-[10px] text-gray-400 hover:text-magenta inline-flex items-center gap-0.5"
-                    title="Ver en el sitio"
-                  >
-                    Ver <ExternalLink className="h-2.5 w-2.5" />
-                  </a>
-                </div>
-                <p className="font-semibold text-navy text-sm leading-tight">{d.name}</p>
-                <p className="text-xs text-gray-500">
-                  {d.locality}
-                  {d.district && d.district !== d.locality ? `, ${d.district}` : ""}
-                </p>
-                <p className="text-xs text-gray-600 mt-auto">
-                  {d.priceFrom > 0 || d.priceTo > 0
-                    ? `USD ${d.priceFrom.toLocaleString()} – ${d.priceTo.toLocaleString()}`
-                    : "Consultar precio"}
-                </p>
-                <button
-                  type="button"
-                  disabled={busyId === d.id}
-                  onClick={() => toggleVisibility(d.id, d.name)}
-                  className={`mt-1 inline-flex items-center justify-center gap-1.5 rounded-md py-1.5 text-xs font-semibold transition-colors disabled:opacity-50 ${
-                    isHidden
-                      ? "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
-                      : "bg-amber-50 text-amber-700 hover:bg-amber-100"
-                  }`}
-                >
-                  {isHidden ? (
-                    <>
-                      <Eye className="h-3.5 w-3.5" /> Mostrar en el sitio
-                    </>
-                  ) : (
-                    <>
-                      <EyeOff className="h-3.5 w-3.5" /> Ocultar del sitio
-                    </>
-                  )}
-                </button>
-              </div>
-            </div>
-          );
-        })}
+        {items.slice(0, PREVIEW_COUNT).map((d) => (
+          <DevelopmentCard
+            key={d.id}
+            d={d}
+            isHidden={hidden.has(d.id)}
+            busy={busyId === d.id}
+            onToggle={toggleVisibility}
+          />
+        ))}
       </div>
+
+      {items.length > PREVIEW_COUNT && (
+        <div className="flex justify-center">
+          <button
+            type="button"
+            onClick={() => setModalOpen(true)}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-navy hover:bg-gray-50 transition-colors"
+          >
+            Ver los {items.length} emprendimientos
+          </button>
+        </div>
+      )}
+
+      {modalOpen && (
+        <div
+          className="fixed inset-0 z-50 bg-black/50 flex items-start justify-center p-4 overflow-y-auto"
+          onClick={() => setModalOpen(false)}
+        >
+          <div
+            className="bg-white rounded-2xl shadow-2xl max-w-6xl w-full my-8 overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+              <div>
+                <h3 className="text-lg font-semibold text-navy">
+                  Todos los emprendimientos
+                </h3>
+                <p className="text-xs text-gray-500">
+                  {items.length} en total · {items.length - hidden.size} visibles
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setModalOpen(false)}
+                className="p-2 rounded-md hover:bg-gray-100 text-gray-500"
+                aria-label="Cerrar"
+              >
+                <XIcon className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="p-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-h-[75vh] overflow-y-auto">
+              {items.map((d) => (
+                <DevelopmentCard
+                  key={d.id}
+                  d={d}
+                  isHidden={hidden.has(d.id)}
+                  busy={busyId === d.id}
+                  onToggle={toggleVisibility}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {toast && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 rounded-full bg-navy text-white px-5 py-2.5 text-sm font-medium shadow-xl">
@@ -174,6 +172,93 @@ export default function XintelDevelopmentsPanel({ initial, initialHiddenIds }: P
         </div>
       )}
     </section>
+  );
+}
+
+function DevelopmentCard({
+  d,
+  isHidden,
+  busy,
+  onToggle,
+}: {
+  d: Development;
+  isHidden: boolean;
+  busy: boolean;
+  onToggle: (id: string, name: string) => void;
+}) {
+  return (
+    <div
+      className={`rounded-xl border overflow-hidden flex flex-col transition-opacity ${
+        isHidden ? "border-gray-200 bg-gray-50 opacity-60" : "border-gray-200 bg-white"
+      }`}
+    >
+      <div className="aspect-[16/9] bg-gray-100 relative">
+        {d.images[0] ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={d.images[0]}
+            alt={d.name}
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center text-gray-300 text-xs">
+            Sin imagen
+          </div>
+        )}
+        <span className="absolute top-2 left-2 inline-block rounded-full bg-navy/85 backdrop-blur-sm px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white">
+          {STATUS_LABEL[d.status] ?? d.status}
+        </span>
+        {isHidden && (
+          <span className="absolute top-2 right-2 inline-flex items-center gap-1 rounded-full bg-amber-500 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white">
+            <EyeOff className="h-2.5 w-2.5" /> Oculto
+          </span>
+        )}
+      </div>
+      <div className="p-3 flex flex-col gap-2 flex-1">
+        <div className="flex items-center justify-between gap-2">
+          <p className="text-[10px] font-mono text-gray-400">{d.code}</p>
+          <a
+            href={`/emprendimiento/${d.id}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[10px] text-gray-400 hover:text-magenta inline-flex items-center gap-0.5"
+            title="Ver en el sitio"
+          >
+            Ver <ExternalLink className="h-2.5 w-2.5" />
+          </a>
+        </div>
+        <p className="font-semibold text-navy text-sm leading-tight">{d.name}</p>
+        <p className="text-xs text-gray-500">
+          {d.locality}
+          {d.district && d.district !== d.locality ? `, ${d.district}` : ""}
+        </p>
+        <p className="text-xs text-gray-600 mt-auto">
+          {d.priceFrom > 0 || d.priceTo > 0
+            ? `USD ${d.priceFrom.toLocaleString()} – ${d.priceTo.toLocaleString()}`
+            : "Consultar precio"}
+        </p>
+        <button
+          type="button"
+          disabled={busy}
+          onClick={() => onToggle(d.id, d.name)}
+          className={`mt-1 inline-flex items-center justify-center gap-1.5 rounded-md py-1.5 text-xs font-semibold transition-colors disabled:opacity-50 ${
+            isHidden
+              ? "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+              : "bg-amber-50 text-amber-700 hover:bg-amber-100"
+          }`}
+        >
+          {isHidden ? (
+            <>
+              <Eye className="h-3.5 w-3.5" /> Mostrar en el sitio
+            </>
+          ) : (
+            <>
+              <EyeOff className="h-3.5 w-3.5" /> Ocultar del sitio
+            </>
+          )}
+        </button>
+      </div>
+    </div>
   );
 }
 

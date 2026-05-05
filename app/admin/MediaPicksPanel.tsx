@@ -1,7 +1,9 @@
 "use client";
 
-import { useState, FormEvent } from "react";
+import { useEffect, useState, FormEvent } from "react";
 import { Bell, Video, Film, Trash2, Instagram, ExternalLink, Pencil, X, Check } from "lucide-react";
+
+const PREVIEW_COUNT = 3;
 
 export type MediaCategory = "campana" | "tour" | "otro";
 export type MediaPlatform = "instagram" | "tiktok" | "youtube" | "otro";
@@ -57,6 +59,16 @@ export default function MediaPicksPanel({
   const [editUrl, setEditUrl] = useState("");
   const [editTitle, setEditTitle] = useState("");
   const [editCategory, setEditCategory] = useState<MediaCategory>("campana");
+  const [modalOpen, setModalOpen] = useState(false);
+
+  useEffect(() => {
+    if (!modalOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setModalOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [modalOpen]);
 
   function startEdit(item: MediaPick) {
     setEditingId(item.id);
@@ -148,6 +160,113 @@ export default function MediaPicksPanel({
     }
   }
 
+  function renderItem(item: MediaPick) {
+    const CatIcon = CATEGORY_ICON[item.category];
+    const isEditing = editingId === item.id;
+
+    if (isEditing) {
+      return (
+        <li
+          key={item.id}
+          className="rounded-lg border border-magenta/30 bg-magenta-50/30 px-3 py-3 space-y-2"
+        >
+          <input
+            type="url"
+            value={editUrl}
+            onChange={(e) => setEditUrl(e.target.value)}
+            placeholder="URL del video"
+            className="w-full rounded border border-gray-300 px-3 py-2 text-sm outline-none focus:border-magenta focus:ring-2 focus:ring-magenta/20"
+          />
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={editTitle}
+              onChange={(e) => setEditTitle(e.target.value)}
+              placeholder="Título (opcional)"
+              className="flex-1 rounded border border-gray-300 px-3 py-2 text-sm outline-none focus:border-magenta focus:ring-2 focus:ring-magenta/20"
+            />
+            <select
+              value={editCategory}
+              onChange={(e) => setEditCategory(e.target.value as MediaCategory)}
+              className="rounded border border-gray-300 px-3 py-2 text-sm outline-none focus:border-magenta focus:ring-2 focus:ring-magenta/20"
+            >
+              <option value="campana">🔔 La campana</option>
+              <option value="tour">🎬 Tour</option>
+              <option value="otro">📌 Otro</option>
+            </select>
+          </div>
+          <div className="flex gap-2 justify-end">
+            <button
+              type="button"
+              onClick={cancelEdit}
+              disabled={busy}
+              className="inline-flex items-center gap-1 rounded-md border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-600 hover:bg-gray-50 disabled:opacity-50"
+            >
+              <X className="h-3 w-3" />
+              Cancelar
+            </button>
+            <button
+              type="button"
+              onClick={() => saveEdit(item.id)}
+              disabled={busy || !editUrl.trim()}
+              className="inline-flex items-center gap-1 rounded-md bg-magenta px-3 py-1.5 text-xs font-semibold text-white hover:bg-magenta-600 disabled:opacity-50"
+            >
+              <Check className="h-3 w-3" />
+              Guardar
+            </button>
+          </div>
+        </li>
+      );
+    }
+
+    return (
+      <li
+        key={item.id}
+        className="flex items-start gap-3 rounded-lg border border-gray-100 px-3 py-2.5"
+      >
+        <span className="mt-1 flex h-7 w-7 items-center justify-center rounded-full bg-magenta-50 text-magenta flex-shrink-0">
+          <CatIcon className="h-3.5 w-3.5" />
+        </span>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-medium text-navy truncate">
+            {item.title || item.url}
+          </p>
+          <p className="inline-flex items-center gap-1.5 text-[11px] text-gray-400">
+            <PlatformIcon p={item.platform} />
+            {CATEGORY_LABEL[item.category]}
+            <a
+              href={item.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-0.5 hover:text-magenta transition-colors ml-2"
+            >
+              Abrir
+              <ExternalLink className="h-3 w-3" />
+            </a>
+          </p>
+        </div>
+        <div className="flex items-center gap-1 mt-1 flex-shrink-0">
+          <button
+            type="button"
+            onClick={() => startEdit(item)}
+            aria-label="Editar"
+            className="text-gray-400 hover:text-navy transition-colors p-1"
+          >
+            <Pencil className="h-4 w-4" />
+          </button>
+          <button
+            type="button"
+            onClick={() => handleRemove(item.id)}
+            aria-label="Quitar"
+            className="text-gray-400 hover:text-red-500 transition-colors p-1"
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
+        </div>
+      </li>
+    );
+  }
+
   return (
     <section className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
       <div className="flex items-center gap-2 mb-1 text-navy">
@@ -213,114 +332,54 @@ export default function MediaPicksPanel({
           Todavía no cargaste ningún video. Agregá el primero arriba.
         </p>
       ) : (
-        <ul className="space-y-2">
-          {items.map((item) => {
-            const CatIcon = CATEGORY_ICON[item.category];
-            const isEditing = editingId === item.id;
-
-            if (isEditing) {
-              return (
-                <li
-                  key={item.id}
-                  className="rounded-lg border border-magenta/30 bg-magenta-50/30 px-3 py-3 space-y-2"
-                >
-                  <input
-                    type="url"
-                    value={editUrl}
-                    onChange={(e) => setEditUrl(e.target.value)}
-                    placeholder="URL del video"
-                    className="w-full rounded border border-gray-300 px-3 py-2 text-sm outline-none focus:border-magenta focus:ring-2 focus:ring-magenta/20"
-                  />
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={editTitle}
-                      onChange={(e) => setEditTitle(e.target.value)}
-                      placeholder="Título (opcional)"
-                      className="flex-1 rounded border border-gray-300 px-3 py-2 text-sm outline-none focus:border-magenta focus:ring-2 focus:ring-magenta/20"
-                    />
-                    <select
-                      value={editCategory}
-                      onChange={(e) => setEditCategory(e.target.value as MediaCategory)}
-                      className="rounded border border-gray-300 px-3 py-2 text-sm outline-none focus:border-magenta focus:ring-2 focus:ring-magenta/20"
-                    >
-                      <option value="campana">🔔 La campana</option>
-                      <option value="tour">🎬 Tour</option>
-                      <option value="otro">📌 Otro</option>
-                    </select>
-                  </div>
-                  <div className="flex gap-2 justify-end">
-                    <button
-                      type="button"
-                      onClick={cancelEdit}
-                      disabled={busy}
-                      className="inline-flex items-center gap-1 rounded-md border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-600 hover:bg-gray-50 disabled:opacity-50"
-                    >
-                      <X className="h-3 w-3" />
-                      Cancelar
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => saveEdit(item.id)}
-                      disabled={busy || !editUrl.trim()}
-                      className="inline-flex items-center gap-1 rounded-md bg-magenta px-3 py-1.5 text-xs font-semibold text-white hover:bg-magenta-600 disabled:opacity-50"
-                    >
-                      <Check className="h-3 w-3" />
-                      Guardar
-                    </button>
-                  </div>
-                </li>
-              );
-            }
-
-            return (
-              <li
-                key={item.id}
-                className="flex items-start gap-3 rounded-lg border border-gray-100 px-3 py-2.5"
+        <>
+          <ul className="space-y-2">
+            {items.slice(0, PREVIEW_COUNT).map((item) => renderItem(item))}
+          </ul>
+          {items.length > PREVIEW_COUNT && (
+            <div className="mt-3 flex justify-center">
+              <button
+                type="button"
+                onClick={() => setModalOpen(true)}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-navy hover:bg-gray-50 transition-colors"
               >
-                <span className="mt-1 flex h-7 w-7 items-center justify-center rounded-full bg-magenta-50 text-magenta flex-shrink-0">
-                  <CatIcon className="h-3.5 w-3.5" />
-                </span>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-navy truncate">
-                    {item.title || item.url}
-                  </p>
-                  <p className="inline-flex items-center gap-1.5 text-[11px] text-gray-400">
-                    <PlatformIcon p={item.platform} />
-                    {CATEGORY_LABEL[item.category]}
-                    <a
-                      href={item.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-0.5 hover:text-magenta transition-colors ml-2"
-                    >
-                      Abrir
-                      <ExternalLink className="h-3 w-3" />
-                    </a>
-                  </p>
-                </div>
-                <div className="flex items-center gap-1 mt-1 flex-shrink-0">
-                  <button
-                    type="button"
-                    onClick={() => startEdit(item)}
-                    aria-label="Editar"
-                    className="text-gray-400 hover:text-navy transition-colors p-1"
-                  >
-                    <Pencil className="h-4 w-4" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleRemove(item.id)}
-                    aria-label="Quitar"
-                    className="text-gray-400 hover:text-red-500 transition-colors p-1"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                </div>
-              </li>
-            );
-          })}
-        </ul>
+                Ver los {items.length} videos
+              </button>
+            </div>
+          )}
+        </>
+      )}
+
+      {modalOpen && (
+        <div
+          className="fixed inset-0 z-50 bg-black/50 flex items-start justify-center p-4 overflow-y-auto"
+          onClick={() => setModalOpen(false)}
+        >
+          <div
+            className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full my-8 overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+              <div>
+                <h3 className="text-lg font-semibold text-navy">
+                  Todos los videos
+                </h3>
+                <p className="text-xs text-gray-500">{items.length} en total</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setModalOpen(false)}
+                className="p-2 rounded-md hover:bg-gray-100 text-gray-500"
+                aria-label="Cerrar"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <ul className="p-5 space-y-2 max-h-[75vh] overflow-y-auto">
+              {items.map((item) => renderItem(item))}
+            </ul>
+          </div>
+        </div>
       )}
 
       {toast && (
