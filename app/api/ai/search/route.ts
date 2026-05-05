@@ -371,7 +371,7 @@ export async function POST(req: NextRequest) {
   };
 
   if (!userMessage) {
-    void logRussiaUsage({
+    await logRussiaUsage({
       ipHash, userAgent, userMessage: "(empty)", ...logCtx,
       error: "missing message", ms: Date.now() - startedAt,
     });
@@ -381,7 +381,7 @@ export async function POST(req: NextRequest) {
     );
   }
   if (userMessage.length > 500) {
-    void logRussiaUsage({
+    await logRussiaUsage({
       ipHash, userAgent, userMessage, ...logCtx,
       error: "message too long", ms: Date.now() - startedAt,
     });
@@ -431,7 +431,7 @@ export async function POST(req: NextRequest) {
       const answer = (firstRes.text ?? "").trim();
       logCtx.responseExcerpt = answer.slice(0, 300);
       logCtx.resultCount = 0;
-      void logRussiaUsage({
+      await logRussiaUsage({
         ipHash, userAgent, userMessage, ...logCtx,
         ms: Date.now() - startedAt,
       });
@@ -528,7 +528,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    void logRussiaUsage({
+    await logRussiaUsage({
       ipHash, userAgent, userMessage, ...logCtx,
       ms: Date.now() - startedAt,
     });
@@ -549,7 +549,7 @@ export async function POST(req: NextRequest) {
     const msg = e instanceof Error ? e.message : String(e);
     console.error("[ai/search] error:", msg);
     logCtx.error = msg;
-    void logRussiaUsage({
+    await logRussiaUsage({
       ipHash, userAgent, userMessage, ...logCtx,
       ms: Date.now() - startedAt,
     });
