@@ -9,6 +9,13 @@ import {
 } from "@/lib/property-search";
 import type { Property } from "@/data/types";
 import { listPOILabels } from "@/lib/pois";
+import { hashIp, logRussiaUsage } from "@/lib/russia-logs";
+
+function getClientIp(req: NextRequest): string | null {
+  const xf = req.headers.get("x-forwarded-for");
+  if (xf) return xf.split(",")[0].trim();
+  return req.headers.get("x-real-ip");
+}
 
 export const maxDuration = 30;
 
@@ -343,17 +350,41 @@ const SEARCH_TOOL: { functionDeclarations: FunctionDeclaration[] } = {
 };
 
 export async function POST(req: NextRequest) {
+  const startedAt = Date.now();
   const body = (await req.json().catch(() => ({}))) as RequestBody;
   const userMessage = (body.message || "").trim();
   const history = body.history ?? [];
 
+  const ipHash = hashIp(getClientIp(req));
+  const userAgent = req.headers.get("user-agent");
+
+  // Acumulamos info a lo largo del handler. Se loguea en finally,
+  // fire-and-forget · no rompe la respuesta si la DB está caída.
+  const logCtx = {
+    responseExcerpt: null as string | null,
+    functionCall: null as string | null,
+    functionArgs: null as unknown,
+    resultCount: null as number | null,
+    error: null as string | null,
+    inputTokens: null as number | null,
+    outputTokens: null as number | null,
+  };
+
   if (!userMessage) {
+    void logRussiaUsage({
+      ipHash, userAgent, userMessage: "(empty)", ...logCtx,
+      error: "missing message", ms: Date.now() - startedAt,
+    });
     return NextResponse.json(
       { ok: false, error: "missing message" },
       { status: 400 }
     );
   }
   if (userMessage.length > 500) {
+    void logRussiaUsage({
+      ipHash, userAgent, userMessage, ...logCtx,
+      error: "message too long", ms: Date.now() - startedAt,
+    });
     return NextResponse.json(
       { ok: false, error: "mensaje demasiado largo" },
       { status: 400 }
@@ -388,9 +419,22 @@ export async function POST(req: NextRequest) {
     const parts = candidate?.content?.parts ?? [];
     const fnCall = parts.find((p) => p.functionCall)?.functionCall;
 
+    // Capturar tokens del primer call para el log
+    const firstUsage = firstRes.usageMetadata;
+    if (firstUsage) {
+      logCtx.inputTokens = (logCtx.inputTokens ?? 0) + (firstUsage.promptTokenCount ?? 0);
+      logCtx.outputTokens = (logCtx.outputTokens ?? 0) + (firstUsage.candidatesTokenCount ?? 0);
+    }
+
     // Si Gemini decidió responder sin búsqueda
     if (!fnCall) {
       const answer = (firstRes.text ?? "").trim();
+      logCtx.responseExcerpt = answer.slice(0, 300);
+      logCtx.resultCount = 0;
+      void logRussiaUsage({
+        ipHash, userAgent, userMessage, ...logCtx,
+        ms: Date.now() - startedAt,
+      });
       return NextResponse.json({
         ok: true,
         answer: answer || "¿Podés contarme un poco más sobre lo que buscás?",
@@ -400,11 +444,14 @@ export async function POST(req: NextRequest) {
 
     // Ejecutar la búsqueda · routing por nombre de la función
     const args = (fnCall.args ?? {}) as Record<string, unknown>;
+    logCtx.functionCall = fnCall.name ?? null;
+    logCtx.functionArgs = args;
     const result =
       fnCall.name === "search_properties_near"
         ? await searchPropertiesNear(args as unknown as NearSearchInput, 5)
         : await searchProperties(args as SearchFilters, 5);
     const filters = args;
+    logCtx.resultCount = result.matches.length;
 
     // Segundo call · le pasamos los resultados a Gemini para que
     // componga la respuesta final natural
@@ -461,6 +508,14 @@ export async function POST(req: NextRequest) {
     });
 
     const finalText = (followUp.text ?? "").trim();
+    logCtx.responseExcerpt = finalText.slice(0, 300);
+
+    // Sumar tokens del segundo call
+    const secondUsage = followUp.usageMetadata;
+    if (secondUsage) {
+      logCtx.inputTokens = (logCtx.inputTokens ?? 0) + (secondUsage.promptTokenCount ?? 0);
+      logCtx.outputTokens = (logCtx.outputTokens ?? 0) + (secondUsage.candidatesTokenCount ?? 0);
+    }
 
     const cards = result.matches.map(toCard);
     // Sumarle la distancia a cada card si la búsqueda fue geo-espacial
@@ -472,6 +527,11 @@ export async function POST(req: NextRequest) {
         }
       }
     }
+
+    void logRussiaUsage({
+      ipHash, userAgent, userMessage, ...logCtx,
+      ms: Date.now() - startedAt,
+    });
 
     return NextResponse.json({
       ok: true,
@@ -488,6 +548,11 @@ export async function POST(req: NextRequest) {
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
     console.error("[ai/search] error:", msg);
+    logCtx.error = msg;
+    void logRussiaUsage({
+      ipHash, userAgent, userMessage, ...logCtx,
+      ms: Date.now() - startedAt,
+    });
     return NextResponse.json({ ok: false, error: msg }, { status: 500 });
   }
 }
