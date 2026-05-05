@@ -4,6 +4,7 @@ import { sql } from "./db";
 export interface RussiaLogRow {
   id: number;
   created_at: string;
+  session_id: string | null;
   ip_hash: string | null;
   user_agent: string | null;
   user_message: string;
@@ -36,8 +37,10 @@ export async function ensureRussiaLogsSchema(): Promise<void> {
       output_tokens INTEGER
     )
   `;
+  await db`ALTER TABLE russia_usage_logs ADD COLUMN IF NOT EXISTS session_id TEXT`;
   await db`CREATE INDEX IF NOT EXISTS idx_russia_logs_created ON russia_usage_logs (created_at DESC)`;
   await db`CREATE INDEX IF NOT EXISTS idx_russia_logs_ip ON russia_usage_logs (ip_hash, created_at DESC)`;
+  await db`CREATE INDEX IF NOT EXISTS idx_russia_logs_session ON russia_usage_logs (session_id, created_at ASC)`;
 }
 
 const HASH_SALT = process.env.RUSSIA_LOG_SALT ?? "russo-default-salt-change-me";
@@ -48,6 +51,7 @@ export function hashIp(ip: string | null | undefined): string | null {
 }
 
 export interface LogRussiaParams {
+  sessionId: string | null;
   ipHash: string | null;
   userAgent: string | null;
   userMessage: string;
@@ -72,10 +76,11 @@ export async function logRussiaUsage(params: LogRussiaParams): Promise<void> {
     const db = sql();
     await db`
       INSERT INTO russia_usage_logs (
-        ip_hash, user_agent, user_message, response_excerpt,
+        session_id, ip_hash, user_agent, user_message, response_excerpt,
         function_call, function_args, result_count, error, ms,
         input_tokens, output_tokens
       ) VALUES (
+        ${params.sessionId},
         ${params.ipHash},
         ${params.userAgent},
         ${params.userMessage},
@@ -92,6 +97,110 @@ export async function logRussiaUsage(params: LogRussiaParams): Promise<void> {
   } catch {
     // logging es best-effort · no romper si DB falla
   }
+}
+
+export interface RussiaSession {
+  session_id: string | null;
+  ip_hash: string | null;
+  started_at: string;
+  ended_at: string;
+  message_count: number;
+  has_error: boolean;
+  total_input_tokens: number;
+  total_output_tokens: number;
+  first_message: string;
+  messages: RussiaLogRow[];
+}
+
+/**
+ * Lista las charlas (agrupadas por session_id) más recientes. Las
+ * filas sin session_id se agrupan como "huérfanas" en una sesión
+ * sintética (clave null) · útil para los logs viejos antes de que
+ * empezáramos a trackear sesiones.
+ */
+export async function listRussiaSessions(params: {
+  limit?: number;
+  offset?: number;
+}): Promise<{ sessions: RussiaSession[]; total: number }> {
+  await ensureRussiaLogsSchema();
+  const db = sql();
+  const limit = Math.max(1, Math.min(100, params.limit ?? 30));
+  const offset = Math.max(0, params.offset ?? 0);
+
+  // Primero traemos las sesiones más recientes (paginadas)
+  const sessionRows = (await db`
+    SELECT
+      session_id,
+      MAX(ip_hash) AS ip_hash,
+      MIN(created_at) AS started_at,
+      MAX(created_at) AS ended_at,
+      COUNT(*)::int AS message_count,
+      BOOL_OR(error IS NOT NULL) AS has_error,
+      COALESCE(SUM(input_tokens), 0)::int AS total_input_tokens,
+      COALESCE(SUM(output_tokens), 0)::int AS total_output_tokens
+    FROM russia_usage_logs
+    GROUP BY session_id
+    ORDER BY MAX(created_at) DESC
+    LIMIT ${limit} OFFSET ${offset}
+  `) as Array<{
+    session_id: string | null;
+    ip_hash: string | null;
+    started_at: string;
+    ended_at: string;
+    message_count: number;
+    has_error: boolean;
+    total_input_tokens: number;
+    total_output_tokens: number;
+  }>;
+
+  if (sessionRows.length === 0) {
+    return { sessions: [], total: 0 };
+  }
+
+  // Total de sesiones distintas
+  const totalRows = (await db`
+    SELECT COUNT(DISTINCT session_id)::int AS total FROM russia_usage_logs
+  `) as Array<{ total: number }>;
+
+  // Para cada sesión, traemos sus mensajes en orden cronológico
+  const ids = sessionRows.map((s) => s.session_id);
+  const messagesRows = (await db`
+    SELECT id, created_at, session_id, ip_hash, user_agent, user_message,
+      response_excerpt, function_call, function_args, result_count,
+      error, ms, input_tokens, output_tokens
+    FROM russia_usage_logs
+    WHERE session_id = ANY(${ids as unknown[]}::text[])
+       OR (session_id IS NULL AND ${ids.includes(null)})
+    ORDER BY session_id, created_at ASC
+  `) as RussiaLogRow[];
+
+  const messagesBySession = new Map<string | null, RussiaLogRow[]>();
+  for (const m of messagesRows) {
+    const key = m.session_id;
+    const arr = messagesBySession.get(key);
+    if (arr) arr.push(m);
+    else messagesBySession.set(key, [m]);
+  }
+
+  const sessions: RussiaSession[] = sessionRows.map((s) => {
+    const msgs = messagesBySession.get(s.session_id) ?? [];
+    const formatTs = (ts: string) =>
+      new Date(ts).toISOString().replace(".000Z", "Z");
+    return {
+      session_id: s.session_id,
+      ip_hash: s.ip_hash,
+      started_at: formatTs(s.started_at),
+      ended_at: formatTs(s.ended_at),
+      message_count: s.message_count,
+      has_error: s.has_error,
+      total_input_tokens: s.total_input_tokens,
+      total_output_tokens: s.total_output_tokens,
+      first_message: msgs[0]?.user_message ?? "",
+      messages: msgs,
+    };
+  });
+
+  return { sessions, total: totalRows[0]?.total ?? 0 };
 }
 
 export async function listRussiaLogs(params: {

@@ -72,6 +72,17 @@ export default function RussiaSearchChat({
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const presetFiredRef = useRef(false);
+  // session_id estable por charla · persiste mientras la pestaña esté
+  // abierta y el componente vivo. El admin lo usa para agrupar mensajes
+  // en una conversación. Generado con randomUUID; refrescos crean
+  // sesiones nuevas (eso está bien · cada visita al sitio = nuevo hilo).
+  const sessionIdRef = useRef<string>("");
+  if (!sessionIdRef.current) {
+    sessionIdRef.current =
+      typeof crypto !== "undefined" && crypto.randomUUID
+        ? crypto.randomUUID()
+        : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  }
 
   // Auto-scroll a la última respuesta
   useEffect(() => {
@@ -112,7 +123,11 @@ export default function RussiaSearchChat({
       const res = await fetch("/api/ai/search", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: trimmed, history }),
+        body: JSON.stringify({
+          message: trimmed,
+          history,
+          session_id: sessionIdRef.current,
+        }),
       });
       const data = await res.json();
       if (!res.ok || !data.ok) {

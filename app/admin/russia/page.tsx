@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowLeft, MessageCircle } from "lucide-react";
 import { getCurrentAdmin } from "@/lib/admin-auth";
-import { getRussiaStats, listRussiaLogs } from "@/lib/russia-logs";
+import { getRussiaStats, listRussiaSessions } from "@/lib/russia-logs";
 import AdminLogin from "../AdminLogin";
 import RussiaLogsClient from "./RussiaLogsClient";
 
@@ -20,8 +20,8 @@ export default async function AdminRussiaPage() {
   const me = await getCurrentAdmin();
   if (!me) return <AdminLogin />;
 
-  const [{ rows, total }, stats] = await Promise.all([
-    listRussiaLogs({ limit: PAGE_SIZE, offset: 0 }),
+  const [{ sessions, total }, stats] = await Promise.all([
+    listRussiaSessions({ limit: PAGE_SIZE, offset: 0 }),
     getRussiaStats(),
   ]);
 
@@ -58,7 +58,7 @@ export default async function AdminRussiaPage() {
         </div>
 
         <RussiaLogsClient
-          initialRows={rows}
+          initialSessions={sessions}
           initialTotal={total}
           stats={stats}
           pageSize={PAGE_SIZE}

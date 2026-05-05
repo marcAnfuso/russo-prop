@@ -171,6 +171,7 @@ interface ChatMessage {
 interface RequestBody {
   message: string;
   history?: ChatMessage[];
+  session_id?: string;
 }
 
 interface PropertyCard {
@@ -354,6 +355,7 @@ export async function POST(req: NextRequest) {
   const body = (await req.json().catch(() => ({}))) as RequestBody;
   const userMessage = (body.message || "").trim();
   const history = body.history ?? [];
+  const sessionId = body.session_id ?? null;
 
   const ipHash = hashIp(getClientIp(req));
   const userAgent = req.headers.get("user-agent");
@@ -372,7 +374,7 @@ export async function POST(req: NextRequest) {
 
   if (!userMessage) {
     await logRussiaUsage({
-      ipHash, userAgent, userMessage: "(empty)", ...logCtx,
+      sessionId, ipHash, userAgent, userMessage: "(empty)", ...logCtx,
       error: "missing message", ms: Date.now() - startedAt,
     });
     return NextResponse.json(
@@ -382,7 +384,7 @@ export async function POST(req: NextRequest) {
   }
   if (userMessage.length > 500) {
     await logRussiaUsage({
-      ipHash, userAgent, userMessage, ...logCtx,
+      sessionId, ipHash, userAgent, userMessage, ...logCtx,
       error: "message too long", ms: Date.now() - startedAt,
     });
     return NextResponse.json(
@@ -432,7 +434,7 @@ export async function POST(req: NextRequest) {
       logCtx.responseExcerpt = answer.slice(0, 300);
       logCtx.resultCount = 0;
       await logRussiaUsage({
-        ipHash, userAgent, userMessage, ...logCtx,
+        sessionId, ipHash, userAgent, userMessage, ...logCtx,
         ms: Date.now() - startedAt,
       });
       return NextResponse.json({
@@ -529,7 +531,7 @@ export async function POST(req: NextRequest) {
     }
 
     await logRussiaUsage({
-      ipHash, userAgent, userMessage, ...logCtx,
+      sessionId, ipHash, userAgent, userMessage, ...logCtx,
       ms: Date.now() - startedAt,
     });
 
@@ -550,7 +552,7 @@ export async function POST(req: NextRequest) {
     console.error("[ai/search] error:", msg);
     logCtx.error = msg;
     await logRussiaUsage({
-      ipHash, userAgent, userMessage, ...logCtx,
+      sessionId, ipHash, userAgent, userMessage, ...logCtx,
       ms: Date.now() - startedAt,
     });
     return NextResponse.json({ ok: false, error: msg }, { status: 500 });

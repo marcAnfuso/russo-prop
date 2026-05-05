@@ -6,41 +6,42 @@ import {
   Search,
   X,
   AlertCircle,
-  Filter,
   RefreshCw,
   Bot,
   AlertTriangle,
+  ChevronDown,
+  ChevronRight,
+  MessageSquare,
 } from "lucide-react";
-import type { RussiaLogRow, RussiaStats } from "@/lib/russia-logs";
+import type { RussiaSession, RussiaStats, RussiaLogRow } from "@/lib/russia-logs";
 
 interface Props {
-  initialRows: RussiaLogRow[];
+  initialSessions: RussiaSession[];
   initialTotal: number;
   stats: RussiaStats;
   pageSize: number;
 }
 
-// Pricing aproximado de Gemini 2.5 Flash · USD por 1M tokens
 const PRICE_INPUT_PER_MILLION = 0.3;
 const PRICE_OUTPUT_PER_MILLION = 2.5;
 
 export default function RussiaLogsClient({
-  initialRows,
+  initialSessions,
   initialTotal,
   stats,
   pageSize,
 }: Props) {
   const router = useRouter();
   const [, startTransition] = useTransition();
-  const [rows, setRows] = useState<RussiaLogRow[]>(initialRows);
-  const [total, setTotal] = useState(initialTotal);
+  const [sessions] = useState<RussiaSession[]>(initialSessions);
+  const [total] = useState(initialTotal);
   const [query, setQuery] = useState("");
   const [filterIp, setFilterIp] = useState<string | null>(null);
   const [filterError, setFilterError] = useState(false);
-  const [page, setPage] = useState(1);
-  const [loading, setLoading] = useState(false);
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
-  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  void pageSize;
+  void total;
 
   const estimatedCost30d = useMemo(() => {
     const input = (stats.inputTokens30d / 1_000_000) * PRICE_INPUT_PER_MILLION;
@@ -48,53 +49,50 @@ export default function RussiaLogsClient({
     return input + output;
   }, [stats.inputTokens30d, stats.outputTokens30d]);
 
-  async function fetchPage(p: number) {
-    setLoading(true);
-    try {
-      const sp = new URLSearchParams();
-      sp.set("limit", String(pageSize));
-      sp.set("offset", String((p - 1) * pageSize));
-      if (query.trim()) sp.set("q", query.trim());
-      if (filterIp) sp.set("ip_hash", filterIp);
-      const res = await fetch(`/api/admin/russia-logs?${sp.toString()}`);
-      const data = await res.json();
-      setRows(data.rows ?? []);
-      setTotal(data.total ?? 0);
-      setPage(p);
-    } finally {
-      setLoading(false);
+  // Filtrado local sobre las sesiones
+  const visibleSessions = useMemo(() => {
+    let out = sessions;
+    if (filterIp) out = out.filter((s) => s.ip_hash === filterIp);
+    if (filterError) out = out.filter((s) => s.has_error);
+    if (query.trim()) {
+      const q = query.trim().toLowerCase();
+      out = out.filter((s) =>
+        s.messages.some((m) => m.user_message.toLowerCase().includes(q))
+      );
     }
-  }
+    return out;
+  }, [sessions, filterIp, filterError, query]);
 
-  async function applyFilters() {
-    await fetchPage(1);
+  function toggle(sessionKey: string) {
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      if (next.has(sessionKey)) next.delete(sessionKey);
+      else next.add(sessionKey);
+      return next;
+    });
   }
 
   function clearFilters() {
     setQuery("");
     setFilterIp(null);
     setFilterError(false);
-    fetchPage(1);
   }
-
-  function setIpFilter(ipHash: string | null) {
-    setFilterIp(ipHash);
-    setTimeout(() => fetchPage(1), 0);
-  }
-
-  // Filtro local de errores (sobre las rows ya cargadas)
-  const visibleRows = useMemo(() => {
-    if (!filterError) return rows;
-    return rows.filter((r) => r.error);
-  }, [rows, filterError]);
 
   return (
     <div className="space-y-6">
       {/* Cards de stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <StatCard label="Hoy" value={stats.totalToday} sub={`${stats.uniqueIpsToday} IPs únicas`} />
+        <StatCard
+          label="Hoy"
+          value={stats.totalToday}
+          sub={`${stats.uniqueIpsToday} IPs únicas`}
+        />
         <StatCard label="Ayer" value={stats.totalYesterday} />
-        <StatCard label="Últimos 7 días" value={stats.total7d} sub={`${stats.uniqueIps7d} IPs únicas`} />
+        <StatCard
+          label="Últimos 7 días"
+          value={stats.total7d}
+          sub={`${stats.uniqueIps7d} IPs únicas`}
+        />
         <StatCard
           label="Costo estimado · 30d"
           value={`USD ${estimatedCost30d.toFixed(2)}`}
@@ -103,7 +101,7 @@ export default function RussiaLogsClient({
         />
       </div>
 
-      {/* Sparkline de últimos 30 días */}
+      {/* Sparkline */}
       {stats.perDay30d.length > 0 && (
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
           <div className="flex items-center justify-between mb-2">
@@ -143,13 +141,10 @@ export default function RussiaLogsClient({
           </p>
           <ul className="space-y-1.5">
             {stats.topIps7d.map((ip) => (
-              <li
-                key={ip.ip_hash}
-                className="flex items-center gap-2 text-xs"
-              >
+              <li key={ip.ip_hash} className="flex items-center gap-2 text-xs">
                 <button
                   type="button"
-                  onClick={() => setIpFilter(ip.ip_hash)}
+                  onClick={() => setFilterIp(ip.ip_hash)}
                   className={`font-mono text-[11px] px-2 py-0.5 rounded transition-colors ${
                     filterIp === ip.ip_hash
                       ? "bg-magenta text-white"
@@ -183,7 +178,7 @@ export default function RussiaLogsClient({
       )}
 
       {/* Filtros */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 space-y-3">
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
         <div className="flex flex-wrap gap-3 items-center">
           <div className="relative flex-1 min-w-[240px]">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -191,8 +186,7 @@ export default function RussiaLogsClient({
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && applyFilters()}
-              placeholder="Buscar texto en mensajes..."
+              placeholder="Buscar texto en cualquier mensaje de la conversación..."
               className="w-full pl-9 pr-9 py-2 rounded-lg border border-gray-200 text-sm outline-none focus:border-magenta focus:ring-2 focus:ring-magenta/30"
             />
             {query && (
@@ -209,11 +203,9 @@ export default function RussiaLogsClient({
           {filterIp && (
             <button
               type="button"
-              onClick={() => setIpFilter(null)}
+              onClick={() => setFilterIp(null)}
               className="inline-flex items-center gap-1 rounded-md bg-magenta-50 text-magenta px-2 py-1.5 text-xs font-mono"
-              title="Quitar filtro IP"
             >
-              <Filter className="h-3 w-3" />
               {filterIp}
               <X className="h-3 w-3" />
             </button>
@@ -229,21 +221,7 @@ export default function RussiaLogsClient({
             }`}
           >
             <AlertCircle className="h-3.5 w-3.5" />
-            Solo errores
-          </button>
-
-          <button
-            type="button"
-            onClick={applyFilters}
-            disabled={loading}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-navy text-white px-3 py-2 text-xs font-semibold hover:bg-navy-700 disabled:opacity-50"
-          >
-            {loading ? (
-              <RefreshCw className="h-3.5 w-3.5 animate-spin" />
-            ) : (
-              <Search className="h-3.5 w-3.5" />
-            )}
-            Aplicar
+            Solo con error
           </button>
 
           {(query || filterIp || filterError) && (
@@ -261,7 +239,6 @@ export default function RussiaLogsClient({
             type="button"
             onClick={() => startTransition(() => router.refresh())}
             className="ml-auto inline-flex items-center gap-1.5 text-xs text-gray-500 hover:text-navy"
-            title="Recargar desde el server"
           >
             <RefreshCw className="h-3.5 w-3.5" />
             Refrescar
@@ -269,166 +246,162 @@ export default function RussiaLogsClient({
         </div>
       </div>
 
-      {/* Lista de logs */}
+      {/* Lista de sesiones */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-        {visibleRows.length === 0 ? (
+        {visibleSessions.length === 0 ? (
           <div className="p-10 text-center">
             <Bot className="h-10 w-10 text-gray-300 mx-auto mb-2" />
             <p className="text-sm text-gray-500">
-              {total === 0
-                ? "No hay consultas registradas todavía. Cuando alguien le hable a Russia, aparece acá."
-                : "Ningún registro coincide con los filtros."}
+              {sessions.length === 0
+                ? "No hay conversaciones registradas todavía. Cuando alguien le hable a Russia, aparece acá."
+                : "Ninguna conversación coincide con los filtros."}
             </p>
           </div>
         ) : (
           <ul className="divide-y divide-gray-100">
-            {visibleRows.map((row) => (
-              <LogRow
-                key={row.id}
-                row={row}
-                onIpClick={() => setIpFilter(row.ip_hash)}
-                isFiltered={filterIp === row.ip_hash}
-              />
-            ))}
-          </ul>
-        )}
+            {visibleSessions.map((s) => {
+              const key = s.session_id ?? "__null__";
+              const isOpen = expanded.has(key);
+              const cost =
+                (s.total_input_tokens / 1_000_000) * PRICE_INPUT_PER_MILLION +
+                (s.total_output_tokens / 1_000_000) * PRICE_OUTPUT_PER_MILLION;
+              return (
+                <li
+                  key={key}
+                  className={s.has_error ? "bg-red-50/40" : ""}
+                >
+                  <button
+                    type="button"
+                    onClick={() => toggle(key)}
+                    className="w-full px-4 py-3 flex items-start gap-3 text-left hover:bg-gray-50 transition-colors"
+                  >
+                    <div className="flex-shrink-0 mt-0.5 text-gray-400">
+                      {isOpen ? (
+                        <ChevronDown className="h-4 w-4" />
+                      ) : (
+                        <ChevronRight className="h-4 w-4" />
+                      )}
+                    </div>
 
-        {/* Paginación */}
-        {total > pageSize && (
-          <div className="border-t border-gray-100 px-4 py-3 flex items-center justify-between text-xs text-gray-500">
-            <span>
-              {(page - 1) * pageSize + 1}–{Math.min(page * pageSize, total)} de {total}
-            </span>
-            <div className="flex gap-1">
-              <button
-                type="button"
-                onClick={() => fetchPage(Math.max(1, page - 1))}
-                disabled={page <= 1 || loading}
-                className="px-3 py-1 rounded border border-gray-200 hover:bg-gray-50 disabled:opacity-40"
-              >
-                Anterior
-              </button>
-              <span className="px-3 py-1 text-navy font-semibold">
-                Página {page} de {totalPages}
-              </span>
-              <button
-                type="button"
-                onClick={() => fetchPage(Math.min(totalPages, page + 1))}
-                disabled={page >= totalPages || loading}
-                className="px-3 py-1 rounded border border-gray-200 hover:bg-gray-50 disabled:opacity-40"
-              >
-                Siguiente
-              </button>
-            </div>
-          </div>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (s.ip_hash) setFilterIp(s.ip_hash);
+                      }}
+                      className={`flex-shrink-0 font-mono text-[10px] px-2 py-0.5 rounded transition-colors ${
+                        filterIp === s.ip_hash
+                          ? "bg-magenta text-white"
+                          : "bg-gray-100 text-gray-500 hover:bg-magenta-50 hover:text-magenta"
+                      }`}
+                      title="Filtrar por esta IP"
+                    >
+                      {s.ip_hash?.slice(0, 8) ?? "—"}
+                    </button>
+
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-navy truncate font-medium">
+                        {s.first_message || "(sin mensaje)"}
+                      </p>
+                      <p className="text-[11px] text-gray-400 mt-0.5 flex items-center gap-2 flex-wrap">
+                        <span className="inline-flex items-center gap-1">
+                          <MessageSquare className="h-3 w-3" />
+                          {s.message_count}{" "}
+                          {s.message_count === 1 ? "mensaje" : "mensajes"}
+                        </span>
+                        <span>·</span>
+                        <span>
+                          {new Date(s.started_at).toLocaleString("es-AR", {
+                            day: "2-digit",
+                            month: "2-digit",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </span>
+                        <span>·</span>
+                        <span className="text-gray-500">
+                          USD {cost.toFixed(4)}
+                        </span>
+                        {s.has_error && (
+                          <span className="text-red-600 inline-flex items-center gap-1">
+                            <AlertCircle className="h-3 w-3" />
+                            con error
+                          </span>
+                        )}
+                      </p>
+                    </div>
+                  </button>
+
+                  {isOpen && (
+                    <div className="bg-gray-50 border-t border-gray-100 px-4 py-3 space-y-3">
+                      {s.messages.map((m) => (
+                        <MessageBubble key={m.id} m={m} />
+                      ))}
+                    </div>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
         )}
       </div>
     </div>
   );
 }
 
-function LogRow({
-  row,
-  onIpClick,
-  isFiltered,
-}: {
-  row: RussiaLogRow;
-  onIpClick: () => void;
-  isFiltered: boolean;
-}) {
-  const [open, setOpen] = useState(false);
-  const date = new Date(row.created_at);
-
+function MessageBubble({ m }: { m: RussiaLogRow }) {
   return (
-    <li className={`px-4 py-3 ${row.error ? "bg-red-50/40" : ""}`}>
-      <div className="flex items-start gap-3">
-        <button
-          type="button"
-          onClick={onIpClick}
-          className={`flex-shrink-0 font-mono text-[10px] px-2 py-0.5 rounded transition-colors ${
-            isFiltered
-              ? "bg-magenta text-white"
-              : "bg-gray-100 text-gray-500 hover:bg-magenta-50 hover:text-magenta"
-          }`}
-          title="Filtrar por esta IP"
-        >
-          {row.ip_hash?.slice(0, 8) ?? "—"}
-        </button>
+    <div className="space-y-1.5">
+      {/* Usuario */}
+      <div className="flex justify-end">
+        <div className="max-w-[80%] bg-magenta text-white rounded-2xl rounded-tr-sm px-3 py-2 text-sm">
+          {m.user_message}
+        </div>
+      </div>
 
-        <div className="flex-1 min-w-0">
-          <button
-            type="button"
-            onClick={() => setOpen((v) => !v)}
-            className="text-left w-full"
-          >
-            <p className="text-sm text-navy truncate">{row.user_message}</p>
-            <p className="text-[11px] text-gray-400 mt-0.5 flex items-center gap-2">
-              <span>
-                {date.toLocaleString("es-AR", {
-                  day: "2-digit",
-                  month: "2-digit",
-                  hour: "2-digit",
-                  minute: "2-digit",
-                  second: "2-digit",
-                })}
+      {/* Russia */}
+      <div className="flex justify-start">
+        <div className="max-w-[80%] bg-white border border-gray-200 rounded-2xl rounded-tl-sm px-3 py-2 text-sm space-y-1">
+          {m.response_excerpt ? (
+            <p className="text-navy whitespace-pre-wrap">{m.response_excerpt}</p>
+          ) : (
+            <p className="text-gray-400 italic text-xs">(sin respuesta)</p>
+          )}
+          <div className="flex items-center gap-2 text-[10px] text-gray-400 pt-1 border-t border-gray-100 flex-wrap">
+            {m.function_call && (
+              <span className="text-magenta font-semibold">
+                → {m.function_call}
               </span>
-              {row.function_call && (
-                <span className="text-magenta font-semibold">
-                  → {row.function_call}
-                </span>
-              )}
-              {row.result_count !== null && (
-                <span className="text-gray-500">
-                  {row.result_count} resultados
-                </span>
-              )}
-              {row.ms !== null && <span>{row.ms}ms</span>}
-              {row.input_tokens !== null && row.output_tokens !== null && (
-                <span className="text-gray-400">
-                  ↓{row.input_tokens} ↑{row.output_tokens}
-                </span>
-              )}
-              {row.error && (
-                <span className="text-red-600 inline-flex items-center gap-1">
-                  <AlertCircle className="h-3 w-3" />
-                  error
-                </span>
-              )}
-            </p>
-          </button>
-
-          {open && (
-            <div className="mt-2 space-y-2 text-[11px] bg-gray-50 rounded-md p-3">
-              {row.response_excerpt && (
-                <div>
-                  <p className="font-semibold text-navy mb-1">Respuesta:</p>
-                  <p className="text-gray-600 whitespace-pre-wrap">
-                    {row.response_excerpt}
-                  </p>
-                </div>
-              )}
-              {row.function_args !== null && row.function_args !== undefined && (
-                <div>
-                  <p className="font-semibold text-navy mb-1">Filtros aplicados:</p>
-                  <pre className="text-gray-600 overflow-x-auto">
-                    {JSON.stringify(row.function_args, null, 2)}
-                  </pre>
-                </div>
-              )}
-              {row.error && (
-                <div className="text-red-700">
-                  <p className="font-semibold mb-1">Error:</p>
-                  <p>{row.error}</p>
-                </div>
-              )}
-              {row.user_agent && (
-                <p className="text-gray-400 text-[10px]">UA: {row.user_agent}</p>
-              )}
-            </div>
+            )}
+            {m.result_count !== null && (
+              <span>{m.result_count} resultados</span>
+            )}
+            {m.ms !== null && <span>{m.ms}ms</span>}
+            {m.input_tokens !== null && m.output_tokens !== null && (
+              <span>
+                ↓{m.input_tokens} ↑{m.output_tokens}
+              </span>
+            )}
+            {m.error && (
+              <span className="text-red-600 inline-flex items-center gap-1">
+                <AlertCircle className="h-3 w-3" />
+                {m.error}
+              </span>
+            )}
+          </div>
+          {m.function_args !== null && m.function_args !== undefined && (
+            <details className="text-[10px] text-gray-500 pt-1">
+              <summary className="cursor-pointer hover:text-navy">
+                ver filtros aplicados
+              </summary>
+              <pre className="mt-1 bg-gray-50 rounded p-2 overflow-x-auto">
+                {JSON.stringify(m.function_args, null, 2)}
+              </pre>
+            </details>
           )}
         </div>
       </div>
-    </li>
+    </div>
   );
 }
 
