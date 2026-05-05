@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Search, Star, Sparkles, X, LogOut, CheckCircle2, HelpCircle, BarChart3, Bell, ListOrdered, Inbox } from "lucide-react";
+import { Search, Star, Sparkles, X, LogOut, CheckCircle2, HelpCircle, BarChart3, Bell, ListOrdered, Inbox, BadgeCheck } from "lucide-react";
 import { formatPrice } from "@/lib/utils";
 import MediaPicksPanel, { type MediaPick } from "./MediaPicksPanel";
 import UsersPanel from "./UsersPanel";
@@ -90,16 +90,29 @@ export default function AdminConsole({
     setter(next);
     setBusyId(propertyId);
     try {
-      const res = has
-        ? await fetch(
-            `/api/admin/picks?property_id=${encodeURIComponent(propertyId)}&list=${list}`,
-            { method: "DELETE" }
-          )
-        : await fetch("/api/admin/picks", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ property_id: propertyId, list }),
-          });
+      // 'sold' migró a property_status. Pegamos al endpoint unificado
+      // de estados, que también lo lee /admin/status. Featured y new
+      // siguen viviendo en manual_picks.
+      const res =
+        list === "sold"
+          ? await fetch("/api/admin/status", {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                xintel_id: propertyId,
+                status: has ? "active" : "sold",
+              }),
+            })
+          : has
+          ? await fetch(
+              `/api/admin/picks?property_id=${encodeURIComponent(propertyId)}&list=${list}`,
+              { method: "DELETE" }
+            )
+          : await fetch("/api/admin/picks", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ property_id: propertyId, list }),
+            });
       if (!res.ok) throw new Error("bad response");
       const labels: Record<PickList, string> = {
         featured: "Exclusivas",
@@ -168,6 +181,13 @@ export default function AdminConsole({
             >
               <ListOrdered className="h-3.5 w-3.5" />
               Prioridades
+            </Link>
+            <Link
+              href="/admin/status"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-white/20 px-3 py-1.5 text-xs font-semibold hover:bg-white/10 transition-colors"
+            >
+              <BadgeCheck className="h-3.5 w-3.5" />
+              Estado
             </Link>
             <Link
               href="/admin/ayuda"

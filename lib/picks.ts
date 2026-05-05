@@ -26,6 +26,19 @@ export async function ensurePicksSchema(): Promise<void> {
 }
 
 export async function listPicks(listKey: PickList): Promise<string[]> {
+  // 'sold' migró a la tabla property_status · leemos de ahí para que
+  // el badge "Vendimos" siga funcionando sin tocar a los consumidores.
+  // 'reserved' tampoco vive más en manual_picks (lo gestiona el feed
+  // forzando price=9999999), así que también lo redirigimos.
+  if (listKey === "sold") {
+    try {
+      const { getStatusIds } = await import("./status-db");
+      return await getStatusIds("sold");
+    } catch {
+      // fallback: tabla vieja por si la nueva todavía no existe
+    }
+  }
+
   await ensurePicksSchema();
   const db = sql();
   const rows = (await db`

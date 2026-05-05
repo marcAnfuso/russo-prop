@@ -526,6 +526,25 @@ export async function fetchAllProperties(
     // sin DB → respetamos in_ord2 que ya viene en p.priority
   }
 
+  // Aplicar overrides de estado del admin · property_status pisa el
+  // estado que venga del feed. 'reserved' fuerza price=9999999 (la
+  // convención que ya entiende toda la web). 'sold' lo lee aparte
+  // listPicks('sold') al renderizar las cards.
+  try {
+    const { getStatusMap } = await import("./status-db");
+    const statusMap = await getStatusMap();
+    if (statusMap.size > 0) {
+      for (const p of all) {
+        const st = statusMap.get(p.id);
+        if (st === "reserved") p.price = 9999999;
+        // 'active' y 'sold' no necesitan tocar el price aquí · 'active'
+        // significa "respetar Xintel" y 'sold' lo gestiona el badge.
+      }
+    }
+  } catch {
+    // sin DB → comportamiento legacy basado en el price=9999999 de Xintel
+  }
+
   // Sort por prioridad desc · desempate por id desc (más nuevo primero,
   // ya que los códigos RUS son incrementales).
   all.sort((a, b) => {
