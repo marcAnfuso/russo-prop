@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Search, Star, Sparkles, X, LogOut, CheckCircle2, HelpCircle, BarChart3, Bell, ListOrdered, Inbox, BadgeCheck } from "lucide-react";
+import { Search, Star, Sparkles, X, LogOut, CheckCircle2, HelpCircle, BarChart3, Bell, ListOrdered, Inbox, BadgeCheck, Bookmark } from "lucide-react";
 import { formatPrice } from "@/lib/utils";
 import MediaPicksPanel, { type MediaPick } from "./MediaPicksPanel";
 import UsersPanel from "./UsersPanel";
@@ -26,13 +26,14 @@ interface AdminProperty {
   type: string;
 }
 
-type PickList = "featured" | "new" | "sold";
+type PickList = "featured" | "new" | "sold" | "reserved";
 
 interface Props {
   properties: AdminProperty[];
   initialFeatured: string[];
   initialNew: string[];
   initialSold: string[];
+  initialReserved: string[];
   initialMedia: MediaPick[];
   initialDevelopments: Development[];
   initialHiddenDevelopments: string[];
@@ -49,6 +50,7 @@ export default function AdminConsole({
   initialFeatured,
   initialNew,
   initialSold,
+  initialReserved,
   initialMedia,
   initialDevelopments,
   initialHiddenDevelopments,
@@ -57,6 +59,7 @@ export default function AdminConsole({
   const [featured, setFeatured] = useState<Set<string>>(new Set(initialFeatured));
   const [fresh, setFresh] = useState<Set<string>>(new Set(initialNew));
   const [sold, setSold] = useState<Set<string>>(new Set(initialSold));
+  const [reserved, setReserved] = useState<Set<string>>(new Set(initialReserved));
   const [query, setQuery] = useState("");
   const [operation, setOperation] = useState<"" | "venta" | "alquiler">("");
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -78,29 +81,47 @@ export default function AdminConsole({
 
   async function togglePick(propertyId: string, list: PickList) {
     const current =
-      list === "featured" ? featured : list === "new" ? fresh : sold;
+      list === "featured"
+        ? featured
+        : list === "new"
+        ? fresh
+        : list === "sold"
+        ? sold
+        : reserved;
     const setter =
-      list === "featured" ? setFeatured : list === "new" ? setFresh : setSold;
+      list === "featured"
+        ? setFeatured
+        : list === "new"
+        ? setFresh
+        : list === "sold"
+        ? setSold
+        : setReserved;
     const has = current.has(propertyId);
     const previous = new Set(current);
-    // Optimistic update
+    // Optimistic update · marcar como reserved/sold quita la marca
+    // contraria en la UI (no podés ser reservada y vendida a la vez)
     const next = new Set(current);
     if (has) next.delete(propertyId);
     else next.add(propertyId);
     setter(next);
+    if (!has && list === "reserved" && sold.has(propertyId)) {
+      setSold(new Set([...sold].filter((id) => id !== propertyId)));
+    }
+    if (!has && list === "sold" && reserved.has(propertyId)) {
+      setReserved(new Set([...reserved].filter((id) => id !== propertyId)));
+    }
     setBusyId(propertyId);
     try {
-      // 'sold' migró a property_status. Pegamos al endpoint unificado
-      // de estados, que también lo lee /admin/status. Featured y new
-      // siguen viviendo en manual_picks.
+      // 'sold' y 'reserved' viven en property_status · pegan al endpoint
+      // unificado. 'featured' y 'new' siguen en manual_picks.
       const res =
-        list === "sold"
+        list === "sold" || list === "reserved"
           ? await fetch("/api/admin/status", {
               method: "PUT",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
                 xintel_id: propertyId,
-                status: has ? "active" : "sold",
+                status: has ? "active" : list,
               }),
             })
           : has
@@ -118,6 +139,7 @@ export default function AdminConsole({
         featured: "Exclusivas",
         new: "Nuevos ingresos",
         sold: "Vendidas",
+        reserved: "Reservadas",
       };
       setToast(has ? "Quitado de la lista" : `Agregado a ${labels[list]}`);
       setTimeout(() => setToast(null), 2000);
@@ -306,6 +328,7 @@ export default function AdminConsole({
               const isFeatured = featured.has(p.id);
               const isNew = fresh.has(p.id);
               const isSold = sold.has(p.id);
+              const isReserved = reserved.has(p.id);
               return (
                 <li
                   key={p.id}
@@ -338,25 +361,25 @@ export default function AdminConsole({
                       </p>
                     </div>
                   </div>
-                  <div className="border-t border-gray-100 p-2 flex gap-1.5">
+                  <div className="border-t border-gray-100 p-2 grid grid-cols-2 gap-1.5">
                     <button
                       type="button"
                       onClick={() => togglePick(p.id, "featured")}
                       disabled={busyId === p.id}
-                      className={`flex-1 inline-flex items-center justify-center gap-1 rounded-md py-1.5 text-[11px] font-semibold transition-colors ${
+                      className={`inline-flex items-center justify-center gap-1 rounded-md py-1.5 text-[11px] font-semibold transition-colors ${
                         isFeatured
                           ? "bg-magenta text-white"
                           : "bg-magenta-50 text-magenta hover:bg-magenta-100"
                       }`}
                     >
                       <Star className={`h-3 w-3 ${isFeatured ? "fill-white" : ""}`} />
-                      {isFeatured ? "Exclusiva" : "Marcar exclusiva"}
+                      {isFeatured ? "Exclusiva" : "Exclusiva"}
                     </button>
                     <button
                       type="button"
                       onClick={() => togglePick(p.id, "new")}
                       disabled={busyId === p.id}
-                      className={`flex-1 inline-flex items-center justify-center gap-1 rounded-md py-1.5 text-[11px] font-semibold transition-colors ${
+                      className={`inline-flex items-center justify-center gap-1 rounded-md py-1.5 text-[11px] font-semibold transition-colors ${
                         isNew
                           ? "bg-navy text-white"
                           : "bg-navy-50 text-navy hover:bg-navy-100"
@@ -367,9 +390,22 @@ export default function AdminConsole({
                     </button>
                     <button
                       type="button"
+                      onClick={() => togglePick(p.id, "reserved")}
+                      disabled={busyId === p.id}
+                      className={`inline-flex items-center justify-center gap-1 rounded-md py-1.5 text-[11px] font-semibold transition-colors ${
+                        isReserved
+                          ? "bg-amber-500 text-white"
+                          : "bg-amber-50 text-amber-700 hover:bg-amber-100"
+                      }`}
+                    >
+                      <Bookmark className={`h-3 w-3 ${isReserved ? "fill-white" : ""}`} />
+                      {isReserved ? "Reservada" : "Reservar"}
+                    </button>
+                    <button
+                      type="button"
                       onClick={() => togglePick(p.id, "sold")}
                       disabled={busyId === p.id}
-                      className={`flex-1 inline-flex items-center justify-center gap-1 rounded-md py-1.5 text-[11px] font-semibold transition-colors ${
+                      className={`inline-flex items-center justify-center gap-1 rounded-md py-1.5 text-[11px] font-semibold transition-colors ${
                         isSold
                           ? "bg-emerald-500 text-white"
                           : "bg-emerald-50 text-emerald-600 hover:bg-emerald-100"

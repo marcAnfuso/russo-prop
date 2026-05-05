@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { getCurrentAdmin } from "@/lib/admin-auth";
 import { fetchAllProperties } from "@/lib/xintel";
 import { listPicks } from "@/lib/picks";
+import { getStatusIds } from "@/lib/status-db";
 import { listMediaPicks } from "@/lib/media-picks";
 import { fetchDevelopments } from "@/lib/xintel-developments";
 import AdminLogin from "./AdminLogin";
@@ -19,12 +20,13 @@ export default async function AdminPage() {
   const me = await getCurrentAdmin();
   if (!me) return <AdminLogin />;
 
-  const [ventas, alquileres, featured, fresh, sold, media, developments, hiddenDevs] = await Promise.all([
+  const [ventas, alquileres, featured, fresh, sold, reserved, media, developments, hiddenDevs] = await Promise.all([
     fetchAllProperties("venta"),
     fetchAllProperties("alquiler"),
     listPicks("featured"),
     listPicks("new"),
     listPicks("sold"),
+    getStatusIds("reserved"),
     listMediaPicks(),
     fetchDevelopments(),
     listPicks("development_hidden"),
@@ -51,6 +53,7 @@ export default async function AdminPage() {
       initialFeatured={featured}
       initialNew={fresh}
       initialSold={sold}
+      initialReserved={reserved}
       initialMedia={media}
       initialDevelopments={developments}
       initialHiddenDevelopments={hiddenDevs}
