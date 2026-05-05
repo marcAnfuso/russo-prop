@@ -15,6 +15,10 @@ import {
   Eye,
   EyeOff,
   Zap,
+  Bookmark,
+  BadgeCheck,
+  Heart,
+  MapPin,
 } from "lucide-react";
 import { getCurrentAdmin } from "@/lib/admin-auth";
 import AdminLogin from "../AdminLogin";
@@ -84,17 +88,17 @@ export default async function AyudaPage() {
           </div>
         </Section>
 
-        {/* ── 2. Los 3 botones de cada propiedad ───────────────────── */}
+        {/* ── 2. Los 4 botones de cada propiedad ───────────────────── */}
         <Section
           number="02"
-          title="Los 3 botones de cada propiedad"
-          subtitle="En el buscador del panel, cada card tiene tres botones. Cada uno hace algo distinto en la web."
+          title="Los 4 botones de cada propiedad"
+          subtitle="En el buscador del panel, cada card tiene cuatro botones. Cada uno hace algo distinto en la web."
         >
           <div className="space-y-4">
             <ButtonExplainer
               icon={<Star className="h-5 w-5" />}
               colorClass="text-magenta bg-magenta-50"
-              name="Marcar exclusiva"
+              name="Exclusiva"
               effect="Entra al carousel «Propiedades exclusivas» del home."
               detail="Marcá las que más te interesa exhibir. Si marcás varias, la web va rotando 12 por día (no se aburre el visitante). Para sacarla del carousel, le hacés click de nuevo y vuelve a estado normal."
             />
@@ -106,18 +110,81 @@ export default async function AyudaPage() {
               detail="Pensado para propiedades que recién entraron. Auto-expira a los 30 días — si la marcaste hoy, dentro de un mes desaparece sola sin que tengas que destocarla. Útil para no olvidar."
             />
             <ButtonExplainer
+              icon={<Bookmark className="h-5 w-5" />}
+              colorClass="text-amber-700 bg-amber-50"
+              name="Reservar"
+              effect="Esconde el precio y muestra el sello «Reservado»."
+              detail="Para cuando reservaron una propiedad pero todavía no se cerró la operación. La propiedad sigue visible en la web, pero con el badge amarillo de «Reservado» y sin precio. Si después se cae la reserva, le das «Activar» desde /admin/status y vuelve a estar en venta."
+            />
+            <ButtonExplainer
               icon={<CheckCircle2 className="h-5 w-5" />}
               colorClass="text-emerald-700 bg-emerald-50"
               name="Vender"
               effect="Pone un sello verde «Vendimos» y reemplaza el precio por «Vendida»."
-              detail="Marca la propiedad como vendida sin esconderla. Sigue apareciendo en los listados pero con el sello de venta concretada — refuerza la sensación de que Russo cierra operaciones."
+              detail="Marca la propiedad como vendida sin esconderla. Sigue apareciendo en los listados pero con el sello de venta concretada — refuerza la sensación de que Russo cierra operaciones. No podés tener una propiedad reservada y vendida a la vez · si tildás una, se destilda la otra."
             />
           </div>
         </Section>
 
-        {/* ── 3. Emprendimientos ──────────────────────────────────── */}
+        {/* ── 2.5 Estado de propiedades ────────────────────────────── */}
         <Section
           number="03"
+          title="Panel «Estado» (/admin/status)"
+          subtitle="La vista centralizada de propiedades reservadas y vendidas, separada del buscador general."
+        >
+          <div className="rounded-xl bg-white border border-gray-200 p-5 space-y-4">
+            <div className="flex items-start gap-3">
+              <div className="flex-shrink-0 h-9 w-9 rounded-lg bg-magenta/10 text-magenta flex items-center justify-center">
+                <BadgeCheck className="h-5 w-5" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold text-navy">¿Para qué sirve?</h3>
+                <p className="text-sm text-gray-600 mt-1 leading-relaxed">
+                  Es el listado de todas las propiedades que están con override
+                  manual. Acá ves las reservadas y vendidas en un solo lugar,
+                  con buscador, filtros y contadores. Sirve para revisar de un
+                  pantallazo qué está fuera de venta y, si hace falta, volver
+                  alguna a estado activo.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-3 pt-4 border-t border-gray-100">
+              <div className="flex-shrink-0 h-9 w-9 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
+                <Bookmark className="h-5 w-5" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold text-navy">Activar = liberar</h3>
+                <p className="text-sm text-gray-600 mt-1 leading-relaxed">
+                  Cada fila tiene 3 botones: <strong>Reservar</strong>,{" "}
+                  <strong>Vender</strong> y <strong>Activar</strong>. Activar
+                  borra el override y la propiedad vuelve a mostrar el precio
+                  real con su estado normal. Útil cuando se cae una reserva o
+                  la propiedad reaparece en venta.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-3 pt-4 border-t border-gray-100">
+              <div className="flex-shrink-0 h-9 w-9 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
+                <Database className="h-5 w-5" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold text-navy">Migrar inicial (botón)</h3>
+                <p className="text-sm text-gray-600 mt-1 leading-relaxed">
+                  Es seguro · idempotente · no pisa nada que ya hayas tocado a
+                  mano. Importa todas las que estaban marcadas como reservadas
+                  en Xintel (precio = 9.999.999) y las vendidas del sistema
+                  viejo. Sólo hace falta correrlo una vez al arranque.
+                </p>
+              </div>
+            </div>
+          </div>
+        </Section>
+
+        {/* ── 4. Emprendimientos ──────────────────────────────────── */}
+        <Section
+          number="04"
           title="Emprendimientos"
           subtitle="Acá el flujo es distinto: se cargan en Xintel y desde el panel sólo elegís cuáles mostrar."
         >
@@ -169,13 +236,13 @@ export default async function AyudaPage() {
           </div>
         </Section>
 
-        {/* ── 4. Videos / Historias ───────────────────────────────── */}
+        {/* ── 5. Videos / Historias ───────────────────────────────── */}
         <Section
-          number="04"
+          number="05"
           title="Videos / Historias"
           subtitle="La sección /historias se alimenta sólo desde el panel — no toca Xintel."
         >
-          <div className="rounded-xl bg-white border border-gray-200 p-5">
+          <div className="rounded-xl bg-white border border-gray-200 p-5 space-y-4">
             <div className="flex items-start gap-3">
               <div className="flex-shrink-0 h-9 w-9 rounded-lg bg-magenta/10 text-magenta flex items-center justify-center">
                 <Video className="h-5 w-5" />
@@ -185,17 +252,54 @@ export default async function AyudaPage() {
                 <ol className="text-sm text-gray-600 mt-2 leading-relaxed space-y-1.5 list-decimal list-inside">
                   <li>Copiá la URL del video de TikTok o Instagram (Reel, post, etc).</li>
                   <li>En el panel «Historias», pegala en el campo y elegí la categoría.</li>
+                  <li>
+                    Si la historia es de una propiedad puntual, pegá el código RUS
+                    en el campo opcional. La card va a tener un link «Esta es la
+                    propiedad» que lleva a la ficha.
+                  </li>
                   <li>Apretás «Agregar» y aparece en /historias al toque.</li>
-                  <li>Para reordenar, arrastrás los videos. Para borrar uno, le das al ícono de basura.</li>
+                  <li>Para borrar uno, le das al ícono de basura. Para editar, al lápiz.</li>
                 </ol>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-3 pt-4 border-t border-gray-100">
+              <div className="flex-shrink-0 h-9 w-9 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center">
+                <Heart className="h-5 w-5" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold text-navy">Reacciones del público</h3>
+                <p className="text-sm text-gray-600 mt-1 leading-relaxed">
+                  Cada historia tiene 3 botones de reacción visibles para el
+                  visitante: <strong>❤️ corazón</strong>,{" "}
+                  <strong>🏠 casa</strong> y <strong>🔑 llave</strong>. Anónimas,
+                  sin registro. El contador es público. No requiere moderación
+                  porque no se puede dejar texto.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-3 pt-4 border-t border-gray-100">
+              <div className="flex-shrink-0 h-9 w-9 rounded-lg bg-magenta/10 text-magenta flex items-center justify-center">
+                <MapPin className="h-5 w-5" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold text-navy">Linkear a una propiedad</h3>
+                <p className="text-sm text-gray-600 mt-1 leading-relaxed">
+                  Si pegás un código RUS al cargar/editar el video, debajo del
+                  embed se ve una mini tarjeta clickeable con la dirección que
+                  lleva a la ficha de la propiedad. Refuerza el ciclo «ves la
+                  historia → te enamorás → vas a comprar». Si dejás el campo
+                  vacío, la historia queda sin link.
+                </p>
               </div>
             </div>
           </div>
         </Section>
 
-        {/* ── 5. Usuarios ─────────────────────────────────────────── */}
+        {/* ── 6. Usuarios ─────────────────────────────────────────── */}
         <Section
-          number="05"
+          number="06"
           title="Usuarios del panel"
           subtitle="Quién puede entrar acá y qué puede hacer."
         >
@@ -223,7 +327,8 @@ export default async function AyudaPage() {
                 </span>
               </div>
               <ul className="text-sm text-gray-600 leading-relaxed space-y-1 list-disc list-inside">
-                <li>Toda la curaduría (marcar exclusiva, vender, ocultar emp, videos)</li>
+                <li>Toda la curaduría (exclusiva, nueva, reservar, vender, ocultar emp, videos)</li>
+                <li>Acceso a /admin/status, prioridades, leads, alertas, analytics</li>
                 <li>Puede cambiar su propia contraseña</li>
                 <li>No puede crear ni borrar otros usuarios</li>
               </ul>
@@ -240,9 +345,9 @@ export default async function AyudaPage() {
           </div>
         </Section>
 
-        {/* ── 6. Tiempos ─────────────────────────────────────────── */}
+        {/* ── 7. Tiempos ─────────────────────────────────────────── */}
         <Section
-          number="06"
+          number="07"
           title="¿Cuánto tarda en aparecer un cambio?"
           subtitle="Spoiler: depende de quién lo hizo."
         >
