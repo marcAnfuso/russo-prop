@@ -181,12 +181,47 @@ export default async function DevelopmentDetailPage({
             )}
           </div>
 
-          {/* Unidades del emprendimiento · cards clickeables · solo
-              las que tienen precio cargado (las que aún no liberaron
-              quedan ocultas, igual que en el listado general) */}
+          {/* Unidades del emprendimiento · agrupadas por operación +
+              ambientes. Solo las que tienen precio cargado (las que aún
+              no liberaron quedan ocultas). */}
           {(() => {
             const publishable = dev.units?.filter((u) => u.price > 0) ?? [];
             if (publishable.length === 0) return null;
+
+            // Agrupar por operación + ambientes
+            const groups = new Map<
+              string,
+              {
+                operation: "venta" | "alquiler";
+                rooms: number;
+                units: typeof publishable;
+              }
+            >();
+            for (const u of publishable) {
+              const rooms = u.features.rooms ?? 0;
+              const key = `${u.operation}-${rooms}`;
+              const g = groups.get(key);
+              if (g) g.units.push(u);
+              else groups.set(key, { operation: u.operation, rooms, units: [u] });
+            }
+            // Ordenar grupos: ventas primero, dentro por ambientes asc
+            const ordered = Array.from(groups.values()).sort((a, b) => {
+              if (a.operation !== b.operation) {
+                return a.operation === "venta" ? -1 : 1;
+              }
+              return a.rooms - b.rooms;
+            });
+
+            const roomsLabel = (n: number) =>
+              n === 0
+                ? "Sin especificar"
+                : n === 1
+                ? "Monoambiente"
+                : `${n} ambientes`;
+
+            const opLabel = (op: "venta" | "alquiler") =>
+              op === "venta" ? "Venta" : "Alquiler";
+
             return (
               <section>
                 <div className="mb-4 flex items-center justify-between">
@@ -197,14 +232,42 @@ export default async function DevelopmentDetailPage({
                     {dev.availableUnits} de {dev.totalUnits} disponibles
                   </span>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {publishable.map((unit) => (
-                    <PropertyCard
-                      key={unit.id}
-                      property={unit}
-                      compact
-                      hideContactButtons
-                    />
+
+                <div className="space-y-6">
+                  {ordered.map((group) => (
+                    <div key={`${group.operation}-${group.rooms}`}>
+                      <div className="flex items-center gap-2 mb-3 pb-2 border-b border-gray-200">
+                        <span
+                          className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${
+                            group.operation === "venta"
+                              ? "bg-magenta/10 text-magenta"
+                              : "bg-navy/10 text-navy"
+                          }`}
+                        >
+                          {opLabel(group.operation)}
+                        </span>
+                        <h3 className="text-base font-semibold text-navy">
+                          {roomsLabel(group.rooms)}
+                        </h3>
+                        <span className="ml-auto text-xs text-gray-500">
+                          {group.units.length}{" "}
+                          {group.units.length === 1 ? "unidad" : "unidades"}
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {group.units
+                          .slice()
+                          .sort((a, b) => a.price - b.price)
+                          .map((unit) => (
+                            <PropertyCard
+                              key={unit.id}
+                              property={unit}
+                              compact
+                              hideContactButtons
+                            />
+                          ))}
+                      </div>
+                    </div>
                   ))}
                 </div>
               </section>
