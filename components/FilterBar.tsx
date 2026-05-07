@@ -6,8 +6,15 @@ import { Search, X, ChevronDown, SlidersHorizontal, Check, Star, Video } from "l
 import type { Property } from "@/data/types";
 import { useLocalities, rankLocalityMatches } from "@/lib/useLocalities";
 
-const PROPERTY_TYPES: { label: string; value: Property["type"] }[] = [
+// Cada opción tiene un value que puede ser:
+//   - un type: "casa", "departamento", etc.
+//   - un type + subtype con `:` como separador: "departamento:duplex"
+// El filtro lo parsea y aplica match contra type, y si hay subtype,
+// también matchea (case-insensitive substring) contra p.subtype.
+const PROPERTY_TYPES: { label: string; value: string }[] = [
   { label: "Departamento", value: "departamento" },
+  { label: "Dúplex", value: "departamento:duplex" },
+  { label: "Tríplex", value: "departamento:triplex" },
   { label: "Casa", value: "casa" },
   { label: "PH", value: "ph" },
   { label: "Quinta", value: "quinta" },
@@ -426,14 +433,26 @@ export default function FilterBar({
       result = result.filter((p) => lower.includes(p.locality.toLowerCase()));
     }
 
-    // property type (supports comma-separated from SearchBar)
+    // property type (supports comma-separated + type:subtype variants)
     if (propertyType) {
       const allowed = propertyType.split(",").map((t) => t.trim()).filter(Boolean);
-      if (allowed.length === 1) {
-        result = result.filter((p) => p.type === allowed[0]);
-      } else if (allowed.length > 1) {
-        const set = new Set(allowed);
-        result = result.filter((p) => set.has(p.type));
+      if (allowed.length > 0) {
+        // Cada elemento puede ser "casa" (solo type) o "departamento:duplex"
+        // (type + subtype). Para subtype, matcheamos por substring case-insensitive
+        // y sin acentos contra p.subtype.
+        const norm = (s: string) =>
+          s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+        const matchers = allowed.map((entry) => {
+          const [t, sub] = entry.split(":");
+          return { type: t, subtype: sub ? norm(sub) : null };
+        });
+        result = result.filter((p) =>
+          matchers.some((m) => {
+            if (p.type !== m.type) return false;
+            if (!m.subtype) return true;
+            return norm(p.subtype || "").includes(m.subtype);
+          })
+        );
       }
     }
 

@@ -11,8 +11,11 @@ interface SearchBarProps {
   defaultOperation?: "comprar" | "alquilar";
 }
 
+// Mismo formato que PROPERTY_TYPES en FilterBar · soporta "type:subtype"
 const PROPERTY_TYPES: { label: string; value: string }[] = [
   { label: "Departamento", value: "departamento" },
+  { label: "Dúplex", value: "departamento:duplex" },
+  { label: "Tríplex", value: "departamento:triplex" },
   { label: "Casa", value: "casa" },
   { label: "PH", value: "ph" },
   { label: "Quinta", value: "quinta" },
