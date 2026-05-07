@@ -280,23 +280,93 @@ export default async function PropertyDetailPage({ params }: PageProps) {
             )}
           </div>
 
-          {/* Price + expensas + impuesto municipal */}
+          {/* Price + expensas + impuesto municipal en mini-cards */}
           <div>
             <p className="text-3xl font-bold text-gray-900">
               {property.sold
                 ? "Vendida"
                 : `${property.currency === "ARS" ? "$" : "USD"} ${formatPrice(property.price)}`}
             </p>
-            {!property.sold && property.details?.expenses ? (
-              <p className="text-sm font-semibold text-navy mt-1">
-                + ${formatPrice(property.details.expenses)} de expensas / mes
-              </p>
-            ) : null}
-            {!property.sold && property.details?.tax ? (
-              <p className="text-sm font-semibold text-navy mt-0.5">
-                + ${formatPrice(property.details.tax)} de impuesto municipal / mes
-              </p>
-            ) : null}
+            {!property.sold &&
+              ((property.details?.expenses ?? 0) > 0 ||
+                (property.details?.tax ?? 0) > 0) && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-3 max-w-md">
+                  {(property.details?.expenses ?? 0) > 0 && (
+                    <div className="flex items-center gap-3 bg-white border border-gray-200 border-l-[3px] border-l-magenta rounded-lg px-3 py-2.5">
+                      <span
+                        className="w-9 h-9 inline-flex items-center justify-center rounded-lg text-white flex-shrink-0"
+                        style={{
+                          background:
+                            "linear-gradient(135deg, #e6007e, #c3006a)",
+                        }}
+                      >
+                        <svg
+                          width="18"
+                          height="18"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2.2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <rect x="3" y="6" width="18" height="13" rx="2" />
+                          <line x1="3" y1="10" x2="21" y2="10" />
+                          <line x1="7" y1="15" x2="11" y2="15" />
+                        </svg>
+                      </span>
+                      <div className="min-w-0">
+                        <p className="text-[10px] uppercase tracking-wider text-gray-500 font-semibold">
+                          Expensas
+                        </p>
+                        <p className="text-sm font-bold text-navy mt-0.5">
+                          $ {formatPrice(property.details!.expenses!)}{" "}
+                          <span className="text-[10px] text-gray-400 font-medium">
+                            /mes
+                          </span>
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                  {(property.details?.tax ?? 0) > 0 && (
+                    <div className="flex items-center gap-3 bg-white border border-gray-200 border-l-[3px] border-l-magenta rounded-lg px-3 py-2.5">
+                      <span
+                        className="w-9 h-9 inline-flex items-center justify-center rounded-lg text-white flex-shrink-0"
+                        style={{
+                          background:
+                            "linear-gradient(135deg, #e6007e, #c3006a)",
+                        }}
+                      >
+                        <svg
+                          width="18"
+                          height="18"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2.2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <path d="M3 21h18" />
+                          <path d="M5 21V11l7-5 7 5v10" />
+                          <path d="M9 21V14h6v7" />
+                        </svg>
+                      </span>
+                      <div className="min-w-0">
+                        <p className="text-[10px] uppercase tracking-wider text-gray-500 font-semibold">
+                          Impuesto municipal
+                        </p>
+                        <p className="text-sm font-bold text-navy mt-0.5">
+                          $ {formatPrice(property.details!.tax!)}{" "}
+                          <span className="text-[10px] text-gray-400 font-medium">
+                            /mes
+                          </span>
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
           </div>
 
           {/* Features grid */}
