@@ -3,7 +3,7 @@ import { Camera } from "lucide-react";
 interface NoPhotoPlaceholderProps {
   /** Tamaño del texto · "sm" para cards, "lg" para galería de detalle */
   size?: "sm" | "lg";
-  /** Mensaje secundario opcional. Default: "Estamos sacando las fotos". */
+  /** Mensaje secundario opcional. Default: "Le estamos tomando las mejores fotos". */
   subtitle?: string;
 }
 
@@ -15,7 +15,7 @@ interface NoPhotoPlaceholderProps {
  */
 export default function NoPhotoPlaceholder({
   size = "sm",
-  subtitle = "Estamos sacando las fotos",
+  subtitle = "Le estamos tomando las mejores fotos",
 }: NoPhotoPlaceholderProps) {
   const titleClass =
     size === "lg" ? "text-3xl sm:text-4xl" : "text-base sm:text-lg";
