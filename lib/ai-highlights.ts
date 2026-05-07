@@ -159,12 +159,21 @@ export async function getHighlightsForProperty(
     });
     const raw = res.text ?? "";
     const highlights = parseHighlightsJSON(raw);
-    if (highlights.length > 0) {
-      await writeCache(property.id, hash, highlights);
-    }
+    // Cacheamos siempre (incluso array vacío) · evita pagar Gemini en
+    // cada visita cuando el parsing falla o la propiedad no genera bullets.
+    // Si después Russo edita la descripción, el hash cambia y se regenera.
+    await writeCache(property.id, hash, highlights);
     return highlights;
   } catch (e) {
     console.error("[ai-highlights] generation failed", e);
+    // Cache vacío para evitar reintentar en cada vista. Se regenera si
+    // cambia la descripción (cambia el hash) o si manualmente borramos
+    // la fila de la tabla.
+    try {
+      await writeCache(property.id, hash, []);
+    } catch {
+      // db down · simplemente no cacheamos esta vez
+    }
     return [];
   }
 }
