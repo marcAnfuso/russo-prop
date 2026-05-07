@@ -64,14 +64,14 @@ export default function EmprendimientosClient({ developments }: Props) {
   return (
     <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <div className="grid lg:grid-cols-12 gap-8 mb-10">
-        <div className="lg:col-span-5 flex flex-col justify-center">
+        <div className="lg:col-span-6 xl:col-span-5 flex flex-col justify-center min-w-0">
           <div className="flex items-center gap-3 mb-4">
             <span className="h-8 w-1 rounded-full bg-magenta" />
             <p className="text-xs font-semibold uppercase tracking-widest text-magenta">
               Desarrollos inmobiliarios
             </p>
           </div>
-          <h1 className="font-display text-4xl md:text-5xl 2xl:text-6xl font-semibold leading-[1.05] tracking-tight text-navy mb-4">
+          <h1 className="font-display text-4xl md:text-5xl xl:text-5xl 2xl:text-6xl font-semibold leading-[1.05] tracking-tight text-navy mb-4 break-words">
             Emprendimientos
           </h1>
           <p className="text-lg text-gray-500 leading-relaxed max-w-md mb-6">
@@ -101,7 +101,7 @@ export default function EmprendimientosClient({ developments }: Props) {
           </div>
         </div>
 
-        <div className="lg:col-span-7 h-[360px] lg:h-[440px] rounded-2xl overflow-hidden shadow-card border border-gray-100">
+        <div className="lg:col-span-6 xl:col-span-7 h-[360px] lg:h-[440px] rounded-2xl overflow-hidden shadow-card border border-gray-100">
           <MapView
             properties={mapProperties}
             center={mapCenter}
