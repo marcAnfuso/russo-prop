@@ -89,8 +89,14 @@ export default function DevelopmentCard({ development }: DevelopmentCardProps) {
             Rango de precios
           </p>
           <p className="font-mono-price text-lg font-bold text-navy">
-            <span className="text-gray-400 text-sm font-medium">desde</span>{" "}
-            <span className="text-magenta">USD {formatPrice(priceFrom)}</span>
+            {priceFrom > 0 ? (
+              <>
+                <span className="text-gray-400 text-sm font-medium">desde</span>{" "}
+                <span className="text-magenta">USD {formatPrice(priceFrom)}</span>
+              </>
+            ) : (
+              <span className="text-gray-500 text-sm">Consultar</span>
+            )}
           </p>
         </div>
 

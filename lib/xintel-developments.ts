@@ -179,8 +179,21 @@ function fichaToDevelopment(
     status: mapStatus(f.ed_est),
     deliveryDate: formatDelivery(f),
     category: f.ed_cat ?? "",
-    priceFrom: num(f.valor_desde),
-    priceTo: num(f.valor_hasta),
+    // valor_desde / valor_hasta de Xintel · si Russo no los completó
+    // (vienen en 0), inferimos el rango desde las unidades reales con
+    // precio cargado. Evita el "desde USD 0" en cards.
+    priceFrom: (() => {
+      const xv = num(f.valor_desde);
+      if (xv > 0) return xv;
+      const prices = units.map((u) => u.price).filter((p) => p > 0 && p !== 9999999);
+      return prices.length ? Math.min(...prices) : 0;
+    })(),
+    priceTo: (() => {
+      const xv = num(f.valor_hasta);
+      if (xv > 0) return xv;
+      const prices = units.map((u) => u.price).filter((p) => p > 0 && p !== 9999999);
+      return prices.length ? Math.max(...prices) : 0;
+    })(),
     totalUnits,
     availableUnits,
     roomsRange,
