@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { ChevronLeft, ChevronRight, X, Maximize2, Home, Droplets, Car, Loader2 } from "lucide-react";
 import type { Property } from "@/data/types";
 import ContactButtons from "@/components/ContactButtons";
+import NoPhotoPlaceholder from "@/components/NoPhotoPlaceholder";
 import { formatPrice } from "@/lib/utils";
 
 interface PropertyQuickViewModalProps {
@@ -104,7 +105,7 @@ export default function PropertyQuickViewModal({
         </button>
 
         {/* Image Carousel */}
-        {images.length > 0 && (
+        {images.length > 0 ? (
           <CarouselImage
             images={images}
             currentIndex={currentImageIndex}
@@ -112,6 +113,10 @@ export default function PropertyQuickViewModal({
             onPrev={goToPrevImage}
             onNext={goToNextImage}
           />
+        ) : (
+          <div className="relative w-full aspect-video">
+            <NoPhotoPlaceholder size="lg" />
+          </div>
         )}
 
         {/* Content */}

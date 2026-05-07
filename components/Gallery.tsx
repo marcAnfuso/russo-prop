@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
 import { ChevronLeft, ChevronRight, X, Camera, Play, FileImage, Download, ZoomIn, ZoomOut, Orbit } from "lucide-react";
 import { toEmbedUrl } from "@/lib/utils";
+import NoPhotoPlaceholder from "@/components/NoPhotoPlaceholder";
 
 interface GalleryProps {
   images: string[];
@@ -150,8 +151,8 @@ export default function Gallery({ images, videoUrl, plans, tour360Url, title }: 
   // ---------- Render helpers ----------
 
   const renderPlaceholder = () => (
-    <div className="flex items-center justify-center w-full aspect-video bg-gradient-to-br from-navy-200 to-navy-400 rounded-lg">
-      <span className="text-white/80 text-lg font-medium">Sin imágenes</span>
+    <div className="relative w-full aspect-video rounded-lg overflow-hidden">
+      <NoPhotoPlaceholder size="lg" />
     </div>
   );
 

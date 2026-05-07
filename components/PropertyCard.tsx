@@ -14,6 +14,7 @@ import type { Property } from "@/data/types";
 import ContactButtons from "@/components/ContactButtons";
 import FavoriteButton from "@/components/FavoriteButton";
 import ShareButton from "@/components/ShareButton";
+import NoPhotoPlaceholder from "@/components/NoPhotoPlaceholder";
 import { formatPrice } from "@/lib/utils";
 
 interface PropertyCardProps {
@@ -142,7 +143,7 @@ export default function PropertyCard({
               className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.08]"
             />
           ) : (
-            <div className="absolute inset-0 bg-gradient-to-br from-navy-100 to-navy-200" />
+            <NoPhotoPlaceholder />
           )}
 
           <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent transition-opacity duration-300 group-hover:from-black/85" />
@@ -266,7 +267,7 @@ export default function PropertyCard({
             className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.08]"
           />
         ) : (
-          <div className="absolute inset-0 bg-gradient-to-br from-navy-100 to-navy-200" />
+          <NoPhotoPlaceholder />
         )}
 
         <span
