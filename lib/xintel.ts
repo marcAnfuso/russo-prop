@@ -55,6 +55,12 @@ export interface XintelListFicha {
    * destacar propiedades. Mayor = sale primero. Xintel ya devuelve las
    * fichas pre-ordenadas por este campo desc. */
   in_ord2?: string | number;
+  /** Apto crédito hipotecario (cumple requisitos para crédito banco). */
+  in_cre?: string;
+  /** Apto financiación (Russo ofrece cuotas). */
+  apto_financiacion?: string;
+  /** Apto permuta (aceptan otra propiedad como pago parcial). */
+  in_per?: string;
   video?: string;
   tour360?: string;
   cantidad_dormitorios?: string | number;
@@ -357,6 +363,9 @@ export function mapListFicha(ficha: XintelListFicha, imgs: string | string[], am
     location: parseCoords(ficha.in_coo),
     featured: String(ficha.in_des) === "True" || ficha.in_des === true,
     priority: num(ficha.in_ord2) || 0,
+    aptoCredito: String(ficha.in_cre) === "True",
+    aptoFinanciacion: String(ficha.apto_financiacion) === "True",
+    aptoPermuta: String(ficha.in_per) === "True",
   };
 }
 

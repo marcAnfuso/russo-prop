@@ -85,6 +85,12 @@ REGLAS CRÍTICAS DE EXTRACCIÓN DE FILTROS
 - "con jardín" → amenities: ["jardín"]
 - "con cochera doble" → garageMin: 2 (NO uses amenities)
 
+🎯 FORMA DE PAGO:
+- "apto crédito" / "apta para crédito" / "se puede con crédito" / "apta hipoteca" → aptoCredito: true
+- "apto financiación" / "con plan de pago" / "con cuotas" / "financia Russo" → aptoFinanciacion: true
+- "apto permuta" / "aceptan permuta" / "permuto mi depto" / "cambio mi casa por…" → aptoPermuta: true
+- Pueden combinarse: "casa apta crédito y permuta en San Justo" → aptoCredito: true, aptoPermuta: true
+
 🎯 SUBTYPES (van a "types" cuando son específicos):
 - "monoambiente" → types: ["departamento"], roomsExact: 1
 - "dúplex" / "duplex" / "tríplex" → types: ["departamento"]
@@ -256,6 +262,9 @@ const SEARCH_TOOL: { functionDeclarations: FunctionDeclaration[] } = {
           areaMin: { type: Type.NUMBER, description: "Superficie mínima en m²." },
           areaMax: { type: Type.NUMBER },
           hasVideo: { type: Type.BOOLEAN },
+          aptoCredito: { type: Type.BOOLEAN, description: "Apto crédito hipotecario." },
+          aptoFinanciacion: { type: Type.BOOLEAN, description: "Apto financiación / cuotas con Russo." },
+          aptoPermuta: { type: Type.BOOLEAN, description: "Apto permuta · acepta otra propiedad como pago." },
           amenities: { type: Type.ARRAY, items: { type: Type.STRING } },
           sortBy: {
             type: Type.STRING,
@@ -326,6 +335,21 @@ const SEARCH_TOOL: { functionDeclarations: FunctionDeclaration[] } = {
           hasVideo: {
             type: Type.BOOLEAN,
             description: "Si pidió propiedades con video/tour.",
+          },
+          aptoCredito: {
+            type: Type.BOOLEAN,
+            description:
+              "Si pidió 'apto crédito', 'que se pueda con crédito', 'apta para crédito hipotecario'.",
+          },
+          aptoFinanciacion: {
+            type: Type.BOOLEAN,
+            description:
+              "Si pidió 'apto financiación', 'con plan de pago', 'con cuotas', 'que tenga financiación'.",
+          },
+          aptoPermuta: {
+            type: Type.BOOLEAN,
+            description:
+              "Si pidió 'apto permuta', 'que acepten permuta', 'permuto mi depto', 'cambio mi propiedad'.",
           },
           amenities: {
             type: Type.ARRAY,

@@ -244,6 +244,35 @@ function MultiToggleGroup({
 /*  Segmented helper (used for currency)                              */
 /* ------------------------------------------------------------------ */
 
+function PayChip({
+  label,
+  active,
+  onClick,
+  title,
+}: {
+  label: string;
+  active: boolean;
+  onClick: () => void;
+  title?: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={active}
+      title={title}
+      className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-all duration-150 active:scale-[0.97] ${
+        active
+          ? "border-magenta bg-magenta text-white shadow-sm"
+          : "border-navy-100 bg-white text-navy hover:border-magenta hover:text-magenta"
+      }`}
+    >
+      {active && <Check className="h-3 w-3" />}
+      {label}
+    </button>
+  );
+}
+
 function Segmented({
   options,
   value,
@@ -311,6 +340,9 @@ export default function FilterBar({
   );
   const [destacadas, setDestacadas] = useState(false);
   const [conVideo, setConVideo] = useState(false);
+  const [aptoCredito, setAptoCredito] = useState(false);
+  const [aptoFinanciacion, setAptoFinanciacion] = useState(false);
+  const [aptoPermuta, setAptoPermuta] = useState(false);
 
   /* sort */
   const [sortBy, setSortBy] = useState("recent");
@@ -366,8 +398,11 @@ export default function FilterBar({
     if (selectedAmenities.size > 0) n++;
     if (destacadas) n++;
     if (conVideo) n++;
+    if (aptoCredito) n++;
+    if (aptoFinanciacion) n++;
+    if (aptoPermuta) n++;
     return n;
-  }, [ambientes, dormitorios, banos, superficieMin, superficieMax, cochera, antiguedad, selectedAmenities, destacadas, conVideo]);
+  }, [ambientes, dormitorios, banos, superficieMin, superficieMax, cochera, antiguedad, selectedAmenities, destacadas, conVideo, aptoCredito, aptoFinanciacion, aptoPermuta]);
 
   /* ---- count ALL active filters (incluye los del row principal) para
    * el badge del botón "Filtros" en mobile. */
@@ -493,6 +528,17 @@ export default function FilterBar({
       result = result.filter((p) => !!p.videoUrl);
     }
 
+    // apto crédito / financiación / permuta
+    if (aptoCredito) {
+      result = result.filter((p) => p.aptoCredito === true);
+    }
+    if (aptoFinanciacion) {
+      result = result.filter((p) => p.aptoFinanciacion === true);
+    }
+    if (aptoPermuta) {
+      result = result.filter((p) => p.aptoPermuta === true);
+    }
+
     // text query · matchea contra address, locality, district y code
     // (case-insensitive, sin acentos). Soporta búsquedas libres del
     // SearchBar del home (calle, barrio, código RUS).
@@ -536,6 +582,9 @@ export default function FilterBar({
     selectedAmenities,
     destacadas,
     conVideo,
+    aptoCredito,
+    aptoFinanciacion,
+    aptoPermuta,
     textQuery,
     sortBy,
     onFilterChange,
@@ -589,6 +638,9 @@ export default function FilterBar({
     setSelectedAmenities(new Set());
     setDestacadas(false);
     setConVideo(false);
+    setAptoCredito(false);
+    setAptoFinanciacion(false);
+    setAptoPermuta(false);
     setTextQuery("");
   };
 
@@ -969,6 +1021,33 @@ export default function FilterBar({
               value={antiguedad}
               onChange={setAntiguedad}
             />
+          </div>
+
+          {/* Forma de pago · apto crédito / financiación / permuta */}
+          <div className="mt-5">
+            <p className="text-xs font-medium text-navy-300 mb-2">
+              Forma de pago
+            </p>
+            <div className="flex flex-wrap gap-1.5">
+              <PayChip
+                label="Apto crédito"
+                active={aptoCredito}
+                onClick={() => setAptoCredito((v) => !v)}
+                title="La propiedad cumple los requisitos para crédito hipotecario"
+              />
+              <PayChip
+                label="Apto financiación"
+                active={aptoFinanciacion}
+                onClick={() => setAptoFinanciacion((v) => !v)}
+                title="Russo ofrece plan de pago en cuotas propio"
+              />
+              <PayChip
+                label="Apto permuta"
+                active={aptoPermuta}
+                onClick={() => setAptoPermuta((v) => !v)}
+                title="Aceptan otra propiedad como parte del pago"
+              />
+            </div>
           </div>
 
           {/* Amenities multi-select */}

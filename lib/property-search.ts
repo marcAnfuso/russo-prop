@@ -42,6 +42,12 @@ export interface SearchFilters {
   expensesMaxARS?: number;
 
   hasVideo?: boolean;
+  /** Apto crédito hipotecario. */
+  aptoCredito?: boolean;
+  /** Apto financiación (cuotas con Russo). */
+  aptoFinanciacion?: boolean;
+  /** Apto permuta (acepta otra propiedad). */
+  aptoPermuta?: boolean;
   /** Amenities deseados (matchea cualquiera por substring case-insensitive). */
   amenities?: string[];
   /** Texto libre para matchear contra dirección/locality/code (calle/barrio/RUS). */
@@ -173,6 +179,9 @@ function matchesAllFilters(p: Property, f: SearchFilters): boolean {
 
   // Otros
   if (f.hasVideo && !p.videoUrl) return false;
+  if (f.aptoCredito && !p.aptoCredito) return false;
+  if (f.aptoFinanciacion && !p.aptoFinanciacion) return false;
+  if (f.aptoPermuta && !p.aptoPermuta) return false;
   if (f.amenities?.length && !matchesAmenities(p, f.amenities)) return false;
   if (f.text && !matchesText(p, f.text)) return false;
 

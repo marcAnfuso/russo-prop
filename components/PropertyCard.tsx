@@ -210,6 +210,7 @@ export default function PropertyCard({
               ))}
             </ul>
           )}
+          <PayBadges property={property} />
         </div>
       </article>
     );
@@ -328,6 +329,8 @@ export default function PropertyCard({
           </ul>
         )}
 
+        <PayBadges property={property} />
+
         {!hideContactButtons && (
           <div className="relative z-20 flex justify-end pt-2 border-t border-gray-50">
             <ContactButtons propertyCode={code} size="sm" compact={compact} />
@@ -335,5 +338,30 @@ export default function PropertyCard({
         )}
       </div>
     </article>
+  );
+}
+
+/**
+ * Chips compactos con las formas de pago aceptadas (apto crédito,
+ * apto financiación, apto permuta). Si la propiedad no tiene ninguno,
+ * no renderiza nada · evita ruido visual.
+ */
+function PayBadges({ property }: { property: Property }) {
+  const flags: Array<{ label: string; color: string }> = [];
+  if (property.aptoCredito) flags.push({ label: "Apto crédito", color: "bg-emerald-50 text-emerald-700 ring-emerald-200" });
+  if (property.aptoFinanciacion) flags.push({ label: "Financiación", color: "bg-blue-50 text-blue-700 ring-blue-200" });
+  if (property.aptoPermuta) flags.push({ label: "Permuta", color: "bg-violet-50 text-violet-700 ring-violet-200" });
+  if (flags.length === 0) return null;
+  return (
+    <div className="flex flex-wrap gap-1.5 mt-1">
+      {flags.map((f) => (
+        <span
+          key={f.label}
+          className={`inline-flex items-center rounded-full ring-1 ring-inset px-2 py-0.5 text-[10px] font-semibold ${f.color}`}
+        >
+          {f.label}
+        </span>
+      ))}
+    </div>
   );
 }

@@ -88,6 +88,15 @@ export interface Property {
    * Override del equipo (admin /priorities). Si no hay override, usamos
    * el `in_ord2` que carga Russo en Xintel. */
   priority?: number;
+  /** Apto crédito hipotecario · escritura, planos y demás cumplen los
+   * requisitos del banco. Xintel: `in_cre`. */
+  aptoCredito?: boolean;
+  /** Apto financiación · Russo ofrece plan de pago en cuotas propio.
+   * Xintel: `apto_financiacion`. */
+  aptoFinanciacion?: boolean;
+  /** Apto permuta · aceptan otra propiedad como parte del pago. Xintel:
+   * `in_per`. */
+  aptoPermuta?: boolean;
 }
 
 export interface Development {
