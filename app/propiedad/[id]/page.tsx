@@ -280,7 +280,7 @@ export default async function PropertyDetailPage({ params }: PageProps) {
             )}
           </div>
 
-          {/* Price + expensas */}
+          {/* Price + expensas + impuesto municipal */}
           <div>
             <p className="text-3xl font-bold text-gray-900">
               {property.sold
@@ -288,8 +288,13 @@ export default async function PropertyDetailPage({ params }: PageProps) {
                 : `${property.currency === "ARS" ? "$" : "USD"} ${formatPrice(property.price)}`}
             </p>
             {!property.sold && property.details?.expenses ? (
-              <p className="text-sm text-gray-500 mt-1">
+              <p className="text-sm font-semibold text-navy mt-1">
                 + ${formatPrice(property.details.expenses)} de expensas / mes
+              </p>
+            ) : null}
+            {!property.sold && property.details?.tax ? (
+              <p className="text-sm font-semibold text-navy mt-0.5">
+                + ${formatPrice(property.details.tax)} de impuesto municipal / mes
               </p>
             ) : null}
           </div>
