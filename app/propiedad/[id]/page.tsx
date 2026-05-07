@@ -280,12 +280,19 @@ export default async function PropertyDetailPage({ params }: PageProps) {
             )}
           </div>
 
-          {/* Price */}
-          <p className="text-3xl font-bold text-gray-900">
-            {property.sold
-              ? "Vendida"
-              : `${property.currency === "ARS" ? "$" : "USD"} ${formatPrice(property.price)}`}
-          </p>
+          {/* Price + expensas */}
+          <div>
+            <p className="text-3xl font-bold text-gray-900">
+              {property.sold
+                ? "Vendida"
+                : `${property.currency === "ARS" ? "$" : "USD"} ${formatPrice(property.price)}`}
+            </p>
+            {!property.sold && property.details?.expenses ? (
+              <p className="text-sm text-gray-500 mt-1">
+                + ${formatPrice(property.details.expenses)} de expensas / mes
+              </p>
+            ) : null}
+          </div>
 
           {/* Features grid */}
           {featureItems.length > 0 && (
