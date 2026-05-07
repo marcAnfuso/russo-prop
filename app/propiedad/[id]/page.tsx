@@ -16,7 +16,6 @@ import type { Property } from "@/data/types";
 import { formatPrice } from "@/lib/utils";
 import Gallery from "@/components/Gallery";
 import AmenityList from "@/components/AmenityList";
-import AIHighlights from "@/components/AIHighlights";
 import RussiaChatWidget from "@/components/RussiaChatWidget";
 import PropertyDetailsTable from "@/components/PropertyDetailsTable";
 import AreaMeasurementsTable from "@/components/AreaMeasurementsTable";
@@ -307,10 +306,6 @@ export default async function PropertyDetailPage({ params }: PageProps) {
               ))}
             </div>
           )}
-
-          {/* AI-generated highlights — 4-6 bullets drawn from the Xintel
-              description + features, cached in Postgres. */}
-          <AIHighlights propertyId={property.id} />
 
           {/* Description */}
           {property.description && (
