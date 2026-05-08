@@ -22,9 +22,6 @@ interface Props {
   pageSize: number;
 }
 
-const PRICE_INPUT_PER_MILLION = 0.3;
-const PRICE_OUTPUT_PER_MILLION = 2.5;
-
 export default function RussiaLogsClient({
   initialSessions,
   initialTotal,
@@ -42,12 +39,6 @@ export default function RussiaLogsClient({
 
   void pageSize;
   void total;
-
-  const estimatedCost30d = useMemo(() => {
-    const input = (stats.inputTokens30d / 1_000_000) * PRICE_INPUT_PER_MILLION;
-    const output = (stats.outputTokens30d / 1_000_000) * PRICE_OUTPUT_PER_MILLION;
-    return input + output;
-  }, [stats.inputTokens30d, stats.outputTokens30d]);
 
   // Filtrado local sobre las sesiones
   const visibleSessions = useMemo(() => {
@@ -94,10 +85,9 @@ export default function RussiaLogsClient({
           sub={`${stats.uniqueIps7d} IPs únicas`}
         />
         <StatCard
-          label="Costo estimado · 30d"
-          value={`USD ${estimatedCost30d.toFixed(2)}`}
-          sub={`${stats.total30d} consultas · ${(stats.inputTokens30d + stats.outputTokens30d).toLocaleString()} tokens`}
-          highlight
+          label="Últimos 30 días"
+          value={stats.total30d}
+          sub={`${(stats.inputTokens30d + stats.outputTokens30d).toLocaleString()} tokens`}
         />
       </div>
 
@@ -262,9 +252,6 @@ export default function RussiaLogsClient({
             {visibleSessions.map((s) => {
               const key = s.session_id ?? "__null__";
               const isOpen = expanded.has(key);
-              const cost =
-                (s.total_input_tokens / 1_000_000) * PRICE_INPUT_PER_MILLION +
-                (s.total_output_tokens / 1_000_000) * PRICE_OUTPUT_PER_MILLION;
               return (
                 <li
                   key={key}
@@ -317,10 +304,6 @@ export default function RussiaLogsClient({
                             hour: "2-digit",
                             minute: "2-digit",
                           })}
-                        </span>
-                        <span>·</span>
-                        <span className="text-gray-500">
-                          USD {cost.toFixed(4)}
                         </span>
                         {s.has_error && (
                           <span className="text-red-600 inline-flex items-center gap-1">
@@ -409,44 +392,18 @@ function StatCard({
   label,
   value,
   sub,
-  highlight,
 }: {
   label: string;
   value: number | string;
   sub?: string;
-  highlight?: boolean;
 }) {
   return (
-    <div
-      className={`rounded-2xl border shadow-sm p-4 ${
-        highlight
-          ? "bg-magenta text-white border-magenta"
-          : "bg-white border-gray-100"
-      }`}
-    >
-      <p
-        className={`text-[11px] uppercase tracking-wider font-semibold ${
-          highlight ? "text-white/80" : "text-gray-500"
-        }`}
-      >
+    <div className="rounded-2xl border shadow-sm p-4 bg-white border-gray-100">
+      <p className="text-[11px] uppercase tracking-wider font-semibold text-gray-500">
         {label}
       </p>
-      <p
-        className={`mt-1 text-2xl font-bold ${
-          highlight ? "text-white" : "text-navy"
-        }`}
-      >
-        {value}
-      </p>
-      {sub && (
-        <p
-          className={`text-[11px] mt-0.5 ${
-            highlight ? "text-white/70" : "text-gray-400"
-          }`}
-        >
-          {sub}
-        </p>
-      )}
+      <p className="mt-1 text-2xl font-bold text-navy">{value}</p>
+      {sub && <p className="text-[11px] mt-0.5 text-gray-400">{sub}</p>}
     </div>
   );
 }
