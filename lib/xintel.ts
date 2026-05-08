@@ -554,6 +554,22 @@ export async function fetchAllProperties(
     // sin DB → comportamiento legacy basado en el price=9999999 de Xintel
   }
 
+  // Aplicar overrides de coordenadas · si Russo cargó mal el lat/lng en
+  // Xintel y un admin geocodificó la dirección con Google, usamos las
+  // coords corregidas en lugar de las originales del feed.
+  try {
+    const { getCoordsOverrideMap } = await import("./coords-overrides");
+    const coordsMap = await getCoordsOverrideMap();
+    if (coordsMap.size > 0) {
+      for (const p of all) {
+        const ov = coordsMap.get(p.id);
+        if (ov) p.location = { lat: ov.lat, lng: ov.lng };
+      }
+    }
+  } catch {
+    // sin DB · respetamos las coords de Xintel
+  }
+
   // Sort por prioridad desc · desempate por id desc (más nuevo primero,
   // ya que los códigos RUS son incrementales).
   all.sort((a, b) => {
