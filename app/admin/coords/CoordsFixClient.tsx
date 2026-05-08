@@ -286,8 +286,9 @@ export default function CoordsFixClient() {
             Después de geocodificar, cada propuesta queda en{" "}
             <strong>"Pendiente revisión"</strong> hasta que la apruebes una por una.
             Las propiedades de Canning, Ciudad Evita, 9 de Abril, campos y quintas
-            se excluyen automáticamente del detector porque suelen tener coords
-            cargadas a mano por la inmobiliaria.
+            aparecen con el badge <strong>"posible caso especial"</strong> porque
+            suelen tener coords cargadas a mano por la inmobiliaria · revisalas con
+            cuidado antes de aplicar.
           </p>
         </div>
       )}
