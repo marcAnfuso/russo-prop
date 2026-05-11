@@ -97,6 +97,9 @@ export interface Property {
   /** Apto permuta · aceptan otra propiedad como parte del pago. Xintel:
    * `in_per`. */
   aptoPermuta?: boolean;
+  /** Apto profesional · el consorcio permite uso para consultorio/oficina
+   * profesional. Xintel: `in_apt` con valor "S". */
+  aptoProfesional?: boolean;
 }
 
 export interface Development {

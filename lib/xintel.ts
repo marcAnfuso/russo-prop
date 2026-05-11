@@ -61,6 +61,8 @@ export interface XintelListFicha {
   apto_financiacion?: string;
   /** Apto permuta (aceptan otra propiedad como pago parcial). */
   in_per?: string;
+  /** Apto profesional · consorcio permite uso profesional. Valor "S" o "". */
+  in_apt?: string;
   video?: string;
   tour360?: string;
   cantidad_dormitorios?: string | number;
@@ -366,6 +368,7 @@ export function mapListFicha(ficha: XintelListFicha, imgs: string | string[], am
     aptoCredito: String(ficha.in_cre) === "True",
     aptoFinanciacion: String(ficha.apto_financiacion) === "True",
     aptoPermuta: String(ficha.in_per) === "True",
+    aptoProfesional: String(ficha.in_apt) === "S",
   };
 }
 
@@ -757,6 +760,10 @@ export async function fetchProperty(id: string): Promise<Property | null> {
       location: parseCoords(ficha.in_coo),
       featured: String(ficha.in_des) === "True" || ficha.in_des === true,
       priority: num(ficha.in_ord2) || 0,
+      aptoCredito: String(ficha.in_cre) === "True",
+      aptoFinanciacion: String(ficha.apto_financiacion) === "True",
+      aptoPermuta: String(ficha.in_per) === "True",
+      aptoProfesional: String(ficha.in_apt) === "S",
     };
   } catch {
     return null;

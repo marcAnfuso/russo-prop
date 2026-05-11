@@ -278,6 +278,11 @@ export default async function PropertyDetailPage({ params }: PageProps) {
                 Permuta
               </span>
             )}
+            {property.aptoProfesional && (
+              <span className="inline-flex items-center rounded-full ring-1 ring-inset ring-amber-200 bg-amber-50 text-amber-800 px-3 py-1 text-xs font-semibold">
+                Apto profesional
+              </span>
+            )}
           </div>
 
           {/* Price + expensas + impuesto municipal en mini-cards */}

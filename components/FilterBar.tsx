@@ -350,6 +350,7 @@ export default function FilterBar({
   const [aptoCredito, setAptoCredito] = useState(false);
   const [aptoFinanciacion, setAptoFinanciacion] = useState(false);
   const [aptoPermuta, setAptoPermuta] = useState(false);
+  const [aptoProfesional, setAptoProfesional] = useState(false);
 
   /* sort */
   const [sortBy, setSortBy] = useState("recent");
@@ -408,8 +409,9 @@ export default function FilterBar({
     if (aptoCredito) n++;
     if (aptoFinanciacion) n++;
     if (aptoPermuta) n++;
+    if (aptoProfesional) n++;
     return n;
-  }, [ambientes, dormitorios, banos, superficieMin, superficieMax, cochera, antiguedad, selectedAmenities, destacadas, conVideo, aptoCredito, aptoFinanciacion, aptoPermuta]);
+  }, [ambientes, dormitorios, banos, superficieMin, superficieMax, cochera, antiguedad, selectedAmenities, destacadas, conVideo, aptoCredito, aptoFinanciacion, aptoPermuta, aptoProfesional]);
 
   /* ---- count ALL active filters (incluye los del row principal) para
    * el badge del botón "Filtros" en mobile. */
@@ -547,7 +549,7 @@ export default function FilterBar({
       result = result.filter((p) => !!p.videoUrl);
     }
 
-    // apto crédito / financiación / permuta
+    // apto crédito / financiación / permuta / profesional
     if (aptoCredito) {
       result = result.filter((p) => p.aptoCredito === true);
     }
@@ -556,6 +558,9 @@ export default function FilterBar({
     }
     if (aptoPermuta) {
       result = result.filter((p) => p.aptoPermuta === true);
+    }
+    if (aptoProfesional) {
+      result = result.filter((p) => p.aptoProfesional === true);
     }
 
     // text query · matchea contra address, locality, district y code
@@ -604,6 +609,7 @@ export default function FilterBar({
     aptoCredito,
     aptoFinanciacion,
     aptoPermuta,
+    aptoProfesional,
     textQuery,
     sortBy,
     onFilterChange,
@@ -660,6 +666,7 @@ export default function FilterBar({
     setAptoCredito(false);
     setAptoFinanciacion(false);
     setAptoPermuta(false);
+    setAptoProfesional(false);
     setTextQuery("");
   };
 
@@ -1065,6 +1072,12 @@ export default function FilterBar({
                 active={aptoPermuta}
                 onClick={() => setAptoPermuta((v) => !v)}
                 title="Aceptan otra propiedad como parte del pago"
+              />
+              <PayChip
+                label="Apto profesional"
+                active={aptoProfesional}
+                onClick={() => setAptoProfesional((v) => !v)}
+                title="El consorcio permite uso para consultorio u oficina profesional"
               />
             </div>
           </div>

@@ -352,6 +352,7 @@ function PayBadges({ property }: { property: Property }) {
   if (property.aptoCredito) flags.push({ label: "Apto crédito", color: "bg-emerald-50 text-emerald-700 ring-emerald-200" });
   if (property.aptoFinanciacion) flags.push({ label: "Financiación", color: "bg-blue-50 text-blue-700 ring-blue-200" });
   if (property.aptoPermuta) flags.push({ label: "Permuta", color: "bg-violet-50 text-violet-700 ring-violet-200" });
+  if (property.aptoProfesional) flags.push({ label: "Apto profesional", color: "bg-amber-50 text-amber-800 ring-amber-200" });
   if (flags.length === 0) return null;
   return (
     <div className="flex flex-wrap gap-1.5 mt-1">
