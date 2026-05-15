@@ -5,6 +5,11 @@ import { useRouter } from "next/navigation";
 import { Search, X, ChevronDown, SlidersHorizontal, Check, Star, Video } from "lucide-react";
 import type { Property } from "@/data/types";
 import { useLocalities, rankLocalityMatches } from "@/lib/useLocalities";
+import {
+  loadFilters,
+  saveFilters,
+  clearPersistedFilters,
+} from "@/lib/persisted-filters";
 
 // Cada opción tiene un value que puede ser:
 //   - un type: "casa", "departamento", etc.
@@ -55,6 +60,33 @@ interface FilterBarProps {
   /** Búsqueda libre por calle/dirección/locality (texto que viene del
    * input del home cuando no es código RUS ni zona conocida). */
   initialQuery?: string;
+  /** Key de localStorage para persistir los filtros avanzados (precio,
+   * ambientes, baños, amenities, etc.). Si está, intenta restaurar al
+   * montar y guarda en cada cambio. TTL de 24h via persisted-filters. */
+  storageKey?: string;
+}
+
+/** Shape de los filtros que persistimos en localStorage. Lo "compartible"
+ * (type, zones, q, page) va por URL · no entra acá. */
+interface PersistedFilters {
+  priceMin: string;
+  priceMax: string;
+  currency: "" | "USD" | "ARS";
+  ambientes: string[];
+  dormitorios: string[];
+  banos: string | null;
+  superficieMin: string;
+  superficieMax: string;
+  cochera: string | null;
+  antiguedad: string | null;
+  amenities: string[];
+  destacadas: boolean;
+  conVideo: boolean;
+  aptoCredito: boolean;
+  aptoFinanciacion: boolean;
+  aptoPermuta: boolean;
+  aptoProfesional: boolean;
+  sortBy: string;
 }
 
 /* ------------------------------------------------------------------ */
@@ -321,39 +353,73 @@ export default function FilterBar({
   initialPropertyType = "",
   initialZones = [],
   initialQuery = "",
+  storageKey,
 }: FilterBarProps) {
   const router = useRouter();
   const localities = useLocalities();
+
+  /* ---- Restaurar filtros avanzados de localStorage al montar (lazy
+   * init). Si la storageKey no está o el record expiró, arranca con
+   * los defaults. */
+  const persisted = useMemo<PersistedFilters | null>(() => {
+    if (!storageKey) return null;
+    return loadFilters<PersistedFilters>(storageKey);
+  }, [storageKey]);
+
   /* ---- filter state ---- */
   const [zones, setZones] = useState<string[]>(initialZones);
   const [zoneQuery, setZoneQuery] = useState("");
   const [zoneDropdownOpen, setZoneDropdownOpen] = useState(false);
   const [propertyType, setPropertyType] = useState(initialPropertyType);
-  const [priceMin, setPriceMin] = useState("");
-  const [priceMax, setPriceMax] = useState("");
-  const [currency, setCurrency] = useState<"" | "USD" | "ARS">("");
+  const [priceMin, setPriceMin] = useState(() => persisted?.priceMin ?? "");
+  const [priceMax, setPriceMax] = useState(() => persisted?.priceMax ?? "");
+  const [currency, setCurrency] = useState<"" | "USD" | "ARS">(
+    () => persisted?.currency ?? ""
+  );
   const [expanded, setExpanded] = useState(false);
 
   /* expanded filters */
-  const [ambientes, setAmbientes] = useState<string[]>([]);
-  const [dormitorios, setDormitorios] = useState<string[]>([]);
-  const [banos, setBanos] = useState<string | null>(null);
-  const [superficieMin, setSuperficieMin] = useState("");
-  const [superficieMax, setSuperficieMax] = useState("");
-  const [cochera, setCochera] = useState<string | null>(null);
-  const [antiguedad, setAntiguedad] = useState<string | null>(null);
-  const [selectedAmenities, setSelectedAmenities] = useState<Set<string>>(
-    () => new Set()
+  const [ambientes, setAmbientes] = useState<string[]>(
+    () => persisted?.ambientes ?? []
   );
-  const [destacadas, setDestacadas] = useState(false);
-  const [conVideo, setConVideo] = useState(false);
-  const [aptoCredito, setAptoCredito] = useState(false);
-  const [aptoFinanciacion, setAptoFinanciacion] = useState(false);
-  const [aptoPermuta, setAptoPermuta] = useState(false);
-  const [aptoProfesional, setAptoProfesional] = useState(false);
+  const [dormitorios, setDormitorios] = useState<string[]>(
+    () => persisted?.dormitorios ?? []
+  );
+  const [banos, setBanos] = useState<string | null>(
+    () => persisted?.banos ?? null
+  );
+  const [superficieMin, setSuperficieMin] = useState(
+    () => persisted?.superficieMin ?? ""
+  );
+  const [superficieMax, setSuperficieMax] = useState(
+    () => persisted?.superficieMax ?? ""
+  );
+  const [cochera, setCochera] = useState<string | null>(
+    () => persisted?.cochera ?? null
+  );
+  const [antiguedad, setAntiguedad] = useState<string | null>(
+    () => persisted?.antiguedad ?? null
+  );
+  const [selectedAmenities, setSelectedAmenities] = useState<Set<string>>(
+    () => new Set(persisted?.amenities ?? [])
+  );
+  const [destacadas, setDestacadas] = useState(() => persisted?.destacadas ?? false);
+  const [conVideo, setConVideo] = useState(() => persisted?.conVideo ?? false);
+  const [aptoCredito, setAptoCredito] = useState(
+    () => persisted?.aptoCredito ?? false
+  );
+  const [aptoFinanciacion, setAptoFinanciacion] = useState(
+    () => persisted?.aptoFinanciacion ?? false
+  );
+  const [aptoPermuta, setAptoPermuta] = useState(
+    () => persisted?.aptoPermuta ?? false
+  );
+  const [aptoProfesional, setAptoProfesional] = useState(
+    () => persisted?.aptoProfesional ?? false
+  );
 
   /* sort */
-  const [sortBy, setSortBy] = useState("recent");
+  const [sortBy, setSortBy] = useState(() => persisted?.sortBy ?? "recent");
 
   /* Búsqueda libre · viene del SearchBar del home cuando el user
    * tipea calle/barrio/dirección que no matchea zona conocida. */
@@ -620,6 +686,53 @@ export default function FilterBar({
     onFilterStateChange?.({ propertyType, zones });
   }, [applyFilters, propertyType, zones, onFilterStateChange]);
 
+  /* ---- Persist · guarda los filtros avanzados en localStorage en cada
+   * cambio. Lo "compartible" (type/zones/q/page) va por URL aparte. */
+  useEffect(() => {
+    if (!storageKey) return;
+    const filters: PersistedFilters = {
+      priceMin,
+      priceMax,
+      currency,
+      ambientes,
+      dormitorios,
+      banos,
+      superficieMin,
+      superficieMax,
+      cochera,
+      antiguedad,
+      amenities: Array.from(selectedAmenities),
+      destacadas,
+      conVideo,
+      aptoCredito,
+      aptoFinanciacion,
+      aptoPermuta,
+      aptoProfesional,
+      sortBy,
+    };
+    saveFilters(storageKey, filters);
+  }, [
+    storageKey,
+    priceMin,
+    priceMax,
+    currency,
+    ambientes,
+    dormitorios,
+    banos,
+    superficieMin,
+    superficieMax,
+    cochera,
+    antiguedad,
+    selectedAmenities,
+    destacadas,
+    conVideo,
+    aptoCredito,
+    aptoFinanciacion,
+    aptoPermuta,
+    aptoProfesional,
+    sortBy,
+  ]);
+
   /* ---- zone suggestions ---- */
   const zoneSuggestions = useMemo(
     () => rankLocalityMatches(localities, zoneQuery, zones),
@@ -667,7 +780,9 @@ export default function FilterBar({
     setAptoFinanciacion(false);
     setAptoPermuta(false);
     setAptoProfesional(false);
+    setSortBy("recent");
     setTextQuery("");
+    if (storageKey) clearPersistedFilters(storageKey);
   };
 
   const hasAnyFilter =

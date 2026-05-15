@@ -9,6 +9,7 @@ import PropertyQuickViewModal from "@/components/PropertyQuickViewModal";
 import MapView from "@/components/MapView";
 import SaveSearchAlert, { type AlertCriterion } from "@/components/SaveSearchAlert";
 import type { Property } from "@/data/types";
+import { filterStorageKey } from "@/lib/persisted-filters";
 
 interface PropertyListWithMapProps {
   operationType: "venta" | "alquiler";
@@ -34,6 +35,12 @@ export default function PropertyListWithMap({
   const initialZonesParam = searchParams.get("zones");
   const initialZones = initialZonesParam ? initialZonesParam.split(",") : [];
   const initialQuery = searchParams.get("q") || "";
+  const initialPageParam = parseInt(searchParams.get("page") || "1", 10);
+  const initialPage = Number.isFinite(initialPageParam) && initialPageParam > 0
+    ? initialPageParam - 1
+    : 0;
+
+  const storageKey = filterStorageKey(operationType);
 
   // Criterion para la alerta · construido desde la URL
   const alertCriterion: AlertCriterion = useMemo(() => {
@@ -61,12 +68,21 @@ export default function PropertyListWithMap({
     return parts.join(" · ");
   }, [operationType, alertCriterion]);
 
-  const [currentPage, setCurrentPage] = useState(0); // 0-indexed
+  const [currentPage, setCurrentPage] = useState(initialPage); // 0-indexed
   const [highlightedId, setHighlightedId] = useState<string | null>(null);
   const [showMobileMap, setShowMobileMap] = useState(false);
   const [desktopMapVisible, setDesktopMapVisible] = useState(true);
   const [quickViewProperty, setQuickViewProperty] = useState<Property | null>(null);
   const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
+
+  // Sync · si el usuario hace browser back/forward y el componente
+  // sigue montado (Next.js a veces cachea), igual reaccionamos al
+  // cambio de `page` en el URL.
+  useEffect(() => {
+    const urlPage = parseInt(searchParams.get("page") || "1", 10);
+    const target = Number.isFinite(urlPage) && urlPage > 0 ? urlPage - 1 : 0;
+    setCurrentPage((curr) => (curr === target ? curr : target));
+  }, [searchParams]);
 
   // FilterBar sees the ENTIRE inventory so filters apply across all pages.
   const [filtered, setFiltered] = useState<Property[] | null>(null);
@@ -81,7 +97,18 @@ export default function PropertyListWithMap({
   const handleFilterChange = useCallback((result: Property[]) => {
     setFiltered(result);
     setCurrentPage(0);
-  }, []);
+    // Limpiar `page` del URL · cambió la cantidad de resultados, no
+    // tiene sentido conservar un page=N que podría apuntar a vacío.
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      if (params.has("page")) {
+        params.delete("page");
+        const qs = params.toString();
+        const path = window.location.pathname;
+        router.replace(qs ? `${path}?${qs}` : path);
+      }
+    }
+  }, [router]);
 
   const handleFilterStateChange = useCallback(
     (filters: { propertyType?: string; zones: string[] }) => {
@@ -100,6 +127,11 @@ export default function PropertyListWithMap({
       const newUrl = params.toString() ? `${basePath}?${params.toString()}` : basePath;
       const currentUrl = window.location.pathname + window.location.search;
       if (currentUrl !== newUrl) {
+        // replace · cambios de filtros principales NO empujan al
+        // history (sino "atrás" iría a la versión anterior del filtro
+        // y resultaría en un browser back muy ruidoso). El push lo
+        // hacemos sólo en la paginación, que es lo que naturalmente
+        // espera el usuario al apretar "atrás".
         router.replace(newUrl);
       }
     },
@@ -109,6 +141,14 @@ export default function PropertyListWithMap({
   function goToPage(pageIndex: number) {
     if (pageIndex < 0 || pageIndex >= totalPages) return;
     setCurrentPage(pageIndex);
+    // Sync page al URL via push · así "atrás" deshace la paginación y
+    // volver desde una propiedad restaura la página exacta.
+    const params = new URLSearchParams(window.location.search);
+    if (pageIndex === 0) params.delete("page");
+    else params.set("page", String(pageIndex + 1));
+    const basePath = operationType === "alquiler" ? "/alquileres" : "/ventas";
+    const qs = params.toString();
+    router.push(qs ? `${basePath}?${qs}` : basePath);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
@@ -144,6 +184,7 @@ export default function PropertyListWithMap({
         initialPropertyType={initialPropertyType}
         initialZones={initialZones}
         initialQuery={initialQuery}
+        storageKey={storageKey}
       />
 
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6">
