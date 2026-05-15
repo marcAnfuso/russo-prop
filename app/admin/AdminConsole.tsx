@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Search, Star, Sparkles, X, LogOut, CheckCircle2, HelpCircle, BarChart3, Bell, ListOrdered, Inbox, BadgeCheck, Bookmark, MessageCircle, MapPin } from "lucide-react";
+import { Search, Star, Sparkles, X, LogOut, CheckCircle2, HelpCircle, BarChart3, Bell, ListOrdered, Inbox, BadgeCheck, Bookmark, MessageCircle, MapPin, Flame } from "lucide-react";
 import { formatPrice } from "@/lib/utils";
 import MediaPicksPanel, { type MediaPick } from "./MediaPicksPanel";
 import UsersPanel from "./UsersPanel";
@@ -26,7 +26,7 @@ interface AdminProperty {
   type: string;
 }
 
-type PickList = "featured" | "new" | "sold" | "reserved";
+type PickList = "featured" | "new" | "sold" | "reserved" | "opportunity";
 
 interface Props {
   properties: AdminProperty[];
@@ -34,6 +34,7 @@ interface Props {
   initialNew: string[];
   initialSold: string[];
   initialReserved: string[];
+  initialOpportunities: string[];
   initialMedia: MediaPick[];
   initialDevelopments: Development[];
   initialHiddenDevelopments: string[];
@@ -51,6 +52,7 @@ export default function AdminConsole({
   initialNew,
   initialSold,
   initialReserved,
+  initialOpportunities,
   initialMedia,
   initialDevelopments,
   initialHiddenDevelopments,
@@ -60,6 +62,9 @@ export default function AdminConsole({
   const [fresh, setFresh] = useState<Set<string>>(new Set(initialNew));
   const [sold, setSold] = useState<Set<string>>(new Set(initialSold));
   const [reserved, setReserved] = useState<Set<string>>(new Set(initialReserved));
+  const [opportunities, setOpportunities] = useState<Set<string>>(
+    new Set(initialOpportunities)
+  );
   const [query, setQuery] = useState("");
   const [operation, setOperation] = useState<"" | "venta" | "alquiler">("");
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -87,6 +92,8 @@ export default function AdminConsole({
         ? fresh
         : list === "sold"
         ? sold
+        : list === "opportunity"
+        ? opportunities
         : reserved;
     const setter =
       list === "featured"
@@ -95,6 +102,8 @@ export default function AdminConsole({
         ? setFresh
         : list === "sold"
         ? setSold
+        : list === "opportunity"
+        ? setOpportunities
         : setReserved;
     const has = current.has(propertyId);
     const previous = new Set(current);
@@ -140,6 +149,7 @@ export default function AdminConsole({
         new: "Nuevos ingresos",
         sold: "Vendidas",
         reserved: "Reservadas",
+        opportunity: "Oportunidades",
       };
       setToast(has ? "Quitado de la lista" : `Agregado a ${labels[list]}`);
       setTimeout(() => setToast(null), 2000);
@@ -246,7 +256,7 @@ export default function AdminConsole({
 
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 space-y-10">
         {/* Current picks */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
           <PickPanel
             title="Exclusivas"
             subtitle="Marcá varias — el sitio las va rotando de a 4 por día."
@@ -254,6 +264,14 @@ export default function AdminConsole({
             ids={Array.from(featured)}
             propertyById={propertyById}
             onRemove={(id) => togglePick(id, "featured")}
+          />
+          <PickPanel
+            title="Oportunidades"
+            subtitle="La recomendación de Russo. Se muestran en el home en una sección destacada."
+            icon={<Flame className="h-4 w-4" />}
+            ids={Array.from(opportunities)}
+            propertyById={propertyById}
+            onRemove={(id) => togglePick(id, "opportunity")}
           />
           <PickPanel
             title="Nuevos ingresos"
@@ -343,6 +361,7 @@ export default function AdminConsole({
               const isNew = fresh.has(p.id);
               const isSold = sold.has(p.id);
               const isReserved = reserved.has(p.id);
+              const isOpportunity = opportunities.has(p.id);
               return (
                 <li
                   key={p.id}
@@ -375,7 +394,7 @@ export default function AdminConsole({
                       </p>
                     </div>
                   </div>
-                  <div className="border-t border-gray-100 p-2 grid grid-cols-2 gap-1.5">
+                  <div className="border-t border-gray-100 p-2 grid grid-cols-2 sm:grid-cols-3 gap-1.5">
                     <button
                       type="button"
                       onClick={() => togglePick(p.id, "featured")}
@@ -388,6 +407,19 @@ export default function AdminConsole({
                     >
                       <Star className={`h-3 w-3 ${isFeatured ? "fill-white" : ""}`} />
                       {isFeatured ? "Exclusiva" : "Exclusiva"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => togglePick(p.id, "opportunity")}
+                      disabled={busyId === p.id}
+                      className={`inline-flex items-center justify-center gap-1 rounded-md py-1.5 text-[11px] font-semibold transition-colors ${
+                        isOpportunity
+                          ? "bg-orange-500 text-white"
+                          : "bg-orange-50 text-orange-700 hover:bg-orange-100"
+                      }`}
+                    >
+                      <Flame className={`h-3 w-3 ${isOpportunity ? "fill-white" : ""}`} />
+                      {isOpportunity ? "Oportunidad" : "Oportunidad"}
                     </button>
                     <button
                       type="button"

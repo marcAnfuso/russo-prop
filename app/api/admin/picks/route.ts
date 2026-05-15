@@ -3,7 +3,7 @@ import { revalidatePath } from "next/cache";
 import { currentSessionIsAdmin } from "@/lib/admin-auth";
 import { addPick, listPicks, removePick, type PickList } from "@/lib/picks";
 
-const VALID_LISTS: PickList[] = ["featured", "new", "sold", "development_hidden"];
+const VALID_LISTS: PickList[] = ["featured", "new", "sold", "development_hidden", "opportunity"];
 
 // Páginas públicas que consumen los picks. Las invalidamos en cada
 // mutación para que los cambios del admin se reflejen al toque (sin

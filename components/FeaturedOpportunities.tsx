@@ -51,13 +51,13 @@ export default function FeaturedOpportunities({
           className="text-center mb-12"
         >
           <p className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-widest text-magenta mb-3">
-            <Flame className="w-3.5 h-3.5" /> Oportunidades
+            <Flame className="w-3.5 h-3.5" /> Bajaron de precio
           </p>
           <h2 className="text-3xl sm:text-4xl font-bold text-navy">
-            Bajas de precio recientes
+            Propiedades que bajaron de precio
           </h2>
           <p className="mt-3 text-navy-500 text-base max-w-md mx-auto">
-            Propiedades con rebajas que no podés dejar pasar
+            Rebajas recientes que no podés dejar pasar
           </p>
         </motion.div>
 

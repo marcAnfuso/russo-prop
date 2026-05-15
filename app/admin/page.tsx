@@ -20,13 +20,14 @@ export default async function AdminPage() {
   const me = await getCurrentAdmin();
   if (!me) return <AdminLogin />;
 
-  const [ventas, alquileres, featured, fresh, sold, reserved, media, developments, hiddenDevs] = await Promise.all([
+  const [ventas, alquileres, featured, fresh, sold, reserved, opportunities, media, developments, hiddenDevs] = await Promise.all([
     fetchAllProperties("venta"),
     fetchAllProperties("alquiler"),
     listPicks("featured"),
     listPicks("new"),
     listPicks("sold"),
     getStatusIds("reserved"),
+    listPicks("opportunity"),
     listMediaPicks(),
     fetchDevelopments(),
     listPicks("development_hidden"),
@@ -54,6 +55,7 @@ export default async function AdminPage() {
       initialNew={fresh}
       initialSold={sold}
       initialReserved={reserved}
+      initialOpportunities={opportunities}
       initialMedia={media}
       initialDevelopments={developments}
       initialHiddenDevelopments={hiddenDevs}

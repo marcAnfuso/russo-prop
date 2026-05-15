@@ -7,8 +7,9 @@ import FeaturedDevelopments from "@/components/FeaturedDevelopments";
 import StatsSection from "@/components/StatsSection";
 import HistoriasMudanza from "@/components/HistoriasMudanza";
 import FeaturedOpportunities from "@/components/FeaturedOpportunities";
+import CuratedOpportunities from "@/components/CuratedOpportunities";
 import NewWebsitePopup from "@/components/NewWebsitePopup";
-import { getHomeFeatured, getHomeNewListings } from "@/lib/homepage-lists";
+import { getHomeFeatured, getHomeNewListings, getHomeOpportunities } from "@/lib/homepage-lists";
 import { fetchOpportunityProperties } from "@/lib/opportunities";
 import { fetchPublicDevelopments } from "@/lib/xintel-developments";
 
@@ -75,6 +76,11 @@ async function FeaturedOpportunitiesLoader() {
   return <FeaturedOpportunities properties={properties} />;
 }
 
+async function CuratedOpportunitiesLoader() {
+  const properties = await getHomeOpportunities(3);
+  return <CuratedOpportunities properties={properties} />;
+}
+
 function FeaturedOpportunitiesSkeleton() {
   return (
     <section className="py-16 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-white to-gray-50">
@@ -107,11 +113,14 @@ export default function Home() {
       <Suspense fallback={<FeaturedPropertiesSkeleton />}>
         <FeaturedPropertiesLoader />
       </Suspense>
-      <Suspense fallback={<NewListingsSkeleton />}>
-        <NewListingsLoader />
+      <Suspense fallback={null}>
+        <CuratedOpportunitiesLoader />
       </Suspense>
       <Suspense fallback={<FeaturedOpportunitiesSkeleton />}>
         <FeaturedOpportunitiesLoader />
+      </Suspense>
+      <Suspense fallback={<NewListingsSkeleton />}>
+        <NewListingsLoader />
       </Suspense>
       <FeaturedDevelopmentsLoader />
       <HistoriasMudanza />
