@@ -35,10 +35,13 @@ export default function PropertyListWithMap({
   const initialZonesParam = searchParams.get("zones");
   const initialZones = initialZonesParam ? initialZonesParam.split(",") : [];
   const initialQuery = searchParams.get("q") || "";
-  const initialPageParam = parseInt(searchParams.get("page") || "1", 10);
-  const initialPage = Number.isFinite(initialPageParam) && initialPageParam > 0
-    ? initialPageParam - 1
-    : 0;
+
+  // currentPage es derivado directamente del URL · single source of
+  // truth, evita la race condition con el state local.
+  const currentPage = useMemo(() => {
+    const p = parseInt(searchParams.get("page") || "1", 10);
+    return Number.isFinite(p) && p > 0 ? p - 1 : 0;
+  }, [searchParams]);
 
   const storageKey = filterStorageKey(operationType);
 
@@ -68,21 +71,11 @@ export default function PropertyListWithMap({
     return parts.join(" · ");
   }, [operationType, alertCriterion]);
 
-  const [currentPage, setCurrentPage] = useState(initialPage); // 0-indexed
   const [highlightedId, setHighlightedId] = useState<string | null>(null);
   const [showMobileMap, setShowMobileMap] = useState(false);
   const [desktopMapVisible, setDesktopMapVisible] = useState(true);
   const [quickViewProperty, setQuickViewProperty] = useState<Property | null>(null);
   const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
-
-  // Sync · si el usuario hace browser back/forward y el componente
-  // sigue montado (Next.js a veces cachea), igual reaccionamos al
-  // cambio de `page` en el URL.
-  useEffect(() => {
-    const urlPage = parseInt(searchParams.get("page") || "1", 10);
-    const target = Number.isFinite(urlPage) && urlPage > 0 ? urlPage - 1 : 0;
-    setCurrentPage((curr) => (curr === target ? curr : target));
-  }, [searchParams]);
 
   // FilterBar sees the ENTIRE inventory so filters apply across all pages.
   const [filtered, setFiltered] = useState<Property[] | null>(null);
@@ -96,42 +89,39 @@ export default function PropertyListWithMap({
 
   const handleFilterChange = useCallback((result: Property[]) => {
     setFiltered(result);
-    setCurrentPage(0);
-    // Limpiar `page` del URL · cambió la cantidad de resultados, no
-    // tiene sentido conservar un page=N que podría apuntar a vacío.
-    if (typeof window !== "undefined") {
-      const params = new URLSearchParams(window.location.search);
-      if (params.has("page")) {
-        params.delete("page");
-        const qs = params.toString();
-        const path = window.location.pathname;
-        router.replace(qs ? `${path}?${qs}` : path);
-      }
-    }
-  }, [router]);
+    // El reseteo de `?page` se hace en handleFilterStateChange cuando
+    // detecta que el filtro principal cambió respecto al URL anterior.
+  }, []);
 
   const handleFilterStateChange = useCallback(
     (filters: { propertyType?: string; zones: string[] }) => {
       const basePath = operationType === "alquiler" ? "/alquileres" : "/ventas";
+      const currentSearch = new URLSearchParams(window.location.search);
       const params = new URLSearchParams();
-      if (filters.propertyType) {
-        params.set("type", filters.propertyType);
-      }
+      if (filters.propertyType) params.set("type", filters.propertyType);
       if (filters.zones.length > 0) {
         params.set("zones", filters.zones.join(","));
       }
-      // Preservar `q` si vino del SearchBar del home · sino el URL
-      // sync borraría el filtro de texto al primer render.
-      const currentQ = new URLSearchParams(window.location.search).get("q");
+      const currentQ = currentSearch.get("q");
       if (currentQ) params.set("q", currentQ);
+
+      // Preservar `?page` SI los filtros principales no cambiaron
+      // respecto al URL actual (mount inicial, re-render). Si cambiaron,
+      // arrancamos de página 1 (no seteamos page · el usuario espera ver
+      // los resultados desde el principio cuando aplica un filtro nuevo).
+      const oldType = currentSearch.get("type") || "";
+      const oldZones = currentSearch.get("zones") || "";
+      const newType = filters.propertyType || "";
+      const newZones = filters.zones.join(",");
+      const filterUnchanged = oldType === newType && oldZones === newZones;
+      if (filterUnchanged) {
+        const currentPageParam = currentSearch.get("page");
+        if (currentPageParam) params.set("page", currentPageParam);
+      }
+
       const newUrl = params.toString() ? `${basePath}?${params.toString()}` : basePath;
       const currentUrl = window.location.pathname + window.location.search;
       if (currentUrl !== newUrl) {
-        // replace · cambios de filtros principales NO empujan al
-        // history (sino "atrás" iría a la versión anterior del filtro
-        // y resultaría en un browser back muy ruidoso). El push lo
-        // hacemos sólo en la paginación, que es lo que naturalmente
-        // espera el usuario al apretar "atrás".
         router.replace(newUrl);
       }
     },
@@ -140,9 +130,9 @@ export default function PropertyListWithMap({
 
   function goToPage(pageIndex: number) {
     if (pageIndex < 0 || pageIndex >= totalPages) return;
-    setCurrentPage(pageIndex);
-    // Sync page al URL via push · así "atrás" deshace la paginación y
-    // volver desde una propiedad restaura la página exacta.
+    // Sólo actualizamos el URL · currentPage es derivado de searchParams
+    // así que el re-render lo refresca solo. Push para que "atrás"
+    // deshaga la paginación y volver desde una propiedad restaure el N.
     const params = new URLSearchParams(window.location.search);
     if (pageIndex === 0) params.delete("page");
     else params.set("page", String(pageIndex + 1));
