@@ -841,19 +841,45 @@ export type MarketAggregate = Record<
  * Pages are cached by Next's fetch layer (REVALIDATE = 30 min).
  */
 export async function fetchAvailableLocalities(
-  maxPages = 12
+  maxPages = 20
 ): Promise<LocalityCount[]> {
   const counts = new Map<string, number>();
-  for (let page = 1; page <= maxPages; page++) {
-    try {
-      const { fichas } = await fetchPage(buildListUrl({}, page));
-      for (const f of fichas) {
-        const loc = normalizeLocality(f.in_bar) || normalizeLocality(f.in_loc);
-        if (loc) counts.set(loc, (counts.get(loc) ?? 0) + 1);
+  // Recorremos venta y alquiler por separado · sin `ope` Xintel devuelve
+  // solo el feed de destacadas (~20 fichas), insuficiente para el conteo.
+  // Deduplicamos por id por si una ficha aparece en ambos endpoints.
+  const seenIds = new Set<string>();
+
+  for (const op of ["V", "A"] as const) {
+    for (let page = 1; page <= maxPages; page++) {
+      try {
+        const url = new URL(BASE);
+        url.searchParams.set("json", "resultados.fichas");
+        url.searchParams.set("inm", INM);
+        url.searchParams.set("apiK", API_KEY_LIST);
+        url.searchParams.set("page", String(page));
+        url.searchParams.set("rppagina", String(PER_PAGE));
+        url.searchParams.set("ope", op);
+        const { fichas } = await fetchPage(url.toString());
+        for (const f of fichas) {
+          const fid = String(f.in_num);
+          if (seenIds.has(fid)) continue;
+          seenIds.add(fid);
+          // Una propiedad cuenta bajo su barrio (in_bar) Y bajo su partido
+          // (in_loc) si difieren. Coincide con el comportamiento del filtro:
+          // si seleccionás "Morón" agarra las que tienen barrio Haedo /
+          // Castelar / etc. dentro del partido Morón.
+          const bar = normalizeLocality(f.in_bar);
+          const dist = normalizeLocality(f.in_loc);
+          const loc = bar || dist;
+          if (loc) counts.set(loc, (counts.get(loc) ?? 0) + 1);
+          if (dist && dist !== loc) {
+            counts.set(dist, (counts.get(dist) ?? 0) + 1);
+          }
+        }
+        if (fichas.length < PER_PAGE) break;
+      } catch {
+        break;
       }
-      if (fichas.length < PER_PAGE) break;
-    } catch {
-      break;
     }
   }
   return Array.from(counts.entries())
