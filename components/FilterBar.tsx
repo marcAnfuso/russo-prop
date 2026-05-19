@@ -495,10 +495,17 @@ export default function FilterBar({
   const applyFilters = useCallback(() => {
     let result = [...properties];
 
-    // zones
+    // zones · matchea contra locality (barrio) Y district (partido) para
+    // capturar propiedades cuyo in_bar viene vacío o donde el usuario
+    // selecciona un partido y el catálogo tiene esa propiedad cargada
+    // por barrio específico (ej. filtro "Morón", propiedad en "Haedo").
     if (zones.length > 0) {
       const lower = zones.map((z) => z.toLowerCase());
-      result = result.filter((p) => lower.includes(p.locality.toLowerCase()));
+      result = result.filter((p) => {
+        const loc = p.locality.toLowerCase();
+        const dist = (p.district ?? "").toLowerCase();
+        return lower.includes(loc) || (dist && lower.includes(dist));
+      });
     }
 
     // property type (supports comma-separated + type:subtype variants)

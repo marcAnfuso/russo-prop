@@ -347,7 +347,9 @@ export function mapListFicha(ficha: XintelListFicha, imgs: string | string[], am
     price,
     currency,
     address: decodeHtml(ficha.direccion_completa) || `${ficha.in_cal ?? ""} ${ficha.in_nro ?? ""}`.trim(),
-    locality: normalizeLocality(ficha.in_bar),
+    // Fallback: si Russo no cargó in_bar (barrio), usamos in_loc (partido)
+    // así la propiedad aparece en el filtro de zonas igual.
+    locality: normalizeLocality(ficha.in_bar) || normalizeLocality(ficha.in_loc),
     district: decodeHtml(ficha.in_loc),
     description: decodeHtml(ficha.in_obs?.trim()),
     features: {
@@ -739,7 +741,7 @@ export async function fetchProperty(id: string): Promise<Property | null> {
       price,
       currency,
       address: decodeHtml(ficha.direccion_completa) || `${ficha.in_cal ?? ""} ${ficha.in_nro ?? ""}`.trim(),
-      locality: normalizeLocality(ficha.in_bar),
+      locality: normalizeLocality(ficha.in_bar) || normalizeLocality(ficha.in_loc),
       district: decodeHtml(ficha.in_loc),
       description: decodeHtml(ficha.in_obs?.trim()),
       features: {
@@ -846,7 +848,7 @@ export async function fetchAvailableLocalities(
     try {
       const { fichas } = await fetchPage(buildListUrl({}, page));
       for (const f of fichas) {
-        const loc = normalizeLocality(f.in_bar);
+        const loc = normalizeLocality(f.in_bar) || normalizeLocality(f.in_loc);
         if (loc) counts.set(loc, (counts.get(loc) ?? 0) + 1);
       }
       if (fichas.length < PER_PAGE) break;
