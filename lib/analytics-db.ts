@@ -40,7 +40,23 @@ export interface SessionInfo {
 }
 
 // ── Schema ──────────────────────────────────────────────────────────────
-export async function ensureAnalyticsSchema(): Promise<void> {
+// Guard a nivel módulo · el schema se asegura UNA sola vez por instancia
+// del server (no en cada request). Antes corría ~9 sentencias DDL en cada
+// POST de tracking → era el grueso del consumo de cómputo de Neon.
+let schemaPromise: Promise<void> | null = null;
+
+export function ensureAnalyticsSchema(): Promise<void> {
+  if (!schemaPromise) {
+    schemaPromise = runEnsureAnalyticsSchema().catch((e) => {
+      // Si falla, permitimos reintentar en el próximo llamado.
+      schemaPromise = null;
+      throw e;
+    });
+  }
+  return schemaPromise;
+}
+
+async function runEnsureAnalyticsSchema(): Promise<void> {
   const db = sql();
   await db`
     CREATE TABLE IF NOT EXISTS analytics_sessions (
@@ -125,20 +141,35 @@ export async function insertEvents(
   if (events.length === 0) return;
   await ensureAnalyticsSchema();
   const db = sql();
-  // Insert en batch — neon http no soporta `unnest()` con templates,
-  // así que iteramos. Para volumen alto eventualmente hacemos COPY.
-  for (const e of events) {
-    await db`
-      INSERT INTO analytics_events (
-        session_id, visitor_id, type, path, property_id, metadata, ts
-      ) VALUES (
-        ${sessionId}, ${visitorId}, ${e.type}, ${e.path ?? null},
-        ${e.property_id ?? null},
-        ${e.metadata ? JSON.stringify(e.metadata) : null},
-        ${e.ts ?? new Date().toISOString()}
-      )
-    `;
-  }
+
+  // Insert en UNA sola query con múltiples filas (en vez de N round-trips).
+  // Armamos los placeholders ($1..$7, $8..$14, ...) y pasamos los params
+  // por separado vía db.query (parametrizado, sin riesgo de inyección).
+  const cols = 7;
+  const valueGroups: string[] = [];
+  const params: unknown[] = [];
+  events.forEach((e, i) => {
+    const base = i * cols;
+    valueGroups.push(
+      `($${base + 1}, $${base + 2}, $${base + 3}, $${base + 4}, $${base + 5}, $${base + 6}, $${base + 7})`
+    );
+    params.push(
+      sessionId,
+      visitorId,
+      e.type,
+      e.path ?? null,
+      e.property_id ?? null,
+      e.metadata ? JSON.stringify(e.metadata) : null,
+      e.ts ?? new Date().toISOString()
+    );
+  });
+
+  const query = `
+    INSERT INTO analytics_events (
+      session_id, visitor_id, type, path, property_id, metadata, ts
+    ) VALUES ${valueGroups.join(", ")}
+  `;
+  await db.query(query, params);
 }
 
 // ── Queries del dashboard ───────────────────────────────────────────────

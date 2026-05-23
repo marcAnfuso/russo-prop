@@ -39,7 +39,15 @@ interface IngestPayload {
  * el insert async. Si algo falla, lo silenciamos para no impactar
  * al cliente.
  */
+// Kill switch server-side · si está apagado, descartamos sin tocar la DB.
+// Defensa por si llega un POST de un cliente con bundle viejo cacheado.
+const ANALYTICS_ENABLED = process.env.NEXT_PUBLIC_ANALYTICS_ENABLED !== "false";
+
 export async function POST(req: NextRequest) {
+  if (!ANALYTICS_ENABLED) {
+    return new NextResponse(null, { status: 204 });
+  }
+
   let body: IngestPayload;
   try {
     body = (await req.json()) as IngestPayload;

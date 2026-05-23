@@ -119,11 +119,18 @@ function scheduleFlush() {
   }, FLUSH_INTERVAL_MS);
 }
 
+/** Kill switch · si NEXT_PUBLIC_ANALYTICS_ENABLED === "false" no trackeamos
+ * nada (cero requests a /api/analytics/track → cero cómputo de Neon).
+ * Se controla desde env en Vercel, sin redeploy de código. */
+const ANALYTICS_ENABLED =
+  process.env.NEXT_PUBLIC_ANALYTICS_ENABLED !== "false";
+
 export function track(
   type: string,
   data?: { path?: string; property_id?: string; metadata?: Record<string, unknown> }
 ): void {
   if (typeof window === "undefined") return;
+  if (!ANALYTICS_ENABLED) return;
   if (shouldRespectDNT()) return;
   queue.push({
     type,
