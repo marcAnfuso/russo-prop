@@ -40,12 +40,6 @@ function typeLabel(t: string): string {
   return t.charAt(0).toUpperCase() + t.slice(1).toLowerCase();
 }
 
-function yesNo(v?: boolean): string | null {
-  if (v === true) return "Sí";
-  if (v === false) return "No";
-  return null;
-}
-
 function Row({ row }: { row: DetailRow }) {
   const Icon = row.icon;
   return (
@@ -89,8 +83,13 @@ export default function PropertyDetailsTable({ property }: { property: Property 
   if (f.bathrooms) especificaciones.push({ icon: Bath, label: "Baños", value: String(f.bathrooms) });
   if (f.garage) especificaciones.push({ icon: Car, label: "Cocheras", value: String(f.garage) });
   if (d.elevators) especificaciones.push({ icon: ArrowUpDown, label: "Ascensores", value: String(d.elevators) });
-  const hw = yesNo(d.hasHotWater);
-  if (hw) especificaciones.push({ icon: Droplet, label: "Agua caliente", value: hw });
+  // Agua caliente · el campo de Xintel (in_ale) es poco confiable (mezcla
+  // SI/NO/vacío/valores tipo "CALDERAS"). Un "No" casi siempre es error de
+  // carga — toda propiedad tiene agua caliente. Mostramos SOLO cuando es
+  // afirmativo, ocultamos el resto para no poner un "No" engañoso.
+  if (d.hasHotWater === true) {
+    especificaciones.push({ icon: Droplet, label: "Agua caliente", value: "Sí" });
+  }
   if (d.condition) especificaciones.push({ icon: Sparkles, label: "Estado", value: d.condition });
   if (d.category) especificaciones.push({ icon: Briefcase, label: "Categoría", value: d.category });
   if (f.age != null && f.age > 0) especificaciones.push({ icon: CalendarClock, label: "Antigüedad", value: `${f.age} años` });
