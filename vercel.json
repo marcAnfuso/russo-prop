@@ -7,7 +7,7 @@
     },
     {
       "path": "/api/cron/alerts-notify",
-      "schedule": "0 12 * * *"
+      "schedule": "0 12 * * 1"
     }
   ]
 }

@@ -8,9 +8,11 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
 /**
- * Cron diario: matchea propiedades nuevas vs alertas activas y envía
- * digest. Vercel lo dispara via vercel.json `crons:`. Soporta también
- * disparo manual con header Authorization: Bearer ${CRON_SECRET}.
+ * Cron semanal (lunes 12 UTC ≈ 9am ARG): matchea propiedades nuevas vs
+ * alertas activas y envía un digest con todo lo aparecido en la semana.
+ * Dedup por notified_ids, así no repite propiedades ya avisadas. Vercel
+ * lo dispara via vercel.json `crons:`. Soporta también disparo manual
+ * con header Authorization: Bearer ${CRON_SECRET}.
  */
 export async function GET(req: NextRequest) {
   // Vercel pasa header `x-vercel-cron: 1` en sus crons internos. Para
