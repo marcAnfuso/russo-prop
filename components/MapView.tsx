@@ -72,6 +72,9 @@ export default function MapView(props: MapViewProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [inView, setInView] = useState(false);
   const [interactive, setInteractive] = useState(false);
+  // Si el Static Maps API no está habilitado (403) la imagen falla ·
+  // caemos a un placeholder limpio en vez de mostrar la imagen rota.
+  const [staticFailed, setStaticFailed] = useState(false);
 
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 
@@ -105,7 +108,11 @@ export default function MapView(props: MapViewProps) {
     return null;
   })();
 
-  const useStaticPreview = !!singleMarker && !!singleCoords && !!apiKey;
+  // Single marker → preview con click-to-interactive (ahorra el Map Load
+  // caro). El preview es la imagen estática si el Static API responde, o
+  // un placeholder limpio si no (403 / sin key). En ambos casos el mapa
+  // interactivo recién se monta al clickear.
+  const isSinglePreview = !!singleMarker && !!singleCoords;
 
   return (
     <div
@@ -120,26 +127,35 @@ export default function MapView(props: MapViewProps) {
         </div>
       )}
 
-      {/* En viewport · single marker → static preview con click-to-interactive */}
-      {inView && useStaticPreview && !interactive && (
+      {/* En viewport · single marker → preview con click-to-interactive */}
+      {inView && isSinglePreview && !interactive && (
         <button
           type="button"
           onClick={() => setInteractive(true)}
-          className="group relative w-full h-full rounded-lg overflow-hidden block"
+          className="group relative w-full h-full rounded-lg overflow-hidden block bg-gray-100"
           aria-label="Ver mapa interactivo"
         >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={staticMapUrl(
-              singleCoords!.lat,
-              singleCoords!.lng,
-              props.zoom ?? 15,
-              apiKey!
-            )}
-            alt="Ubicación en el mapa"
-            className="w-full h-full object-cover"
-            loading="lazy"
-          />
+          {apiKey && !staticFailed ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={staticMapUrl(
+                singleCoords!.lat,
+                singleCoords!.lng,
+                props.zoom ?? 15,
+                apiKey
+              )}
+              alt="Ubicación en el mapa"
+              className="w-full h-full object-cover"
+              loading="lazy"
+              onError={() => setStaticFailed(true)}
+            />
+          ) : (
+            // Fallback · sin imagen estática (API no habilitada). Placeholder
+            // con patrón sutil para que no se vea roto.
+            <div className="w-full h-full bg-[radial-gradient(circle_at_center,#eef0f5,#e2e6ee)] flex items-center justify-center">
+              <MapPin className="h-8 w-8 text-magenta/40" />
+            </div>
+          )}
           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
           <span className="absolute bottom-3 left-1/2 -translate-x-1/2 inline-flex items-center gap-1.5 bg-white/95 text-navy text-xs font-semibold px-3 py-1.5 rounded-full shadow-lg">
             <MapPin className="h-3.5 w-3.5 text-magenta" />
@@ -148,8 +164,8 @@ export default function MapView(props: MapViewProps) {
         </button>
       )}
 
-      {/* En viewport · interactivo (multi-marker siempre, single tras click) */}
-      {inView && (!useStaticPreview || interactive) && (
+      {/* En viewport · interactivo (multi-marker lazy, single tras click) */}
+      {inView && (!isSinglePreview || interactive) && (
         <MapViewInner {...props} />
       )}
     </div>
