@@ -61,8 +61,8 @@ const infoCards = [
   {
     icon: Phone,
     heading: "Líneas rotativas",
-    text: "+54 11 5018 7340",
-    href: "tel:+541150187340",
+    text: "+54 9 11 5625-8749",
+    href: "tel:+5491156258749",
   },
 ];
 

@@ -46,12 +46,12 @@ export default function DemoRussiaPage() {
             <strong className="text-white/70">¿No encuentra lo que buscás?</strong>{" "}
             Mandá un WhatsApp al{" "}
             <a
-              href="https://wa.me/5491150187340"
+              href="https://wa.me/5491156258749"
               target="_blank"
               rel="noopener noreferrer"
               className="text-magenta-100 hover:underline"
             >
-              +54 11 5018 7340
+              +54 9 11 5625-8749
             </a>
             .
           </p>

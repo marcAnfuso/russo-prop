@@ -298,7 +298,7 @@ export default function RussiaInfoPage() {
             <div className="flex items-center justify-center gap-3 flex-wrap">
               <RussiaPageCTA size="md" />
               <a
-                href="https://wa.me/5491150187340?text=Hola!%20Quer%C3%ADa%20consultarles..."
+                href="https://wa.me/5491156258749?text=Hola!%20Quer%C3%ADa%20consultarles..."
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-5 py-3 text-sm font-bold text-navy hover:border-magenta hover:text-magenta transition-colors"
