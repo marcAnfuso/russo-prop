@@ -105,7 +105,7 @@ export default function RootLayout({
               "@type": "RealEstateAgent",
               name: "Russo Propiedades",
               url: "https://russopropiedades.com.ar",
-              telephone: "+54 9 11 5625-8749",
+              telephone: "+54 11 5018 7340",
               email: "info@russopropiedades.com.ar",
               address: {
                 "@type": "PostalAddress",

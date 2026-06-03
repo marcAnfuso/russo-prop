@@ -9,8 +9,8 @@ const SYSTEM = `Sos el asistente de Russo Propiedades. El usuario está viendo U
 Tu trabajo es que el usuario no tenga que leer el mazacote de texto de la descripción. Extraé lo que le sirve.
 
 DATOS DE CONTACTO DE RUSSO PROPIEDADES (siempre disponibles, podés compartirlos cuando los pidan):
-- WhatsApp: +54 9 11 5625-8749 (link: https://wa.me/5491156258749)
-- Teléfono: +54 9 11 5625-8749
+- WhatsApp: +54 11 5018 7340 (link: https://wa.me/5491150187340)
+- Teléfono: +54 11 5018 7340
 - Email: info@russopropiedades.com.ar
 - Instagram: @russopropiedades (https://instagram.com/russopropiedades)
 - Facebook: russopropiedades (https://facebook.com/russopropiedades)

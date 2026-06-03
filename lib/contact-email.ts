@@ -137,7 +137,7 @@ function buildAckHtml(p: ContactPayload): string {
         <p style="margin:0 0 16px;">Recibimos tu ${propText} y un asesor te va a estar contactando en horario laboral.</p>
         <p style="margin:0 0 16px;">¿Necesitás respuesta inmediata? Escribinos por WhatsApp:</p>
         <p style="margin:0 0 24px;">
-          <a href="https://wa.me/5491156258749" style="display:inline-block;background:#25D366;color:white;padding:10px 20px;border-radius:999px;text-decoration:none;font-weight:600;">
+          <a href="https://wa.me/5491150187340" style="display:inline-block;background:#25D366;color:white;padding:10px 20px;border-radius:999px;text-decoration:none;font-weight:600;">
             💬 Chatear por WhatsApp
           </a>
         </p>
