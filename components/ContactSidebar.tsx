@@ -109,7 +109,7 @@ export default function ContactSidebar({
           Sin dejar datos — te respondemos en minutos.
         </p>
         <a
-          href={`https://wa.me/5491150187340?text=Hola!%20Consulto%20por%20la%20propiedad%20${propertyCode}`}
+          href={`https://wa.me/5491156258749?text=Hola!%20Consulto%20por%20la%20propiedad%20${propertyCode}`}
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex items-center justify-center gap-1.5 rounded-full bg-[#25D366] text-white font-semibold text-sm py-2 px-4 shadow-[0_3px_10px_rgba(37,211,102,0.3)] hover:shadow-[0_4px_14px_rgba(37,211,102,0.45)] hover:-translate-y-px active:scale-[0.98] transition-all duration-200"
@@ -141,10 +141,10 @@ export default function ContactSidebar({
           info@russopropiedades.com.ar
         </a>
         <a
-          href="tel:+5491150187340"
+          href="tel:+5491156258749"
           className="text-xs text-gray-500 hover:text-magenta transition-colors"
         >
-          011 5018-7340
+          011 5625-8749
         </a>
       </div>
 
