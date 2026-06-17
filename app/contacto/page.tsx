@@ -26,7 +26,6 @@ const OFFICES: Office[] = [
     name: "Ramos Mejía",
     address: "Belgrano 123, Ramos Mejía, Buenos Aires",
     location: { lat: -34.6417937, lng: -58.5659481 },
-    comingSoon: true,
   },
 ];
 

@@ -38,13 +38,13 @@ const timeline: TimelineItem[] = [
   },
   {
     year: "2024",
-    title: "Expansión",
+    title: "Oficina modelo",
     text: "Dimos el salto a un nuevo territorio: abrimos nuestra primera oficina fuera de San Justo.",
     city: "rm",
   },
   {
     year: "2026",
-    title: "Próxima apertura",
+    title: "Expansión",
     text: "Sumamos una segunda sede en Ramos Mejía, consolidando nuestra presencia en toda zona oeste.",
     city: "rm",
   },
@@ -182,13 +182,13 @@ export default function NosotrosPage() {
               description="Donde empezamos en 1992. La atención del equipo se hace por WhatsApp, mail o coordinando una cita previa."
             />
             <SedeCard
-              tag="Próxima apertura"
+              tag="Sede nueva"
               tagAccent
               name="Belgrano 123"
               locality="Ramos Mejía"
               image="/images/neighborhoods/ramos-mejia.jpg"
               imageAlt="Sede de Russo Propiedades en Ramos Mejía"
-              description="Nuestra nueva oficina con atención al público sin cita previa. Vení a conocernos en cuanto abramos."
+              description="Nuestra nueva oficina en Ramos Mejía, con atención al público sin cita previa. Te esperamos."
             />
           </div>
 

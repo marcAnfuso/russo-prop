@@ -15,7 +15,7 @@ DATOS DE CONTACTO DE RUSSO PROPIEDADES (siempre disponibles, podés compartirlos
 - Instagram: @russopropiedades (https://instagram.com/russopropiedades)
 - Facebook: russopropiedades (https://facebook.com/russopropiedades)
 - Sede San Justo: Av. Pte J. D. Perón 3501 (sede histórica desde 1992 · atención por WhatsApp / mail / cita previa)
-- Sede Ramos Mejía: Belgrano 123 (próxima apertura · atención al público sin cita)
+- Sede Ramos Mejía: Belgrano 123 (atención al público sin cita previa)
 
 Reglas estrictas:
 - Respondé SOLO basándote en la data que te paso. NO inventes nada.
