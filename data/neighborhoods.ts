@@ -41,12 +41,11 @@ export const neighborhoods: Neighborhood[] = [
     name: "Ramos Mejía",
     slug: "Ramos Mejía",
     description: "Zona premium con amplia oferta gastronómica",
-    image: "/images/neighborhoods/ramos-mejia.jpg",
+    image: "/images/neighborhoods/ramos-mejia.webp",
     credit: {
-      author: "Roberto Fiadone",
-      license: "CC BY 4.0",
-      sourceUrl:
-        "https://commons.wikimedia.org/wiki/File:Parroquia_Nuestra_Se%C3%B1ora_del_Carmen%2C_Ramos_Mej%C3%ADa_-_2024.jpg",
+      author: "Russo Propiedades",
+      license: "© Russo Propiedades",
+      sourceUrl: "https://russopropiedades.com.ar",
     },
   },
   {

@@ -186,7 +186,7 @@ export default function NosotrosPage() {
               tagAccent
               name="Belgrano 123"
               locality="Ramos Mejía"
-              image="/images/neighborhoods/ramos-mejia.jpg"
+              image="/images/neighborhoods/ramos-mejia.webp"
               imageAlt="Sede de Russo Propiedades en Ramos Mejía"
               description="Nuestra nueva oficina en Ramos Mejía, con atención al público sin cita previa. Te esperamos."
             />
