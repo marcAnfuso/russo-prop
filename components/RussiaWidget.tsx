@@ -17,8 +17,9 @@ export default function RussiaWidget() {
   const [presetMessage, setPresetMessage] = useState<string | undefined>();
 
   // No montar en /demo/russia (ya tiene su propio chat full-screen) ni
-  // en /admin/* (paneles internos)
-  const hideOn = ["/demo/russia"];
+  // en /admin/* (paneles internos) ni en /lab/mundial/* (cada prototipo
+  // monta su propio demo del FAB)
+  const hideOn = ["/demo/russia", "/lab/mundial"];
   const isHidden =
     hideOn.some((p) => pathname?.startsWith(p)) ||
     pathname?.startsWith("/admin");
