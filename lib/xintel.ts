@@ -160,7 +160,8 @@ function mapSubtype(in_tpr: string | undefined, tipo: string | undefined): strin
     semipiso: "Semipiso",
     piso: "Piso",
     monoambiente: "Monoambiente",
-    ph: "PH",
+    // "ph" no va acá: PH es un tipo propio (ver mapType), no un subtipo.
+    // Si lo dejáramos, una propiedad PH mostraría "PH · PH".
     loft: "Loft",
     triplex: "Tríplex",
   };
@@ -300,6 +301,14 @@ const TYPE_TO_XINTEL_CODE: Record<PropertyType, string> = {
 };
 
 function mapType(...candidates: (string | undefined)[]): PropertyType {
+  // PH gana siempre. En Argentina el PH es un tipo propio, pero Russo a veces
+  // lo carga en Xintel con el "tipo" display = "Departamento" y el PH real
+  // queda sólo en in_tpr. Sin esto, el depto enmascara al PH y el filtro
+  // "PH" no devuelve nada. Revisamos PH en cualquier candidato primero.
+  for (const raw of candidates) {
+    const key = raw?.toLowerCase().trim();
+    if (key === "ph" || key === "p.h.") return "ph";
+  }
   // Try each candidate in order — first match wins. Fall back to the single-
   // letter code (in_tip) which Xintel always populates; we only default to
   // "casa" if nothing resolves.
