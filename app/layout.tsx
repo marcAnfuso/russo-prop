@@ -7,6 +7,7 @@ import Footer from "@/components/Footer";
 import WhatsAppFAB from "@/components/WhatsAppFAB";
 import AnalyticsTracker from "@/components/AnalyticsTracker";
 import RussiaWidget from "@/components/RussiaWidget";
+import MundialDecorations from "@/components/mundial/MundialDecorations";
 
 const SITE_URL = "https://russo-prop.vercel.app";
 
@@ -128,6 +129,7 @@ export default function RootLayout({
         <Footer />
         <WhatsAppFAB />
         <RussiaWidget />
+        <MundialDecorations />
         {/* Tracker propio · pageviews + base para fases siguientes */}
         <Suspense fallback={null}>
           <AnalyticsTracker />

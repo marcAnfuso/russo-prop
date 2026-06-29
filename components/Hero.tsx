@@ -3,8 +3,11 @@
 import Image from "next/image";
 import { motion } from "framer-motion";
 import SearchBar from "@/components/SearchBar";
+import { useMundialActive } from "@/components/mundial/useMundialActive";
+import HeroPatrioUnderline from "@/components/mundial/HeroPatrioUnderline";
 
 export default function Hero() {
+  const mundial = useMundialActive();
   return (
     <section className="relative -mt-[72px] min-h-[72vh] md:min-h-screen flex items-center justify-center">
       <div className="absolute inset-0 overflow-hidden">
@@ -57,20 +60,24 @@ export default function Hero() {
           <br />
           <span className="relative inline-block">
             <span className="relative z-10">empieza acá</span>
-            <svg
-              viewBox="0 0 300 20"
-              preserveAspectRatio="none"
-              aria-hidden="true"
-              className="absolute left-0 right-0 -bottom-2 w-full h-3 text-magenta"
-            >
-              <path
-                d="M5 12 Q 80 2, 150 10 T 295 8"
-                stroke="currentColor"
-                strokeWidth="5"
-                strokeLinecap="round"
-                fill="none"
-              />
-            </svg>
+            {mundial ? (
+              <HeroPatrioUnderline />
+            ) : (
+              <svg
+                viewBox="0 0 300 20"
+                preserveAspectRatio="none"
+                aria-hidden="true"
+                className="absolute left-0 right-0 -bottom-2 w-full h-3 text-magenta"
+              >
+                <path
+                  d="M5 12 Q 80 2, 150 10 T 295 8"
+                  stroke="currentColor"
+                  strokeWidth="5"
+                  strokeLinecap="round"
+                  fill="none"
+                />
+              </svg>
+            )}
           </span>
         </motion.h1>
 

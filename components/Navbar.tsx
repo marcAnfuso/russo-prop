@@ -6,6 +6,8 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { Phone, Mail, Menu, X, Heart, Instagram, Lock } from "lucide-react";
 import NavbarContactPopover from "./NavbarContactPopover";
+import { useMundialActive } from "@/components/mundial/useMundialActive";
+import ChampionStars from "@/components/mundial/ChampionStars";
 
 const navLinks = [
   { href: "/ventas", label: "Ventas" },
@@ -20,6 +22,7 @@ const navLinks = [
 
 export default function Navbar() {
   const pathname = usePathname();
+  const mundial = useMundialActive();
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -61,7 +64,7 @@ export default function Navbar() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between">
           {/* Logo */}
-          <Link href="/" className="flex-shrink-0">
+          <Link href="/" className="flex-shrink-0 flex flex-col items-center">
             <Image
               src="/images/logo.webp"
               alt="Russo Propiedades"
@@ -72,6 +75,7 @@ export default function Navbar() {
                 scrolled ? "h-10 w-auto" : "h-12 w-auto"
               }`}
             />
+            {mundial && <ChampionStars scrolled={scrolled} />}
           </Link>
 
           {/* Desktop nav links */}

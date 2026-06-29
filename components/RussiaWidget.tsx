@@ -4,12 +4,15 @@ import { useState, useEffect, useCallback } from "react";
 import { usePathname } from "next/navigation";
 import { Sparkles, X } from "lucide-react";
 import RussiaSearchChat from "@/components/RussiaSearchChat";
+import { useMundialActive } from "@/components/mundial/useMundialActive";
+import Vincha from "@/components/mundial/Vincha";
 
 const ONBOARDING_KEY = "russo_russia_onboarded";
 const POPUP_KEY = "russo_new_web_popup_dismissed_at";
 
 export default function RussiaWidget() {
   const pathname = usePathname();
+  const mundial = useMundialActive();
   const [open, setOpen] = useState(false);
   const [closing, setClosing] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
@@ -153,6 +156,8 @@ export default function RussiaWidget() {
           <span className="absolute -top-1.5 -right-1.5 h-5 min-w-[20px] px-1.5 rounded-full bg-white text-magenta text-[9px] font-black uppercase tracking-widest flex items-center justify-center shadow-md ring-1 ring-magenta/20">
             IA
           </span>
+          {/* Vincha mundialista sobre la cabeza del FAB */}
+          {mundial && <Vincha />}
         </div>
         {/* Etiqueta visible en desktop */}
         <span className="hidden md:inline-flex items-center gap-1 rounded-full bg-white/95 backdrop-blur px-3.5 py-1.5 text-[12px] font-bold text-navy shadow-[0_6px_18px_-6px_rgba(26,34,81,0.25)] ring-1 ring-gray-100 group-hover:bg-white transition-colors">
