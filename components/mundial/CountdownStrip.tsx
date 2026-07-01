@@ -57,7 +57,7 @@ export default function CountdownStrip() {
         <span className="font-semibold">Argentina</span>
         <span className="text-white/50">vs</span>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={`https://flagcdn.com/w40/${MATCH.away.code}.png`} alt="Cabo Verde" className="hidden h-3.5 rounded-[2px] ring-1 ring-white/20 xs:inline" />
+        <img src={`https://flagcdn.com/w40/${MATCH.away.code}.png`} alt="Cabo Verde" className="h-3.5 rounded-[2px] ring-1 ring-white/20" />
         <span className="font-semibold">Cabo Verde</span>
         <span className="mx-0.5 text-white/30">·</span>
         <span className="tabular-nums font-bold text-[#8fc0ec]">{cd}</span>
