@@ -8,6 +8,7 @@ import { Phone, Mail, Menu, X, Heart, Instagram, Lock } from "lucide-react";
 import NavbarContactPopover from "./NavbarContactPopover";
 import { useMundialActive } from "@/components/mundial/useMundialActive";
 import ChampionStars from "@/components/mundial/ChampionStars";
+import CountdownStrip from "@/components/mundial/CountdownStrip";
 
 const navLinks = [
   { href: "/ventas", label: "Ventas" },
@@ -54,13 +55,15 @@ export default function Navbar() {
 
   return (
     <>
-    <nav
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 bg-white ${
-        scrolled
-          ? "py-2 shadow-[0_4px_20px_-2px_rgba(26,34,81,0.08)] border-b border-gray-100"
-          : "py-4 border-b border-transparent"
-      }`}
-    >
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-white transition-all duration-300">
+      {mundial && <CountdownStrip />}
+      <div
+        className={`transition-all duration-300 ${
+          scrolled
+            ? "py-2 shadow-[0_4px_20px_-2px_rgba(26,34,81,0.08)] border-b border-gray-100"
+            : "py-4 border-b border-transparent"
+        }`}
+      >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between">
           {/* Logo */}
@@ -168,6 +171,7 @@ export default function Navbar() {
             )}
           </button>
         </div>
+      </div>
       </div>
       </nav>
 

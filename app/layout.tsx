@@ -8,6 +8,7 @@ import WhatsAppFAB from "@/components/WhatsAppFAB";
 import AnalyticsTracker from "@/components/AnalyticsTracker";
 import RussiaWidget from "@/components/RussiaWidget";
 import MundialDecorations from "@/components/mundial/MundialDecorations";
+import SiteContentOffset from "@/components/mundial/SiteContentOffset";
 
 const SITE_URL = "https://russo-prop.vercel.app";
 
@@ -125,7 +126,7 @@ export default function RootLayout({
           }}
         />
         <Navbar />
-        <div className="pt-[72px]">{children}</div>
+        <SiteContentOffset>{children}</SiteContentOffset>
         <Footer />
         <WhatsAppFAB />
         <RussiaWidget />
