@@ -7,6 +7,7 @@ import {
   type SearchFilters,
   type NearSearchInput,
 } from "@/lib/property-search";
+import { fetchProperty } from "@/lib/xintel";
 import type { Property } from "@/data/types";
 import { listPOILabels } from "@/lib/pois";
 import { hashIp, logRussiaUsage } from "@/lib/russia-logs";
@@ -23,10 +24,11 @@ const POI_LIST = listPOILabels().join(", ");
 
 const SYSTEM = `Sos Russia, la asistente de IA de Russo Propiedades, una inmobiliaria de zona oeste (Buenos Aires, Argentina) con más de 30 años de experiencia.
 
-Tu trabajo es ayudar al usuario a encontrar la propiedad ideal en el catálogo de Russo. Tenés DOS herramientas:
+Tu trabajo es ayudar al usuario a encontrar la propiedad ideal en el catálogo de Russo. Tenés TRES herramientas:
 
 1. **search_properties**: búsqueda general por filtros.
 2. **search_properties_near**: búsqueda geo-espacial. Usala cuando el usuario mencione un punto de referencia ("cerca de la estación de Ramos", "a X cuadras del hospital Paroissien", "cerca de UNLaM", "próximo a Av. Perón 3500"). Combinable con todos los demás filtros + zona (zones).
+3. **get_property_details**: trae la FICHA COMPLETA de UNA propiedad puntual por su código (RUSxxxx). Usala cuando el usuario pregunte por una propiedad específica —te da un código ("RUS11070"), o se refiere a una que ya salió en la charla ("esa propiedad", "el depto de Haedo que te dije", "la 11070")— y sobre todo cuando quiere saber si esa propiedad concreta le sirve para algo (vivir + trabajar, recibir/enviar paquetes, poner un consultorio/local/oficina, etc.). A diferencia de search_properties, esta te da la descripción completa, si es apto profesional, tipo, piso y estado, así que PODÉS RESPONDER la pregunta puntual, no solo mostrar la card.
 
 Si menciona zona Y punto de referencia ("en San Justo cerca de la estación"), pasá AMBOS a search_properties_near · primero filtramos por zona, después por distancia.
 
@@ -156,6 +158,23 @@ Ejemplos que tienen suficiente info para buscar:
 - Mensaje vacío de criterios.
 
 ═══════════════════════════════════════════════════════════
+CONSULTAS SOBRE UNA PROPIEDAD ESPECÍFICA (get_property_details)
+═══════════════════════════════════════════════════════════
+
+- Si el usuario menciona un CÓDIGO ("RUS11070", "la 11070", "la propiedad 11070") o se refiere a una propiedad puntual que YA salió en la conversación, llamá a get_property_details con ese código y RESPONDÉ su pregunta usando la ficha. NO te quedes en "contame más" ni hagas una búsqueda genérica.
+- MANTENÉ EL FOCO: si en un mensaje te dio el código y en el siguiente dice "el de Haedo", "esa", "esa misma", "la que te dije" → es LA MISMA propiedad. Volvé a mirar el código que ya te pasó en el historial; no pidas datos de cero.
+- Si te preguntan algo puntual ANTES de darte el código (ej: "¿este depto sirve para recibir paquetes?"), pediles el código o el link de la propiedad ("¿me pasás el código RUS o el link?") y en cuanto lo tengas, respondé.
+
+🎯 PREGUNTAS DE APTITUD / USO — interpretá desde la ficha, con honestidad:
+- "para vivir y trabajar / recibir y enviar paquetes / emprendimiento desde casa / oficina en casa / consultorio / poner un local" → mirá:
+  · **aptoProfesional** (si es apto profesional, habilita uso profesional/comercial — es el dato más importante para esto).
+  · **tipo**: local, oficina, PH, casa o planta baja suelen servir para recibir mercadería/atención; un departamento en piso alto con expensas y reglamento de copropiedad puede tener limitaciones.
+  · **planta baja / acceso independiente / piso** (details.floor) y la **descripción** (a veces aclara "apto profesional", "salida independiente", "uso comercial").
+- Respondé CONCRETO: si es apto profesional, decílo y que eso habilita ese uso. Si es un depto en piso sin apto profesional, explicá que para uso comercial o recibir/enviar mercadería seguido puede haber limitaciones del reglamento del edificio y conviene confirmarlo. Nunca afirmes algo que la ficha no respalda.
+- Si la ficha no aclara el dato puntual: "En la ficha no figura ese detalle puntual, te lo confirman al toque por WhatsApp (+54 11 5018 7340)."
+- Después de responder podés ofrecer coordinar una visita o pasar el contacto.
+
+═══════════════════════════════════════════════════════════
 REGLAS DE RESPUESTA
 ═══════════════════════════════════════════════════════════
 
@@ -257,6 +276,22 @@ function toCard(p: Property): PropertyCard {
 
 const SEARCH_TOOL: { functionDeclarations: FunctionDeclaration[] } = {
   functionDeclarations: [
+    {
+      name: "get_property_details",
+      description:
+        "Trae la ficha COMPLETA de una sola propiedad por su código RUS (descripción, apto profesional, tipo, piso, estado, expensas, amenities). Usala cuando el usuario pregunte por una propiedad puntual (le da el código RUSxxxx o se refiere a una ya mencionada) — especialmente para responder si esa propiedad sirve para un uso concreto (vivir+trabajar, recibir/enviar paquetes, consultorio, local, oficina).",
+      parameters: {
+        type: Type.OBJECT,
+        properties: {
+          code: {
+            type: Type.STRING,
+            description:
+              "Código de la propiedad, con o sin prefijo RUS (ej: 'RUS11070', '11070'). Si el usuario se refiere a una propiedad mencionada antes en la charla, usá el código que dio en ese momento.",
+          },
+        },
+        required: ["code"],
+      },
+    },
     {
       name: "search_properties_near",
       description:
@@ -502,6 +537,93 @@ export async function POST(req: NextRequest) {
         ok: true,
         answer: answer || "¿Podés contarme un poco más sobre lo que buscás?",
         properties: [],
+      });
+    }
+
+    // ── Consulta de UNA propiedad puntual por código (get_property_details) ──
+    if (fnCall.name === "get_property_details") {
+      const gpdArgs = (fnCall.args ?? {}) as Record<string, unknown>;
+      const rawCode = String(gpdArgs.code ?? "");
+      const id = rawCode.replace(/\D/g, ""); // "RUS11070" → "11070"
+      logCtx.functionCall = fnCall.name;
+      logCtx.functionArgs = gpdArgs;
+      const prop = id ? await fetchProperty(id) : null;
+      logCtx.resultCount = prop ? 1 : 0;
+
+      const detail = prop
+        ? {
+            found: true,
+            code: prop.code,
+            type: prop.type,
+            subtype: prop.subtype ?? null,
+            operation: prop.operation,
+            price: prop.price,
+            currency: prop.currency,
+            address: prop.address,
+            locality: prop.locality,
+            district: prop.district,
+            rooms: prop.features.rooms ?? null,
+            bedrooms: prop.features.bedrooms ?? null,
+            bathrooms: prop.features.bathrooms ?? null,
+            garage: prop.features.garage ?? null,
+            coveredArea: prop.features.coveredArea ?? null,
+            totalArea: prop.features.totalArea ?? null,
+            age: prop.features.age ?? null,
+            aptoProfesional: prop.aptoProfesional,
+            aptoCredito: prop.aptoCredito,
+            aptoFinanciacion: prop.aptoFinanciacion,
+            aptoPermuta: prop.aptoPermuta,
+            floor: prop.details?.floor ?? null,
+            condition: prop.details?.condition ?? null,
+            apartmentType: prop.details?.apartmentType ?? null,
+            orientation: prop.details?.orientation ?? null,
+            expenses: prop.details?.expenses ?? null,
+            amenities: prop.amenities,
+            description: prop.description || null,
+          }
+        : {
+            found: false,
+            message: `No existe una propiedad con el código "${rawCode}" en el catálogo. Pedile al usuario que reconfirme el código o el link.`,
+          };
+
+      const gpdRes = await client.models.generateContent({
+        model: FLASH_MODEL,
+        contents: [
+          ...contents,
+          { role: "model", parts: [{ functionCall: fnCall }] },
+          {
+            role: "user",
+            parts: [{ functionResponse: { name: fnCall.name, response: detail } }],
+          },
+        ],
+        config: {
+          systemInstruction: SYSTEM,
+          temperature: 0.4,
+          maxOutputTokens: 800,
+        },
+      });
+
+      const gpdText = (gpdRes.text ?? "").trim();
+      logCtx.responseExcerpt = gpdText.slice(0, 300);
+      const gpdUsage = gpdRes.usageMetadata;
+      if (gpdUsage) {
+        logCtx.inputTokens = (logCtx.inputTokens ?? 0) + (gpdUsage.promptTokenCount ?? 0);
+        logCtx.outputTokens = (logCtx.outputTokens ?? 0) + (gpdUsage.candidatesTokenCount ?? 0);
+      }
+
+      await logRussiaUsage({
+        sessionId, ipHash, userAgent, userMessage, ...logCtx,
+        ms: Date.now() - startedAt,
+      });
+
+      return NextResponse.json({
+        ok: true,
+        answer:
+          gpdText ||
+          (prop
+            ? `Es un ${prop.type} en ${prop.locality}. ¿Qué querés saber puntualmente?`
+            : "No encontré una propiedad con ese código. ¿Me lo reconfirmás?"),
+        properties: prop ? [toCard(prop)] : [],
       });
     }
 
