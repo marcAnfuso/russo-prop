@@ -48,17 +48,17 @@ export default function CountdownStrip() {
 
   return (
     <div className="w-full bg-navy text-white">
-      <div className="mx-auto flex h-9 max-w-6xl items-center justify-center gap-2 px-4 text-[12.5px] font-medium sm:gap-2.5">
-        <span className="rounded-full bg-white/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider">
+      <div className="mx-auto flex h-9 max-w-6xl items-center justify-center gap-1.5 overflow-hidden whitespace-nowrap px-3 text-[12px] font-medium sm:gap-2.5 sm:px-4 sm:text-[12.5px]">
+        <span className="rounded-full bg-white/15 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider sm:px-2">
           {MATCH.stage}
         </span>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={`https://flagcdn.com/w40/${MATCH.home.code}.png`} alt="Argentina" className="h-3.5 rounded-[2px] ring-1 ring-white/20" />
-        <span className="font-semibold">Argentina</span>
+        <span className="hidden font-semibold sm:inline">Argentina</span>
         <span className="text-white/50">vs</span>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={`https://flagcdn.com/w40/${MATCH.away.code}.png`} alt="Cabo Verde" className="h-3.5 rounded-[2px] ring-1 ring-white/20" />
-        <span className="font-semibold">Cabo Verde</span>
+        <span className="hidden font-semibold sm:inline">Cabo Verde</span>
         <span className="mx-0.5 text-white/30">·</span>
         <span className="tabular-nums font-bold text-[#8fc0ec]">{cd}</span>
         <span className="ml-0.5 hidden text-white/60 sm:inline">· {MATCH.timeLabel} hs</span>
