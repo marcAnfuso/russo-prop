@@ -12,10 +12,10 @@ import { useEffect, useState } from "react";
  */
 const MATCH = {
   home: { name: "Argentina", code: "ar" },
-  away: { name: "Cabo Verde", code: "cv" },
-  stage: "16vos",
-  iso: "2026-07-03T19:00:00-03:00",
-  timeLabel: "Vie 19:00",
+  away: { name: "Egipto", code: "eg" },
+  stage: "8vos",
+  iso: "2026-07-07T13:00:00-03:00", // 16:00 GMT · Atlanta Stadium
+  timeLabel: "Mar 13:00",
 };
 
 function pad(n: number) {
@@ -53,12 +53,12 @@ export default function CountdownStrip() {
           {MATCH.stage}
         </span>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={`https://flagcdn.com/w40/${MATCH.home.code}.png`} alt="Argentina" className="h-3.5 rounded-[2px] ring-1 ring-white/20" />
-        <span className="hidden font-semibold sm:inline">Argentina</span>
+        <img src={`https://flagcdn.com/w40/${MATCH.home.code}.png`} alt={MATCH.home.name} className="h-3.5 rounded-[2px] ring-1 ring-white/20" />
+        <span className="hidden font-semibold sm:inline">{MATCH.home.name}</span>
         <span className="text-white/50">vs</span>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={`https://flagcdn.com/w40/${MATCH.away.code}.png`} alt="Cabo Verde" className="h-3.5 rounded-[2px] ring-1 ring-white/20" />
-        <span className="hidden font-semibold sm:inline">Cabo Verde</span>
+        <img src={`https://flagcdn.com/w40/${MATCH.away.code}.png`} alt={MATCH.away.name} className="h-3.5 rounded-[2px] ring-1 ring-white/20" />
+        <span className="hidden font-semibold sm:inline">{MATCH.away.name}</span>
         <span className="mx-0.5 text-white/30">·</span>
         <span className="tabular-nums font-bold text-[#8fc0ec]">{cd}</span>
         <span className="ml-0.5 hidden text-white/60 sm:inline">· {MATCH.timeLabel} hs</span>
