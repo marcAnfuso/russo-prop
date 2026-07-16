@@ -12,10 +12,10 @@ import { useEffect, useState } from "react";
  */
 const MATCH = {
   home: { name: "Argentina", code: "ar" },
-  away: { name: "Inglaterra", code: "gb-eng" },
-  stage: "Semis",
-  iso: "2026-07-15T16:00:00-03:00", // 15:00 ET · Mercedes-Benz Stadium, Atlanta
-  timeLabel: "Mié 16:00",
+  away: { name: "España", code: "es" },
+  stage: "Final",
+  iso: "2026-07-19T16:00:00-03:00", // 15:00 ET · MetLife Stadium, New Jersey
+  timeLabel: "Dom 16:00",
 };
 
 function pad(n: number) {
