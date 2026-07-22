@@ -1,3 +1,4 @@
+import { unstable_cache } from "next/cache";
 import type { Property, OperationType, PropertyType } from "@/data/types";
 
 // ─── Config ────────────────────────────────────────────────────────────────
@@ -787,36 +788,54 @@ export async function fetchPropertyIds(): Promise<string[]> {
   return properties.map((p) => p.id);
 }
 
-/** Fetch featured properties for home page */
-export async function fetchFeaturedProperties(): Promise<Property[]> {
-  const url = new URL(BASE);
-  url.searchParams.set("json", "fichas.destacadas");
-  url.searchParams.set("inm", INM);
-  url.searchParams.set("apiK", API_KEY_LIST);
-
-  try {
-    const res = await fetch(url.toString(), {
-      next: { revalidate: REVALIDATE },
-    });
-    if (!res.ok) {
-      const { properties } = await fetchProperties();
-      return properties.filter((p) => p.featured && p.price > 0).slice(0, 6);
+/**
+ * Carga cruda + mapeo del feed `fichas.destacadas` de Xintel, cacheado.
+ *
+ * Ese feed pesa ~13MB. La fetch-cache de Next NO cachea respuestas de +2MB,
+ * así que con `next: { revalidate }` en producción (Vercel) el fetch fallaba
+ * o se truncaba de forma intermitente → se caían del sitio TODAS las
+ * propiedades que viven sólo en este feed (activa=0 no servidas por la lista
+ * regular). En local no pasaba porque no tiene esos límites.
+ *
+ * Fix: traemos el raw con `no-store` (no pasa por la fetch-cache · no rompe el
+ * límite de 2MB) y cacheamos el RESULTADO ya mapeado (~0.95MB, entra cómodo)
+ * con unstable_cache, revalidado cada REVALIDATE. Así prod lo carga confiable
+ * y no re-baja 13MB en cada request.
+ */
+const loadFeaturedProperties = unstable_cache(
+  async (): Promise<Property[]> => {
+    const url = new URL(BASE);
+    url.searchParams.set("json", "fichas.destacadas");
+    url.searchParams.set("inm", INM);
+    url.searchParams.set("apiK", API_KEY_LIST);
+    try {
+      const res = await fetch(url.toString(), { cache: "no-store" });
+      if (!res.ok) return [];
+      const data: XintelListResponse = await res.json();
+      const fichas = data?.resultado?.fichas ?? [];
+      const imgs = data?.resultado?.img ?? [];
+      // TODAS las destacadas — el caller hace .slice() si necesita limitar.
+      // Esto permite a fetchAllProperties mergear y rescatar las que están
+      // sólo en este feed. Filtramos price=0 (drafts sin precio).
+      return fichas
+        .map((f, i) => mapListFicha(f, imgs[i] ?? []))
+        .filter((p) => p.price > 0);
+    } catch {
+      return [];
     }
-    const data: XintelListResponse = await res.json();
-    const fichas = data?.resultado?.fichas ?? [];
-    const imgs = data?.resultado?.img ?? [];
-    // Devolvemos TODAS las destacadas — el caller (getHomeFeatured)
-    // hace .slice(0, count) si necesita limitar. Esto le permite a
-    // fetchAllProperties usarnos para mergear y rescatar propiedades
-    // que están sólo en este endpoint (activa=0 en Xintel).
-    // Filtramos price=0 (drafts que Russo carga sin precio aún).
-    return fichas
-      .map((f, i) => mapListFicha(f, imgs[i] ?? []))
-      .filter((p) => p.price > 0);
-  } catch {
-    const { properties } = await fetchProperties();
-    return properties.filter((p) => p.featured && p.price > 0).slice(0, 6);
-  }
+  },
+  ["xintel-destacadas-v1"],
+  { revalidate: REVALIDATE }
+);
+
+/** Fetch featured properties for home page (y rescate de fetchAllProperties). */
+export async function fetchFeaturedProperties(): Promise<Property[]> {
+  const featured = await loadFeaturedProperties();
+  if (featured.length > 0) return featured;
+  // Fallback degradado si el feed está caído: al menos las destacadas de la
+  // lista regular (con precio), para no dejar el home sin nada.
+  const { properties } = await fetchProperties();
+  return properties.filter((p) => p.featured && p.price > 0).slice(0, 6);
 }
 
 /** Fetch latest properties (newest first) for home page */
