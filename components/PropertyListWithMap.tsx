@@ -4,6 +4,7 @@ import { useState, useMemo, useCallback, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Map, EyeOff, X, ChevronLeft, ChevronRight, SearchX } from "lucide-react";
 import FilterBar from "@/components/FilterBar";
+import CrossOpSuggestion from "@/components/CrossOpSuggestion";
 import PropertyCard from "@/components/PropertyCard";
 import PropertyQuickViewModal from "@/components/PropertyQuickViewModal";
 import MapView from "@/components/MapView";
@@ -233,6 +234,12 @@ export default function PropertyListWithMap({
             {visibleProperties.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-20 text-center">
                 <div className="max-w-md">
+                  <CrossOpSuggestion
+                    currentOperation={operationType}
+                    query={initialQuery}
+                    propertyType={initialPropertyType}
+                    zonesCsv={initialZones.join(",")}
+                  />
                   <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-magenta-50 text-magenta">
                     <SearchX className="h-6 w-6" />
                   </div>
@@ -270,6 +277,13 @@ export default function PropertyListWithMap({
               </div>
             ) : (
               <>
+                <CrossOpSuggestion
+                  variant="banner"
+                  currentOperation={operationType}
+                  query={initialQuery}
+                  propertyType={initialPropertyType}
+                  zonesCsv={initialZones.join(",")}
+                />
                 <div
                   className={
                     desktopMapVisible
