@@ -492,6 +492,91 @@ export async function getContactBreakdown(daysBack: number): Promise<TopItem[]> 
   return rows;
 }
 
+// ── Contactos (lista de clicks wpp / mail / tel) ───────────────────────
+
+export interface ContactClickRow {
+  ts: string;
+  channel: string | null; // wpp | email | phone | otro
+  property_id: string | null;
+  path: string | null;
+  target_text: string | null;
+  visitor_id: string;
+  session_id: string;
+  city: string | null;
+  country: string | null;
+  device: string | null;
+}
+
+export interface ContactSummary {
+  total: number;
+  wpp: number;
+  email: number;
+  phone: number;
+}
+
+/** Resumen de contactos por canal en el rango. */
+export async function getContactSummary(daysBack: number): Promise<ContactSummary> {
+  await ensureAnalyticsSchema();
+  const db = sql();
+  const rows = (await db`
+    SELECT
+      COUNT(*)::int AS total,
+      COUNT(*) FILTER (WHERE metadata->>'channel' = 'wpp')::int   AS wpp,
+      COUNT(*) FILTER (WHERE metadata->>'channel' = 'email')::int AS email,
+      COUNT(*) FILTER (WHERE metadata->>'channel' = 'phone')::int AS phone
+    FROM analytics_events e
+    LEFT JOIN analytics_sessions s ON s.id = e.session_id
+    WHERE e.type = 'contact_click'
+      AND e.ts >= now() - (${daysBack}::int * INTERVAL '1 day')
+      AND (s.is_bot IS NULL OR s.is_bot = FALSE)
+  `) as unknown as ContactSummary[];
+  return rows[0] ?? { total: 0, wpp: 0, email: 0, phone: 0 };
+}
+
+/** Lista cronológica de contactos (cada click de wpp/mail/tel) con contexto. */
+export async function listContactClicks(
+  daysBack: number,
+  options: { limit?: number; offset?: number } = {}
+): Promise<ContactClickRow[]> {
+  await ensureAnalyticsSchema();
+  const db = sql();
+  const limit = options.limit ?? 50;
+  const offset = Math.max(0, options.offset ?? 0);
+  const rows = (await db`
+    SELECT
+      to_char(e.ts, 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS ts,
+      e.metadata->>'channel'     AS channel,
+      e.property_id              AS property_id,
+      e.metadata->>'path'        AS path,
+      e.metadata->>'target_text' AS target_text,
+      e.visitor_id               AS visitor_id,
+      e.session_id               AS session_id,
+      s.city, s.country, s.device
+    FROM analytics_events e
+    LEFT JOIN analytics_sessions s ON s.id = e.session_id
+    WHERE e.type = 'contact_click'
+      AND e.ts >= now() - (${daysBack}::int * INTERVAL '1 day')
+      AND (s.is_bot IS NULL OR s.is_bot = FALSE)
+    ORDER BY e.ts DESC
+    LIMIT ${limit} OFFSET ${offset}
+  `) as unknown as ContactClickRow[];
+  return rows;
+}
+
+export async function countContactClicks(daysBack: number): Promise<number> {
+  await ensureAnalyticsSchema();
+  const db = sql();
+  const rows = (await db`
+    SELECT COUNT(*)::int AS n
+    FROM analytics_events e
+    LEFT JOIN analytics_sessions s ON s.id = e.session_id
+    WHERE e.type = 'contact_click'
+      AND e.ts >= now() - (${daysBack}::int * INTERVAL '1 day')
+      AND (s.is_bot IS NULL OR s.is_bot = FALSE)
+  `) as unknown as { n: number }[];
+  return rows[0]?.n ?? 0;
+}
+
 // ── Sesiones (drill-down) ──────────────────────────────────────────────
 
 export interface SessionRow {

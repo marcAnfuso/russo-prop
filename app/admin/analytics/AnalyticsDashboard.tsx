@@ -3,7 +3,6 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   Card,
-  Metric,
   Text,
   AreaChart,
   BarChart,
@@ -14,7 +13,7 @@ import {
   Badge,
 } from "@tremor/react";
 import Link from "next/link";
-import { ArrowDown, ArrowUp, Minus, Users, Download, Filter, Building2 } from "lucide-react";
+import { ArrowDown, ArrowUp, Minus, Users, Download, Filter, Building2, MessageCircle } from "lucide-react";
 import type {
   OverviewStats,
   DailyPoint,
@@ -107,6 +106,13 @@ export default function AnalyticsDashboard({
           >
             <Users className="h-3.5 w-3.5" />
             Ver sesiones
+          </Link>
+          <Link
+            href={`/admin/analytics/contactos?days=${days}`}
+            className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 text-white px-3 py-2 text-xs font-semibold hover:bg-emerald-700 transition-colors"
+          >
+            <MessageCircle className="h-3.5 w-3.5" />
+            Contactos
           </Link>
           <a
             href={`/api/admin/analytics/export?days=${days}`}
@@ -484,11 +490,13 @@ function KpiCard({
         <Text>{label}</Text>
         {delta !== undefined && <DeltaBadge value={delta} />}
       </div>
-      <Metric>
+      {/* <p> propio en vez de <Metric> de Tremor: su line-height ajustado
+          clippeaba los dígitos altos (se cortaban arriba). */}
+      <p className="mt-1 text-3xl font-bold text-navy tabular-nums leading-normal">
         {typeof value === "number"
           ? Intl.NumberFormat("es-AR").format(value)
           : value}
-      </Metric>
+      </p>
     </Card>
   );
 }
