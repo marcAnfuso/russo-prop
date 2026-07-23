@@ -4,8 +4,6 @@ import { useEffect, useRef } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { installAnalytics, track } from "@/lib/analytics-client";
 
-const SCROLL_BUCKETS = [25, 50, 75, 100] as const;
-
 function getPropertyIdFromPath(pathname: string): string | undefined {
   const match = pathname.match(/^\/propiedad\/([^/]+)/);
   return match?.[1];
@@ -19,46 +17,34 @@ function classifyContactClick(href: string): "wpp" | "phone" | "email" | null {
 }
 
 /**
- * Tracker global. Captura:
+ * Tracker global · modo "lite" (reencendido post kill-switch de Neon).
+ * Captura sólo lo accionable para el negocio:
  *  - pageview en cada cambio de ruta (+ property_view en /propiedad/[id])
- *  - scroll_depth (25/50/75/100) por página, una vez cada threshold
- *  - time_on_page al ocultarse la pestaña
  *  - contact_click cuando alguien clickea un link de wpp / tel / mailto
- *    (escuchamos en document, no necesitamos tocar cada componente)
+ *    (escuchamos en document, sin instrumentar cada botón)
+ *
+ * NO trackeamos scroll_depth ni time_on_page: eran ~60% del volumen de
+ * eventos (y del cómputo de Neon) a cambio de poco valor. Si alguna vez se
+ * necesitan, se re-agregan acá. El on/off global sigue siendo la env
+ * NEXT_PUBLIC_ANALYTICS_ENABLED (ver analytics-client).
  */
 export default function AnalyticsTracker() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const lastPath = useRef<string>("");
-  const scrollHit = useRef<Set<number>>(new Set());
-  const enterTime = useRef<number>(Date.now());
 
-  // Install one-time
+  // Install one-time (flush de la cola en pagehide/visibilitychange)
   useEffect(() => {
     installAnalytics();
   }, []);
 
-  // Page view en cada cambio de ruta + reset de scroll/time
+  // Page view en cada cambio de ruta
   useEffect(() => {
     if (!pathname) return;
     const fullPath =
       pathname + (searchParams?.toString() ? `?${searchParams.toString()}` : "");
     if (fullPath === lastPath.current) return;
-
-    // Antes de cambiar de página, mandá el time_on_page de la anterior
-    if (lastPath.current) {
-      const seconds = Math.round((Date.now() - enterTime.current) / 1000);
-      if (seconds >= 2) {
-        track("time_on_page", {
-          path: lastPath.current,
-          metadata: { seconds },
-        });
-      }
-    }
-
     lastPath.current = fullPath;
-    scrollHit.current = new Set();
-    enterTime.current = Date.now();
 
     const propertyId = getPropertyIdFromPath(pathname);
     track("pageview", { path: fullPath, property_id: propertyId });
@@ -67,49 +53,7 @@ export default function AnalyticsTracker() {
     }
   }, [pathname, searchParams]);
 
-  // Scroll depth listener · global, fires al pasar 25/50/75/100
-  useEffect(() => {
-    const onScroll = () => {
-      const doc = document.documentElement;
-      const scrolled = window.scrollY + window.innerHeight;
-      const total = doc.scrollHeight;
-      if (total <= window.innerHeight) return;
-      const pct = (scrolled / total) * 100;
-      for (const b of SCROLL_BUCKETS) {
-        if (pct >= b && !scrollHit.current.has(b)) {
-          scrollHit.current.add(b);
-          track("scroll_depth", {
-            metadata: { bucket: b, path: lastPath.current },
-          });
-        }
-      }
-    };
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-
-  // Time on page al cerrar/ocultar la pestaña
-  useEffect(() => {
-    const onHide = () => {
-      const seconds = Math.round((Date.now() - enterTime.current) / 1000);
-      if (seconds >= 2 && lastPath.current) {
-        track("time_on_page", {
-          path: lastPath.current,
-          metadata: { seconds },
-        });
-      }
-    };
-    document.addEventListener("visibilitychange", () => {
-      if (document.visibilityState === "hidden") onHide();
-    });
-    window.addEventListener("pagehide", onHide);
-    return () => {
-      window.removeEventListener("pagehide", onHide);
-    };
-  }, []);
-
-  // Click tracking global · captura de clicks en links wpp/tel/mailto
-  // sin tener que instrumentar cada botón del sitio
+  // Click tracking global · captura clicks en links wpp/tel/mailto
   useEffect(() => {
     const onClick = (e: MouseEvent) => {
       const target = e.target;
