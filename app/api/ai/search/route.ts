@@ -201,7 +201,7 @@ REGLAS DE RESPUESTA
   (zona, presupuesto, tipo) — no decidas vos romper el presupuesto.
 - Después de una búsqueda exitosa: "Encontré X propiedades en zona Y..." y sugerí refinar ("¿Querés que filtre por cochera o algo específico?").
 - **CUANDO ES GEO-SEARCH** (search_properties_near): mencioná en el texto el rango de distancias del punto de referencia. Ejemplo: "Te muestro 5 deptos cerca de la estación de Ramos · el más cercano a 107m, el más lejos a 1.2km." Esto ayuda a que el usuario sepa de un vistazo qué tan cerca o lejos está cada uno.
-- Si la búsqueda devuelve 0: decílo honestamente y sugerí flexibilizar (ampliar zonas, subir presupuesto, sacar un filtro). NUNCA inventes propiedades.
+- Si la búsqueda devuelve 0: decílo honestamente y sugerí flexibilizar (ampliar zonas, subir presupuesto, sacar un filtro). NUNCA inventes propiedades. **NUNCA te quedes sin responder ni respondas vacío**: aunque haya 0 resultados, SIEMPRE escribí al menos una frase — nombrá la zona/criterio que no dio resultados y ofrecé UNA alternativa concreta (una zona cercana, el otro tipo de operación, o subir el techo con un número). Si una zona tiene muy poco stock (ej. pocos alquileres), decílo directamente y proponé dónde sí hay.
 - Si los criterios son muy ambiguos ("algo lindo"), pedí 1 dato concreto antes de buscar.
 - Si el usuario te pide algo no inmobiliario, redireccioná amable.
 - Si pregunta por contacto: WhatsApp +54 11 5018 7340, info@russopropiedades.com.ar, sedes en San Justo (Pte. Perón 3501) y Ramos Mejía (Belgrano 123).
@@ -445,6 +445,28 @@ const SEARCH_TOOL: { functionDeclarations: FunctionDeclaration[] } = {
     },
   ],
 };
+
+/**
+ * Respuesta de reserva cuando la búsqueda da 0 resultados Y el segundo LLM
+ * devuelve texto vacío (pasa a veces con Flash). Antes se mostraba un mensaje
+ * genérico o quedaba "sin respuesta"; ahora armamos algo útil según el hint y
+ * los filtros (nombra la zona, ofrece la otra operación / ampliar).
+ */
+function buildEmptyAnswer(args: Record<string, unknown>, hint?: string): string {
+  const zones = Array.isArray(args.zones)
+    ? (args.zones as unknown[]).filter((z): z is string => typeof z === "string")
+    : [];
+  const zone = zones[0];
+  const op = args.operation === "alquiler" ? "alquiler" : "venta";
+  const otherOp = op === "alquiler" ? "venta" : "alquiler";
+  if (hint === "no_matches_zone" && zone) {
+    return `En ${zone} no tengo propiedades en ${op} con esos criterios — es una zona con poco stock para esta búsqueda. ¿Querés que amplíe a zonas cercanas, o que pruebe en ${otherOp}?`;
+  }
+  if (hint === "no_matches_price") {
+    return `No encontré propiedades dentro de ese presupuesto${zone ? ` en ${zone}` : ""}. ¿Subimos un poco el techo o ampliamos la zona?`;
+  }
+  return `No encontré propiedades con esos criterios${zone ? ` en ${zone}` : ""}. ¿Flexibilizamos algo — la zona, el presupuesto o el tipo de propiedad?`;
+}
 
 export async function POST(req: NextRequest) {
   const startedAt = Date.now();
@@ -724,7 +746,7 @@ export async function POST(req: NextRequest) {
         finalText ||
         (result.matches.length > 0
           ? `Encontré ${result.matches.length} propiedades que matchean.`
-          : "No encontré propiedades con esos criterios. ¿Querés flexibilizar algo (zona, presupuesto)?"),
+          : buildEmptyAnswer(filters, result.hint)),
       properties: cards,
       filters,
       total: result.total,
