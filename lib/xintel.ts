@@ -370,7 +370,10 @@ export function mapListFicha(ficha: XintelListFicha, imgs: string | string[], am
       bedrooms: num(ficha.cantidad_dormitorios),
       garage: num(ficha.in_coc) || num(ficha.garage),
     },
-    amenities: amenities ?? [],
+    // Xintel a veces manda caracteristicas como string vacío en vez de array
+    // → coercionamos SIEMPRE a array (el `?? []` no cubre strings/objetos, y
+    // dejaba amenities no-array → p.amenities.map reventaba el buscador de IA).
+    amenities: Array.isArray(amenities) ? amenities : [],
     images,
     videoUrl: ficha.video ?? undefined,
     tour360Url: ficha.tour360 || undefined,

@@ -80,7 +80,9 @@ function matchesZones(p: Property, zones: string[]): boolean {
 }
 
 function matchesAmenities(p: Property, wanted: string[]): boolean {
-  const have = p.amenities.map(norm);
+  // Defensivo: si amenities no viene como array (Xintel manda string vacío en
+  // algunas fichas), no reventamos el filtro entero.
+  const have = (Array.isArray(p.amenities) ? p.amenities : []).map(norm);
   return wanted.every((w) => {
     const wn = norm(w);
     return have.some((h) => h.includes(wn));
