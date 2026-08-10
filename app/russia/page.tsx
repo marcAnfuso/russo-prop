@@ -65,7 +65,7 @@ const EXAMPLES = [
   },
   {
     icon: <DollarSign className="h-4 w-4" />,
-    text: "Alquiler de departamento bajo $500.000 en La Matanza",
+    text: "Alquiler de departamento bajo $700.000 en La Matanza",
     tag: "Por presupuesto",
   },
   {

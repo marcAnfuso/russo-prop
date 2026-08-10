@@ -36,7 +36,7 @@ const SUGGESTIONS = [
   "Departamento cerca de la estación de Ramos, 2 amb, hasta USD 100.000",
   "Casa en venta en San Justo con cochera",
   "Algo a 5 cuadras de la UNLaM",
-  "Alquiler de depto en Ramos Mejía bajo $500.000",
+  "Alquiler de depto en Ramos Mejía bajo $700.000",
 ];
 
 function formatPrice(n: number): string {
