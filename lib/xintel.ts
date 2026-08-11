@@ -356,7 +356,7 @@ export function mapListFicha(ficha: XintelListFicha, imgs: string | string[], am
     subtype: mapSubtype(ficha.in_tpr, ficha.tipo),
     price,
     currency,
-    address: decodeHtml(ficha.direccion_completa) || `${ficha.in_cal ?? ""} ${ficha.in_nro ?? ""}`.trim(),
+    address: decodeHtml(ficha.direccion_completa || `${ficha.in_cal ?? ""} ${ficha.in_nro ?? ""}`).trim(),
     // Fallback: si Russo no cargó in_bar (barrio), usamos in_loc (partido)
     // así la propiedad aparece en el filtro de zonas igual.
     locality: normalizeLocality(ficha.in_bar) || normalizeLocality(ficha.in_loc),
@@ -753,7 +753,7 @@ export async function fetchProperty(id: string): Promise<Property | null> {
       subtype: mapSubtype(ficha.in_tpr, ficha.tipo),
       price,
       currency,
-      address: decodeHtml(ficha.direccion_completa) || `${ficha.in_cal ?? ""} ${ficha.in_nro ?? ""}`.trim(),
+      address: decodeHtml(ficha.direccion_completa || `${ficha.in_cal ?? ""} ${ficha.in_nro ?? ""}`).trim(),
       locality: normalizeLocality(ficha.in_bar) || normalizeLocality(ficha.in_loc),
       district: decodeHtml(ficha.in_loc),
       description: decodeHtml(ficha.in_obs?.trim()),
