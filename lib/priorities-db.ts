@@ -1,3 +1,4 @@
+import { unstable_cache } from "next/cache";
 import { sql } from "./db";
 
 export interface PriorityRow {
@@ -26,12 +27,24 @@ export async function ensurePrioritiesSchema(): Promise<void> {
  * Devuelve un Map<xintel_id, priority> con todos los overrides activos.
  * Lo usamos al servir listings: priority desc + fallback a in_ord2.
  */
+// Lectura cacheada: fetchAllProperties la llama en CADA render de /ventas y
+// /alquileres (force-dynamic). Sin caché, cada visita pegaba a Neon y la
+// mantenía despierta. Cacheamos las filas 120s (Map no es serializable): los
+// cambios del admin se reflejan en el público en <2min y la DB descansa.
+const getPriorityRowsCached = unstable_cache(
+  async () => {
+    await ensurePrioritiesSchema();
+    const db = sql();
+    return (await db`
+      SELECT xintel_id, priority FROM property_priority
+    `) as Array<{ xintel_id: string; priority: number }>;
+  },
+  ["property-priority-rows"],
+  { revalidate: 120, tags: ["xintel"] }
+);
+
 export async function getPriorityMap(): Promise<Map<string, number>> {
-  await ensurePrioritiesSchema();
-  const db = sql();
-  const rows = (await db`
-    SELECT xintel_id, priority FROM property_priority
-  `) as Array<{ xintel_id: string; priority: number }>;
+  const rows = await getPriorityRowsCached();
   const map = new Map<string, number>();
   for (const r of rows) map.set(r.xintel_id, r.priority);
   return map;

@@ -1,3 +1,4 @@
+import { unstable_cache } from "next/cache";
 import { sql } from "./db";
 
 export type PropertyStatus = "active" | "reserved" | "sold";
@@ -29,12 +30,23 @@ export async function ensureStatusSchema(): Promise<void> {
  * incluyendo 'active' (que se usa para "limpiar" un override viejo).
  * Lo usa el feed al servir propiedades para hacer el merge.
  */
+// Cacheada 120s · fetchAllProperties la llama en cada render (force-dynamic).
+// Ver nota en getPriorityMap. Los cambios de estado del admin se reflejan en
+// el público en <2min y la DB de Neon deja de despertarse en cada visita.
+const getStatusRowsCached = unstable_cache(
+  async () => {
+    await ensureStatusSchema();
+    const db = sql();
+    return (await db`
+      SELECT xintel_id, status FROM property_status
+    `) as Array<{ xintel_id: string; status: PropertyStatus }>;
+  },
+  ["property-status-rows"],
+  { revalidate: 120, tags: ["xintel"] }
+);
+
 export async function getStatusMap(): Promise<Map<string, PropertyStatus>> {
-  await ensureStatusSchema();
-  const db = sql();
-  const rows = (await db`
-    SELECT xintel_id, status FROM property_status
-  `) as Array<{ xintel_id: string; status: PropertyStatus }>;
+  const rows = await getStatusRowsCached();
   const map = new Map<string, PropertyStatus>();
   for (const r of rows) map.set(r.xintel_id, r.status);
   return map;

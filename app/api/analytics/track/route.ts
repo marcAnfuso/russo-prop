@@ -88,6 +88,14 @@ export async function POST(req: NextRequest) {
   // (upsertSession sólo pisa los campos faltantes en update).
   const ua = req.headers.get("user-agent");
   const uaInfo = parseUserAgent(ua);
+
+  // No guardamos tráfico de bots: no aporta a las métricas y despierta la
+  // base (Neon) al pedo, encadenando compute. parseUserAgent ya los detecta
+  // por user-agent. Descartamos sin tocar la DB.
+  if (uaInfo.is_bot) {
+    return new NextResponse(null, { status: 204 });
+  }
+
   const geo = readGeoFromRequest(req);
   const utm = parseUtm(body.landing_url);
 

@@ -1,3 +1,4 @@
+import { unstable_cache } from "next/cache";
 import { sql } from "./db";
 
 export type CoordsStatus = "pending" | "applied" | "ignored";
@@ -43,15 +44,26 @@ export async function ensureCoordsSchema(): Promise<void> {
  * estado 'applied'. Los 'pending' (a la espera de aprobación de Ramita)
  * y los 'ignored' (descartados) NO afectan al feed público.
  */
+// Cacheada 120s · fetchAllProperties la llama en cada render (force-dynamic).
+// Ver nota en getPriorityMap. Las coords corregidas por el admin se reflejan
+// en el público en <2min y la DB de Neon deja de despertarse en cada visita.
+const getCoordsRowsCached = unstable_cache(
+  async () => {
+    await ensureCoordsSchema();
+    const db = sql();
+    return (await db`
+      SELECT xintel_id, lat, lng FROM property_coords_override
+      WHERE status = 'applied'
+    `) as Array<{ xintel_id: string; lat: number; lng: number }>;
+  },
+  ["property-coords-rows"],
+  { revalidate: 120, tags: ["xintel"] }
+);
+
 export async function getCoordsOverrideMap(): Promise<
   Map<string, { lat: number; lng: number }>
 > {
-  await ensureCoordsSchema();
-  const db = sql();
-  const rows = (await db`
-    SELECT xintel_id, lat, lng FROM property_coords_override
-    WHERE status = 'applied'
-  `) as Array<{ xintel_id: string; lat: number; lng: number }>;
+  const rows = await getCoordsRowsCached();
   const map = new Map<string, { lat: number; lng: number }>();
   for (const r of rows) map.set(r.xintel_id, { lat: r.lat, lng: r.lng });
   return map;
