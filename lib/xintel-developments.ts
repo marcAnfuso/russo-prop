@@ -242,7 +242,7 @@ export async function fetchDevelopmentUnits(
 
   try {
     const res = await fetch(url.toString(), {
-      next: { revalidate: REVALIDATE },
+      next: { revalidate: REVALIDATE, tags: ["xintel"] },
     });
     if (!res.ok) return [];
     const data = (await res.json()) as XintelFichasResponse;
@@ -269,7 +269,7 @@ export async function fetchDevelopments(): Promise<Development[]> {
 
   try {
     const res = await fetch(url.toString(), {
-      next: { revalidate: REVALIDATE },
+      next: { revalidate: REVALIDATE, tags: ["xintel"] },
     });
     if (!res.ok) return [];
     const data = (await res.json()) as XintelEmpResponse;

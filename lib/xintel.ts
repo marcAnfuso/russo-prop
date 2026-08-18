@@ -437,7 +437,7 @@ function buildListUrl(params: FetchPropertiesParams, page: number): string {
 async function fetchPage(
   urlStr: string
 ): Promise<{ fichas: XintelListFicha[]; imgs: (string | string[])[]; total: number | null; caracteristicas: Record<string, string[]> }> {
-  const res = await fetch(urlStr, { next: { revalidate: REVALIDATE } });
+  const res = await fetch(urlStr, { next: { revalidate: REVALIDATE, tags: ["xintel"] } });
   if (!res.ok) return { fichas: [], imgs: [], total: null, caracteristicas: {} };
   const data: XintelListResponse = await res.json();
   const total =
@@ -645,8 +645,8 @@ export async function fetchProperty(id: string): Promise<Property | null> {
 
   try {
     const [res, tourRes] = await Promise.all([
-      fetch(url.toString(), { next: { revalidate: REVALIDATE } }),
-      fetch(tourUrl.toString(), { next: { revalidate: REVALIDATE } }).catch(
+      fetch(url.toString(), { next: { revalidate: REVALIDATE, tags: ["xintel"] } }),
+      fetch(tourUrl.toString(), { next: { revalidate: REVALIDATE, tags: ["xintel"] } }).catch(
         () => null
       ),
     ]);
@@ -828,7 +828,7 @@ const loadFeaturedProperties = unstable_cache(
     }
   },
   ["xintel-destacadas-v1"],
-  { revalidate: REVALIDATE }
+  { revalidate: REVALIDATE, tags: ["xintel"] }
 );
 
 /** Fetch featured properties for home page (y rescate de fetchAllProperties). */

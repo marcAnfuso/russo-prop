@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Search, Star, Sparkles, X, LogOut, CheckCircle2, HelpCircle, BarChart3, Bell, ListOrdered, Inbox, BadgeCheck, Bookmark, MessageCircle, MapPin, Flame } from "lucide-react";
+import { Search, Star, Sparkles, X, LogOut, CheckCircle2, HelpCircle, BarChart3, Bell, ListOrdered, Inbox, BadgeCheck, Bookmark, MessageCircle, MapPin, Flame, RefreshCw } from "lucide-react";
 import { formatPrice } from "@/lib/utils";
 import MediaPicksPanel, { type MediaPick } from "./MediaPicksPanel";
 import UsersPanel from "./UsersPanel";
@@ -69,6 +69,28 @@ export default function AdminConsole({
   const [operation, setOperation] = useState<"" | "venta" | "alquiler">("");
   const [busyId, setBusyId] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
+
+  // Botón "Actualizar Xintel" · fuerza el refresco del caché cuando el equipo
+  // cambió algo en Xintel (ej. precio de una unidad) y no quiere esperar los
+  // 30 min de revalidación.
+  async function refreshXintel() {
+    if (refreshing) return;
+    setRefreshing(true);
+    try {
+      const res = await fetch("/api/admin/revalidate", { method: "POST" });
+      setToast(
+        res.ok
+          ? "Datos de Xintel actualizados · recargá la web en unos segundos"
+          : "No se pudo actualizar. Probá de nuevo."
+      );
+    } catch {
+      setToast("No se pudo actualizar. Probá de nuevo.");
+    } finally {
+      setRefreshing(false);
+      setTimeout(() => setToast(null), 4000);
+    }
+  }
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -186,6 +208,16 @@ export default function AdminConsole({
             </h1>
           </div>
           <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={refreshXintel}
+              disabled={refreshing}
+              title="Forzar refresco de los datos de Xintel (precios, fichas). Usalo si cambiaste algo en Xintel y no aparece todavía."
+              className="inline-flex items-center gap-1.5 rounded-lg bg-magenta px-3 py-1.5 text-xs font-semibold hover:bg-magenta-600 transition-colors disabled:opacity-60"
+            >
+              <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? "animate-spin" : ""}`} />
+              {refreshing ? "Actualizando…" : "Actualizar Xintel"}
+            </button>
             <Link
               href="/admin/analytics"
               className="inline-flex items-center gap-1.5 rounded-lg border border-white/20 px-3 py-1.5 text-xs font-semibold hover:bg-white/10 transition-colors"
