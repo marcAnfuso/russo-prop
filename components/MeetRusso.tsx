@@ -10,7 +10,7 @@ export default function MeetRusso() {
       {/* Full-bleed background photo */}
       <div className="absolute inset-0">
         <Image
-          src="/images/neighborhoods/san-justo.jpg"
+          src="/images/neighborhoods/entrada-ofis-san-justo.webp"
           alt="San Justo"
           fill
           sizes="100vw"

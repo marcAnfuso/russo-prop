@@ -17,7 +17,7 @@ export const neighborhoods: Neighborhood[] = [
     name: "San Justo",
     slug: "San Justo",
     description: "Centro comercial y residencial de La Matanza",
-    image: "/images/neighborhoods/san-justo.jpg",
+    image: "/images/neighborhoods/entrada-ofis-san-justo.webp",
     credit: {
       author: "Mithell5.0",
       license: "CC BY-SA 3.0",

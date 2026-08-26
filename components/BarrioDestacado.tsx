@@ -35,7 +35,7 @@ const defaultProps: BarrioDestacadoProps = {
   district: "La Matanza · Centro",
   description:
     "El corazón administrativo y comercial de La Matanza. Plaza principal, municipalidad, estación del Sarmiento, y el Hospital Paroissien a pocas cuadras.",
-  image: "/images/neighborhoods/san-justo.jpg",
+  image: "/images/neighborhoods/entrada-ofis-san-justo.webp",
   propertyCount: 142,
   stats: {
     pricePerSqM: "USD 1.850",
