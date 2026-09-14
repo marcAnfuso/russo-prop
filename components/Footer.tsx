@@ -12,6 +12,16 @@ const utilityLinks = [
   { label: "Locales", href: "/ventas" },
 ];
 
+const portals = [
+  {
+    name: "Zonaprop",
+    href: "https://www.zonaprop.com.ar/inmobiliarias/russo-propiedades_17063413-inmuebles.html",
+    logo: "/images/portales/zonaprop.svg",
+    // el SVG trae aire interno · lo dibujamos más alto para que se lea bien
+    className: "h-11 w-auto",
+  },
+];
+
 export default function Footer() {
 
   return (
@@ -94,6 +104,31 @@ export default function Footer() {
             </nav>
           </div>
 
+        </div>
+      </div>
+
+      {/* Portales · perfiles de Russo en ZonaProp y ArgenProp */}
+      <div className="border-t border-gray-200">
+        <div className="mx-auto flex max-w-7xl flex-col items-center justify-center gap-3 px-4 py-5 sm:flex-row sm:gap-6 sm:px-6 lg:px-8">
+          <p className="text-xs font-medium uppercase tracking-wider text-gray-400">
+            También nos encontrás en
+          </p>
+          <div className="flex items-center gap-6">
+            {portals.map((p) => (
+              <a
+                key={p.name}
+                href={p.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={`Ver propiedades de Russo Propiedades en ${p.name}`}
+                title={`Russo Propiedades en ${p.name}`}
+                className="opacity-80 hover:opacity-100 transition-opacity"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={p.logo} alt={p.name} className={p.className} />
+              </a>
+            ))}
+          </div>
         </div>
       </div>
 
