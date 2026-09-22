@@ -424,7 +424,10 @@ function buildListUrl(params: FetchPropertiesParams, page: number): string {
   url.searchParams.set("json", "resultados.fichas");
   url.searchParams.set("inm", INM);
   url.searchParams.set("apiK", API_KEY_LIST);
-  url.searchParams.set("page", String(page));
+  // Xintel pagina desde 0, nosotros desde 1. Sin este -1 la primera
+  // página de la API nunca se pide y se pierden 20 fichas por operación
+  // (eran 9 de los 21 galpones en alquiler · reportado 18/09/2026).
+  url.searchParams.set("page", String(Math.max(0, page - 1)));
   url.searchParams.set("rppagina", String(PER_PAGE));
   if (params.operation) {
     url.searchParams.set("ope", params.operation === "venta" ? "V" : "A");
@@ -811,21 +814,26 @@ const loadFeaturedProperties = unstable_cache(
     url.searchParams.set("json", "fichas.destacadas");
     url.searchParams.set("inm", INM);
     url.searchParams.set("apiK", API_KEY_LIST);
-    try {
-      const res = await fetch(url.toString(), { cache: "no-store" });
-      if (!res.ok) return [];
-      const data: XintelListResponse = await res.json();
-      const fichas = data?.resultado?.fichas ?? [];
-      const imgs = data?.resultado?.img ?? [];
-      // TODAS las destacadas — el caller hace .slice() si necesita limitar.
-      // Esto permite a fetchAllProperties mergear y rescatar las que están
-      // sólo en este feed. Filtramos price=0 (drafts sin precio).
-      return fichas
-        .map((f, i) => mapListFicha(f, imgs[i] ?? []))
-        .filter((p) => p.price > 0);
-    } catch {
-      return [];
-    }
+    // OJO · acá NO se atrapa el error a propósito. unstable_cache sólo
+    // guarda el resultado si la callback resuelve (ver cacheNewResult en
+    // next/dist/.../unstable-cache.js), así que si tiramos, no se cachea
+    // nada y el próximo request reintenta. Antes devolvíamos [] y ese
+    // vacío quedaba cacheado 30 min: el merge de fetchAllProperties se
+    // quedaba sin rescate y se caían fichas del sitio hasta que alguien
+    // apretaba "Actualizar Xintel". El feed pesa 11MB y se trunca cada
+    // tanto, así que esto pasa de verdad.
+    const res = await fetch(url.toString(), { cache: "no-store" });
+    if (!res.ok) throw new Error(`destacadas HTTP ${res.status}`);
+    const data: XintelListResponse = await res.json();
+    const fichas = data?.resultado?.fichas ?? [];
+    const imgs = data?.resultado?.img ?? [];
+    if (fichas.length === 0) throw new Error("destacadas vacío");
+    // TODAS las destacadas — el caller hace .slice() si necesita limitar.
+    // Esto permite a fetchAllProperties mergear y rescatar las que están
+    // sólo en este feed. Filtramos price=0 (drafts sin precio).
+    return fichas
+      .map((f, i) => mapListFicha(f, imgs[i] ?? []))
+      .filter((p) => p.price > 0);
   },
   ["xintel-destacadas-v1"],
   { revalidate: REVALIDATE, tags: ["xintel"] }
@@ -833,7 +841,12 @@ const loadFeaturedProperties = unstable_cache(
 
 /** Fetch featured properties for home page (y rescate de fetchAllProperties). */
 export async function fetchFeaturedProperties(): Promise<Property[]> {
-  const featured = await loadFeaturedProperties();
+  let featured: Property[] = [];
+  try {
+    featured = await loadFeaturedProperties();
+  } catch {
+    // feed caído o truncado · no se cacheó nada, cae al fallback de abajo
+  }
   if (featured.length > 0) return featured;
   // Fallback degradado si el feed está caído: al menos las destacadas de la
   // lista regular (con precio), para no dejar el home sin nada.
