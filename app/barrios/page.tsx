@@ -3,6 +3,7 @@ import NeighborhoodGrid from "@/components/NeighborhoodGrid";
 import BarrioDestacado from "@/components/BarrioDestacado";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/barrios" },
   title: "Barrios",
   description:
     "Explorá los barrios de zona oeste donde Russo Propiedades opera: San Justo, Ramos Mejía, Villa Luzuriaga, Ciudadela, Haedo, Morón y más.",

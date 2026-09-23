@@ -4,7 +4,7 @@ export const metadata: Metadata = {
   title: "Contacto",
   description:
     "Hablá con Russo Propiedades. Oficina en el centro de San Justo, teléfono, email y WhatsApp. Atención directa, sin intermediarios.",
-  alternates: { canonical: "https://russo-prop.vercel.app/contacto" },
+  alternates: { canonical: "/contacto" },
 };
 
 export default function ContactoLayout({

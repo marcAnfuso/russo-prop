@@ -6,6 +6,7 @@ import BlueprintTimeline, { type TimelineItem } from "@/components/BlueprintTime
 import { Heart, Target, Eye } from "lucide-react";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/nosotros" },
   title: "Nosotros",
   description:
     "Russo Propiedades: desde 1992 acompañando a quienes buscan su hogar en zona oeste. Servicio profesional y personalizado en San Justo, La Matanza.",

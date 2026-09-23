@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
@@ -37,6 +38,48 @@ const statusColors: Record<DevelopmentStatus, string> = {
   "en-construccion": "bg-orange-500",
   terminado: "bg-green-500",
 };
+
+
+/**
+ * Sin esto las 11 fichas de emprendimiento heredaban el título y la
+ * descripción por defecto del layout raíz — 11 URLs en el sitemap con
+ * metadata idéntica, que para Google son duplicados entre sí.
+ */
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const dev = await fetchDevelopment(id);
+  if (!dev) {
+    return { title: "Emprendimiento no encontrado", robots: { index: false, follow: false } };
+  }
+
+  const desde = dev.priceFrom > 0 ? ` · desde USD ${formatPrice(dev.priceFrom)}` : "";
+  const estado = statusLabels[dev.status] ?? "";
+  const description = [
+    `${dev.name} en ${dev.locality}${desde}.`,
+    estado && `${estado}.`,
+    dev.roomsRange && `Unidades de ${dev.roomsRange}.`,
+    "Russo Propiedades — 30 años en zona oeste.",
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  return {
+    title: `${dev.name} — ${dev.locality}`,
+    description,
+    alternates: { canonical: `/emprendimiento/${id}` },
+    openGraph: {
+      title: `${dev.name} — ${dev.locality}`,
+      description,
+      images: dev.images[0] ? [{ url: dev.images[0], width: 1200, height: 630 }] : [],
+      type: "website",
+      url: `/emprendimiento/${id}`,
+    },
+  };
+}
 
 export default async function DevelopmentDetailPage({
   params,

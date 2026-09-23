@@ -9,8 +9,7 @@ import AnalyticsTracker from "@/components/AnalyticsTracker";
 import RussiaWidget from "@/components/RussiaWidget";
 import MundialDecorations from "@/components/mundial/MundialDecorations";
 import SiteContentOffset from "@/components/mundial/SiteContentOffset";
-
-const SITE_URL = "https://russo-prop.vercel.app";
+import { SITE_URL } from "@/lib/site";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -57,7 +56,7 @@ export const metadata: Metadata = {
       "Propiedades en venta y alquiler en San Justo y zona oeste. 30 años acompañando familias.",
     images: ["/images/logo.webp"],
   },
-  alternates: { canonical: SITE_URL },
+  alternates: { canonical: "/" },
 };
 
 export default function RootLayout({
@@ -106,7 +105,7 @@ export default function RootLayout({
               "@context": "https://schema.org",
               "@type": "RealEstateAgent",
               name: "Russo Propiedades",
-              url: "https://russopropiedades.com.ar",
+              url: SITE_URL,
               telephone: "+54 11 5018 7340",
               email: "info@russopropiedades.com.ar",
               address: {

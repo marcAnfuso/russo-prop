@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useCallback, useEffect } from "react";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Map, EyeOff, X, ChevronLeft, ChevronRight, SearchX } from "lucide-react";
 import FilterBar from "@/components/FilterBar";
@@ -23,6 +24,9 @@ interface PropertyListWithMapProps {
 }
 
 const PAGE_SIZE = 20;
+
+const pagerClass =
+  "flex items-center gap-1 rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors";
 
 export default function PropertyListWithMap({
   operationType,
@@ -129,19 +133,24 @@ export default function PropertyListWithMap({
     [router, operationType]
   );
 
-  function goToPage(pageIndex: number) {
-    if (pageIndex < 0 || pageIndex >= totalPages) return;
-    // Sólo actualizamos el URL · currentPage es derivado de searchParams
-    // así que el re-render lo refresca solo. Push para que "atrás"
-    // deshaga la paginación y volver desde una propiedad restaure el N.
-    const params = new URLSearchParams(window.location.search);
-    if (pageIndex === 0) params.delete("page");
-    else params.set("page", String(pageIndex + 1));
-    const basePath = operationType === "alquiler" ? "/alquileres" : "/ventas";
-    const qs = params.toString();
-    router.push(qs ? `${basePath}?${qs}` : basePath);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }
+  /**
+   * href de una página del listado. Antes la paginación eran <button
+   * onClick>, así que el HTML servido sólo exponía los 20 links de la
+   * primera página y Google no tenía forma de llegar al resto del
+   * catálogo (~750 fichas). Con <Link> son anchors de verdad y el
+   * crawler puede caminar todas las páginas.
+   */
+  const pageHref = useCallback(
+    (pageIndex: number) => {
+      const params = new URLSearchParams(searchParams.toString());
+      if (pageIndex === 0) params.delete("page");
+      else params.set("page", String(pageIndex + 1));
+      const basePath = operationType === "alquiler" ? "/alquileres" : "/ventas";
+      const qs = params.toString();
+      return qs ? `${basePath}?${qs}` : basePath;
+    },
+    [searchParams, operationType]
+  );
 
   const mapProperties = useMemo(
     () =>
@@ -307,25 +316,29 @@ export default function PropertyListWithMap({
 
                 {totalPages > 1 && (
                   <div className="flex items-center justify-center gap-2 mt-8">
-                    <button
-                      onClick={() => goToPage(safePage - 1)}
-                      disabled={safePage === 0}
-                      className="flex items-center gap-1 rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 disabled:opacity-40 hover:bg-gray-50 transition-colors"
-                    >
-                      <ChevronLeft className="h-4 w-4" /> Anterior
-                    </button>
+                    {safePage === 0 ? (
+                      <span className={`${pagerClass} opacity-40`}>
+                        <ChevronLeft className="h-4 w-4" /> Anterior
+                      </span>
+                    ) : (
+                      <Link href={pageHref(safePage - 1)} className={pagerClass}>
+                        <ChevronLeft className="h-4 w-4" /> Anterior
+                      </Link>
+                    )}
 
                     <span className="text-sm text-gray-600 px-2 tabular-nums">
                       Página {safePage + 1} de {totalPages}
                     </span>
 
-                    <button
-                      onClick={() => goToPage(safePage + 1)}
-                      disabled={safePage >= totalPages - 1}
-                      className="flex items-center gap-1 rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 disabled:opacity-40 hover:bg-gray-50 transition-colors"
-                    >
-                      Siguiente <ChevronRight className="h-4 w-4" />
-                    </button>
+                    {safePage >= totalPages - 1 ? (
+                      <span className={`${pagerClass} opacity-40`}>
+                        Siguiente <ChevronRight className="h-4 w-4" />
+                      </span>
+                    ) : (
+                      <Link href={pageHref(safePage + 1)} className={pagerClass}>
+                        Siguiente <ChevronRight className="h-4 w-4" />
+                      </Link>
+                    )}
                   </div>
                 )}
               </>

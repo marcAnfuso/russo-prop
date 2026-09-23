@@ -40,3 +40,23 @@ export function toEmbedUrl(url: string): string {
   }
   return url;
 }
+
+/**
+ * Texto plano a partir del HTML que manda Xintel en las descripciones.
+ * Lo usa el JSON-LD: schema.org espera texto, no markup.
+ */
+export function stripHtml(html: string): string {
+  if (!html) return "";
+  return html
+    .replace(/<br\s*\/?>/gi, " ")
+    .replace(/<\/(p|div|li|h[1-6])>/gi, " ")
+    .replace(/<[^>]+>/g, "")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">")
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;/gi, "'")
+    .replace(/\s+/g, " ")
+    .trim();
+}

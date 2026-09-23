@@ -4,7 +4,7 @@ export const metadata: Metadata = {
   title: "Emprendimientos",
   description:
     "Emprendimientos inmobiliarios en zona oeste: pre-venta, pozo, en construcción y listos para mudarse. Oportunidades con Russo Propiedades.",
-  alternates: { canonical: "https://russo-prop.vercel.app/emprendimientos" },
+  alternates: { canonical: "/emprendimientos" },
 };
 
 export default function EmprendimientosLayout({

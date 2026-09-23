@@ -788,10 +788,17 @@ export async function fetchProperty(id: string): Promise<Property | null> {
   }
 }
 
-/** Fetch all property IDs for static params generation */
+/**
+ * IDs de TODAS las propiedades.
+ *
+ * Antes devolvía `fetchProperties()` a secas — una sola página de 20 — y el
+ * sitemap la usaba creyendo que traía el catálogo entero: publicábamos 38
+ * URLs para ~750 fichas. El sitemap ahora usa `fetchAllProperties`; esta
+ * queda para generateStaticParams y compañía, ya arreglada.
+ */
 export async function fetchPropertyIds(): Promise<string[]> {
-  const { properties } = await fetchProperties();
-  return properties.map((p) => p.id);
+  const all = await fetchAllProperties();
+  return all.map((p) => p.id);
 }
 
 /**

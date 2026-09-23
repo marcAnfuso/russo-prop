@@ -5,9 +5,11 @@ import { fetchAllProperties, toListProperty } from "@/lib/xintel";
 import { listPicks } from "@/lib/picks";
 
 export const metadata = {
+  alternates: { canonical: "/alquileres" },
   title: "Propiedades en alquiler",
   description: "Alquilá casas, departamentos y más en San Justo, La Matanza y zona oeste. Russo Propiedades, más de 30 años de experiencia.",
   openGraph: {
+    url: "/alquileres",
     title: "Propiedades en alquiler",
     description: "Encontrá tu próximo alquiler en zona oeste",
   },

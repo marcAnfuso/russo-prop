@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   title: "Historias",
   description:
     "Momentos que vivimos con nuestros clientes — nuevos dueños tocando la campana, tours por propiedades, el día a día de Russo Propiedades.",
-  alternates: { canonical: "https://russo-prop.vercel.app/historias" },
+  alternates: { canonical: "/historias" },
 };
 
 export const dynamic = "force-dynamic";

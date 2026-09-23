@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { absoluteUrl } from "@/lib/site";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
@@ -13,7 +14,7 @@ import {
 import { fetchProperty } from "@/lib/xintel";
 import { listPicks } from "@/lib/picks";
 import type { Property } from "@/data/types";
-import { formatPrice } from "@/lib/utils";
+import { formatPrice, stripHtml } from "@/lib/utils";
 import Gallery from "@/components/Gallery";
 import AmenityList from "@/components/AmenityList";
 import RussiaChatWidget from "@/components/RussiaChatWidget";
@@ -36,7 +37,7 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
   const property = await fetchProperty(id);
-  if (!property) return { title: "Propiedad no encontrada" };
+  if (!property) return { title: "Propiedad no encontrada", robots: { index: false, follow: false } };
 
   const priceLabel = property.price === 9999999
     ? "Reservado"
@@ -48,11 +49,13 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   return {
     title,
     description,
+    alternates: { canonical: `/propiedad/${id}` },
     openGraph: {
       title: `${priceLabel} — ${property.address}`,
       description: description.slice(0, 160),
       images: property.images[0] ? [{ url: property.images[0], width: 1200, height: 630 }] : [],
       type: "website",
+      url: `/propiedad/${id}`,
     },
   };
 }
@@ -191,14 +194,19 @@ export default async function PropertyDetailPage({ params }: PageProps) {
             "@context": "https://schema.org",
             "@type": "RealEstateListing",
             name: property.title,
-            description: property.description,
-            url: `https://russopropiedades.com.ar/propiedad/${property.id}`,
-            image: property.images[0],
+            // Xintel guarda la descripción con HTML adentro (<p>, <strong>,
+            // <span style=…>). schema.org espera texto plano — si va el
+            // markup crudo, Google lo descarta o lo muestra con etiquetas.
+            description: stripHtml(property.description).slice(0, 5000),
+            url: absoluteUrl(`/propiedad/${property.id}`),
+            image: property.images.slice(0, 6),
             address: {
               "@type": "PostalAddress",
               streetAddress: property.address,
               addressLocality: property.locality,
-              addressRegion: property.district,
+              // `district` es el partido (Morón, La Matanza). La región de
+              // schema.org es la provincia, no el partido.
+              addressRegion: "Buenos Aires",
               addressCountry: "AR",
             },
             offers: {

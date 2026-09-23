@@ -16,7 +16,7 @@ export const metadata: Metadata = {
   title: "Compra, alquilá y tasá en zona oeste",
   description:
     "Más de 700 propiedades en San Justo, Ramos Mejía, Haedo, Morón y toda zona oeste. Russo Propiedades: 30 años haciendo las cosas distinto.",
-  alternates: { canonical: "https://russo-prop.vercel.app" },
+  alternates: { canonical: "/" },
 };
 
 // Render dinámico · Vercel se queda sin tiempo (10s) prerender'ando
