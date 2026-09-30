@@ -65,11 +65,46 @@ export interface SearchFilters {
 const norm = (s: string) =>
   s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").trim();
 
+/**
+ * Muletillas que la gente escribe al nombrar una calle y que no aportan
+ * nada al match. "al" es la clave: Xintel guarda las direcciones como
+ * "COLOMBIA al 2300", así que si el usuario escribe "colombia 2300" el
+ * token "al" sobra de un lado y falta del otro.
+ */
+const TEXT_STOPWORDS = new Set([
+  "al", "calle", "av", "av.", "avda", "avda.", "avenida", "altura",
+  "nro", "nro.", "numero", "n", "n°", "y", "esquina", "esq", "esq.",
+  "el", "la", "los", "las", "de", "del", "en",
+]);
+
+function textTokens(q: string): string[] {
+  return norm(q)
+    .split(/[\s,]+/)
+    .map((t) => t.replace(/[.\u00ba\u00b0]+$/, ""))
+    .filter((t) => t.length > 0 && !TEXT_STOPWORDS.has(t));
+}
+
+/**
+ * Match de texto libre contra dirección/barrio/partido/código/título.
+ *
+ * Antes era un `includes` de la frase entera, y por eso fallaba el 73% de
+ * las búsquedas por dirección (83 de 113 en los logs de Russia entre mayo
+ * y septiembre de 2026). El caso típico: alguien pide "colombia 2300",
+ * existe "COLOMBIA al 2300" y devolvíamos cero, porque el " al " del medio
+ * rompe el substring.
+ *
+ * Ahora exigimos que estén TODOS los tokens, en cualquier orden. Sigue
+ * siendo restrictivo (no es una búsqueda difusa), pero tolera cómo escribe
+ * la gente y cómo carga Xintel.
+ */
 function matchesText(p: Property, q: string): boolean {
   const haystack = norm(
     [p.address, p.locality, p.district, p.code, p.title].filter(Boolean).join(" ")
   );
-  return haystack.includes(norm(q));
+  const tokens = textTokens(q);
+  // Si el query era todo muletillas, no filtramos por texto.
+  if (tokens.length === 0) return true;
+  return tokens.every((t) => haystack.includes(t));
 }
 
 function matchesZones(p: Property, zones: string[]): boolean {

@@ -22,6 +22,9 @@ interface Props {
   pageSize: number;
 }
 
+/** Misma clave que usa el render · las charlas viejas no tienen session_id. */
+const sessionKeyOf = (s: RussiaSession) => s.session_id ?? "__null__";
+
 export default function RussiaLogsClient({
   initialSessions,
   initialTotal,
@@ -30,15 +33,42 @@ export default function RussiaLogsClient({
 }: Props) {
   const router = useRouter();
   const [, startTransition] = useTransition();
-  const [sessions] = useState<RussiaSession[]>(initialSessions);
+  const [sessions, setSessions] = useState<RussiaSession[]>(initialSessions);
   const [total] = useState(initialTotal);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const [filterIp, setFilterIp] = useState<string | null>(null);
   const [filterError, setFilterError] = useState(false);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
-  void pageSize;
-  void total;
+  /**
+   * Trae la siguiente tanda de charlas y las agrega abajo.
+   *
+   * La vista arrancaba con 30 sesiones y no tenía cómo ir más atrás; en
+   * septiembre de 2026 eso dejaba todo lo anterior al 11 fuera de alcance.
+   */
+  async function loadMore() {
+    setLoadingMore(true);
+    setLoadError(null);
+    try {
+      const res = await fetch(
+        `/api/admin/russia-sessions?limit=${pageSize}&offset=${sessions.length}`
+      );
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = (await res.json()) as { sessions: RussiaSession[] };
+      // Dedup defensivo · si entró una charla nueva mientras mirábamos,
+      // el offset se corre y podría repetir una.
+      setSessions((prev) => {
+        const vistos = new Set(prev.map(sessionKeyOf));
+        return [...prev, ...data.sessions.filter((x) => !vistos.has(sessionKeyOf(x)))];
+      });
+    } catch {
+      setLoadError("No se pudieron cargar más charlas. Probá de nuevo.");
+    } finally {
+      setLoadingMore(false);
+    }
+  }
 
   // Filtrado local sobre las sesiones
   const visibleSessions = useMemo(() => {
@@ -327,6 +357,27 @@ export default function RussiaLogsClient({
             })}
           </ul>
         )}
+
+        {/* Paginación · cargar charlas más viejas */}
+        <div className="px-4 py-4 border-t border-gray-100 text-center space-y-2">
+          <p className="text-xs text-gray-500">
+            Mostrando <strong>{sessions.length}</strong> de <strong>{total}</strong> charlas
+            {query.trim() || filterIp || filterError ? (
+              <> · el buscador filtra sólo entre las cargadas</>
+            ) : null}
+          </p>
+          {loadError && <p className="text-xs text-red-600">{loadError}</p>}
+          {sessions.length < total && (
+            <button
+              type="button"
+              onClick={loadMore}
+              disabled={loadingMore}
+              className="inline-flex items-center justify-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:opacity-50"
+            >
+              {loadingMore ? "Cargando…" : `Cargar ${Math.min(pageSize, total - sessions.length)} más`}
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );

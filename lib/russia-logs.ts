@@ -157,9 +157,13 @@ export async function listRussiaSessions(params: {
     return { sessions: [], total: 0 };
   }
 
-  // Total de sesiones distintas
+  // Total de charlas · tiene que contar IGUAL que el GROUP BY de arriba.
+  // COUNT(DISTINCT session_id) dejaba afuera el grupo de los mensajes
+  // viejos sin session_id, así que devolvía 379 mientras la lista traía
+  // 380 y el "Mostrando X de Y" quedaba descolocado.
   const totalRows = (await db`
-    SELECT COUNT(DISTINCT session_id)::int AS total FROM russia_usage_logs
+    SELECT COUNT(*)::int AS total
+    FROM (SELECT session_id FROM russia_usage_logs GROUP BY session_id) t
   `) as Array<{ total: number }>;
 
   // Para cada sesión, traemos sus mensajes en orden cronológico

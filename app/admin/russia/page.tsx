@@ -14,7 +14,9 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
-const PAGE_SIZE = 30;
+// 100 es el techo que acepta listRussiaSessions · con ~380 charlas, son
+// 3 clicks para llegar a las más viejas en vez de doce.
+const PAGE_SIZE = 100;
 
 export default async function AdminRussiaPage() {
   const me = await getCurrentAdmin();
