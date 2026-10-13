@@ -169,19 +169,31 @@ export default async function DevelopmentDetailPage({
             title={dev.name}
           />
 
-          {/* Price range */}
-          <div className="rounded-lg border border-gray-200 bg-gray-50 p-5">
-            <p className="text-xl font-bold text-navy">
-              Desde{" "}
-              <span className="text-magenta">
-                USD {formatPrice(dev.priceFrom)}
-              </span>{" "}
-              hasta{" "}
-              <span className="text-magenta">
-                USD {formatPrice(dev.priceTo)}
-              </span>
-            </p>
-          </div>
+          {/* Rango de precios · cuando queda una sola unidad con precio
+              (el resto reservadas o vendidas), "desde X hasta X" lee mal;
+              mostramos el precio solo. */}
+          {dev.priceFrom > 0 && (
+            <div className="rounded-lg border border-gray-200 bg-gray-50 p-5">
+              <p className="text-xl font-bold text-navy">
+                {dev.priceTo > dev.priceFrom ? (
+                  <>
+                    Desde{" "}
+                    <span className="text-magenta">
+                      USD {formatPrice(dev.priceFrom)}
+                    </span>{" "}
+                    hasta{" "}
+                    <span className="text-magenta">
+                      USD {formatPrice(dev.priceTo)}
+                    </span>
+                  </>
+                ) : (
+                  <span className="text-magenta">
+                    USD {formatPrice(dev.priceFrom)}
+                  </span>
+                )}
+              </p>
+            </div>
+          )}
 
           {/* Features grid */}
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">

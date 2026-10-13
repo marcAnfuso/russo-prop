@@ -116,6 +116,27 @@ function imagesFor(idx: number, imgs?: string[][]): string[] {
   return imgs[idx]?.filter(Boolean) ?? [];
 }
 
+
+/**
+ * 9999999 es el sentinel que usa el equipo en Xintel para "reservado /
+ * vendido": le ponen ese precio a la unidad para que no se vea el valor
+ * real. El problema es que Xintel calcula su propio `valor_hasta`
+ * sumando las unidades, sentinel incluido, así que nos devolvía rangos
+ * como "desde USD 85.000 hasta USD 9.999.999" (Las Acacias y Eizaguirre
+ * 2735, reportado por Juampi el 09/10/2026).
+ *
+ * Al filtrarlo acá, el rango cae a las unidades reales con precio.
+ */
+const PRECIO_RESERVADO = 9999999;
+
+function isRealPrice(n: number): boolean {
+  return n > 0 && n !== PRECIO_RESERVADO;
+}
+
+function unitPrices(units: Property[]): number[] {
+  return units.map((u) => u.price).filter(isRealPrice);
+}
+
 function fichaToDevelopment(
   f: XintelEmpFicha,
   imageList: string[],
@@ -132,9 +153,7 @@ function fichaToDevelopment(
   // de las fichas reales que carga el equipo en Xintel — la API de
   // emprendimientos no los expone directamente.
   const totalUnits = units.length;
-  const availableUnits = units.filter(
-    (u) => u.price > 0 && u.price !== 9999999
-  ).length;
+  const availableUnits = units.filter((u) => isRealPrice(u.price)).length;
 
   const baths = units
     .map((u) => u.features.bathrooms ?? 0)
@@ -184,14 +203,14 @@ function fichaToDevelopment(
     // precio cargado. Evita el "desde USD 0" en cards.
     priceFrom: (() => {
       const xv = num(f.valor_desde);
-      if (xv > 0) return xv;
-      const prices = units.map((u) => u.price).filter((p) => p > 0 && p !== 9999999);
+      if (isRealPrice(xv)) return xv;
+      const prices = unitPrices(units);
       return prices.length ? Math.min(...prices) : 0;
     })(),
     priceTo: (() => {
       const xv = num(f.valor_hasta);
-      if (xv > 0) return xv;
-      const prices = units.map((u) => u.price).filter((p) => p > 0 && p !== 9999999);
+      if (isRealPrice(xv)) return xv;
+      const prices = unitPrices(units);
       return prices.length ? Math.max(...prices) : 0;
     })(),
     totalUnits,
