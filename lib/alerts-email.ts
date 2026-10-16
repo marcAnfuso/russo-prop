@@ -1,6 +1,7 @@
 import { Resend } from "resend";
 import type { Alert, AlertCriterion } from "./alerts-db";
 import { describeCriterion } from "./alerts-db";
+import { priceLabel } from "./utils";
 
 const FROM = process.env.RESEND_FROM ?? "Russo Propiedades <alertas@russopropiedades.com.ar>";
 const SITE_URL =
@@ -118,8 +119,8 @@ export async function sendMatchDigestEmail(
   const cardsHtml = matches
     .slice(0, 6)
     .map((m) => {
-      const cur = m.currency === "ARS" ? "$" : "USD";
-      const price = new Intl.NumberFormat("es-AR").format(m.price);
+      // priceLabel · si no, una reservada o "a consultar" salía como "USD 9.999.999".
+      const precio = priceLabel(m);
       const url = `${SITE_URL}/propiedad/${m.id}`;
       return `
         <table style="width:100%;border:1px solid #e5e7eb;border-radius:10px;margin:0 0 12px;overflow:hidden;">
@@ -132,7 +133,7 @@ export async function sendMatchDigestEmail(
               <p style="margin:0 0 2px;font-size:11px;color:#9ca3af;font-family:monospace;">${m.code}</p>
               <p style="margin:0 0 4px;font-weight:600;color:#1a2251;">${escapeHtml(m.address)}</p>
               <p style="margin:0 0 6px;font-size:12px;color:#6b7280;">${escapeHtml(m.locality)}</p>
-              <p style="margin:0 0 8px;font-weight:700;color:#1a2251;">${cur} ${price}</p>
+              <p style="margin:0 0 8px;font-weight:700;color:#1a2251;">${precio}</p>
               <a href="${url}" style="display:inline-block;background:#e6007e;color:white;padding:6px 12px;border-radius:6px;text-decoration:none;font-size:12px;font-weight:600;">Ver propiedad</a>
             </td>
           </tr>

@@ -15,7 +15,7 @@ import ContactButtons from "@/components/ContactButtons";
 import FavoriteButton from "@/components/FavoriteButton";
 import ShareButton from "@/components/ShareButton";
 import NoPhotoPlaceholder from "@/components/NoPhotoPlaceholder";
-import { formatPrice } from "@/lib/utils";
+import { isReservada, priceLabel as priceLabelFor } from "@/lib/utils";
 
 interface PropertyCardProps {
   property: Property;
@@ -57,8 +57,6 @@ export default function PropertyCard({
     operation,
     type,
     subtype,
-    price,
-    currency,
     address,
     locality,
     district,
@@ -67,12 +65,7 @@ export default function PropertyCard({
   } = property;
 
   const isAlquiler = operation === "alquiler";
-  const currencyLabel = currency === "ARS" ? "$" : "USD";
-  const priceLabel = property.sold
-    ? "Vendida"
-    : price === 9999999
-    ? "Reservado"
-    : `${currencyLabel} ${formatPrice(price)}`;
+  const priceLabel = property.sold ? "Vendida" : priceLabelFor(property);
   const imageSrc = images.length > 0 ? images[0] : null;
   const badgeLabel = subtype ?? COMMERCIAL_TYPE_LABEL[type];
 
@@ -162,7 +155,7 @@ export default function PropertyCard({
             <span className="absolute top-3 right-3 z-20 rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-white bg-emerald-500 shadow-[0_4px_12px_-2px_rgba(16,185,129,0.5)]">
               Vendimos
             </span>
-          ) : price === 9999999 ? (
+          ) : isReservada(property) ? (
             <span className="absolute top-3 right-3 z-20 rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-white bg-amber-500">
               Reservado
             </span>
@@ -282,7 +275,7 @@ export default function PropertyCard({
           <span className="absolute top-3 right-3 z-20 rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-white bg-emerald-500 shadow-[0_4px_12px_-2px_rgba(16,185,129,0.5)]">
             Vendimos
           </span>
-        ) : price === 9999999 ? (
+        ) : isReservada(property) ? (
           <span className="absolute top-3 right-3 z-20 rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-white bg-amber-500 backdrop-blur-sm">
             Reservado
           </span>

@@ -1,5 +1,6 @@
 import { unstable_cache } from "next/cache";
 import type { Property, OperationType, PropertyType } from "@/data/types";
+import { PRECIO_OCULTO } from "./utils";
 
 // ─── Config ────────────────────────────────────────────────────────────────
 
@@ -197,6 +198,20 @@ function num(v: string | number | null | undefined): number {
 }
 
 /** Parse price from the pre-formatted "precio" string e.g. "U$S 58.500" → 58500 */
+/**
+ * "Anular precio en Internet" tildado en Xintel.
+ *
+ * Xintel no lo expone como un flag propio (in_apre viene siempre "False",
+ * octubre 2026): lo que hace es reemplazar el texto `precio` por
+ * "Consultar", pero sigue mandando el número real en venta_precio / in_val.
+ * Como nosotros leemos primero el número, ignorábamos el tilde y la web
+ * seguía mostrando el precio (reportado por Ramita el 15/10/2026 con las 17
+ * unidades de Residencial Espora).
+ */
+function precioAnulado(ficha: { precio?: string }): boolean {
+  return /^\s*consultar\s*$/i.test(ficha.precio ?? "");
+}
+
 function parsePrecio(precio?: string): number {
   if (!precio) return 0;
   // Remove currency prefix, dots used as thousand separators, keep only last decimal
@@ -332,8 +347,13 @@ export function mapListFicha(ficha: XintelListFicha, imgs: string | string[], am
     op === "alquiler"
       ? num(ficha.alquiler_precio)
       : num(ficha.venta_precio);
+  // Precio anulado en Xintel · el número real NO sale de acá: se reemplaza
+  // por el sentinel de precio oculto, así no llega nunca al navegador.
+  const priceOnRequest = precioAnulado(ficha);
   // fichas.destacadas returns venta_precio/alquiler_precio as null — fallback to parsed precio
-  const price = rawPrice || num(ficha.in_val) || parsePrecio(ficha.precio);
+  const price = priceOnRequest
+    ? PRECIO_OCULTO
+    : rawPrice || num(ficha.in_val) || parsePrecio(ficha.precio);
   const monedaField = op === "alquiler" ? ficha.alquiler_moneda : ficha.venta_moneda;
   // Si caímos al string preformateado (ej: "U$S 7.000"), inferimos moneda
   // del propio string · sino el default por op (alquiler→ARS) confunde un
@@ -356,6 +376,7 @@ export function mapListFicha(ficha: XintelListFicha, imgs: string | string[], am
     subtype: mapSubtype(ficha.in_tpr, ficha.tipo),
     price,
     currency,
+    priceOnRequest: priceOnRequest || undefined,
     address: decodeHtml(ficha.direccion_completa || `${ficha.in_cal ?? ""} ${ficha.in_nro ?? ""}`).trim(),
     // Fallback: si Russo no cargó in_bar (barrio), usamos in_loc (partido)
     // así la propiedad aparece en el filtro de zonas igual.
@@ -566,7 +587,12 @@ export async function fetchAllProperties(
     if (statusMap.size > 0) {
       for (const p of all) {
         const st = statusMap.get(p.id);
-        if (st === "reserved") p.price = 9999999;
+        if (st === "reserved") {
+          p.price = PRECIO_OCULTO;
+          // Reservada desde el admin gana sobre "a consultar": el cartel
+          // tiene que decir Reservado.
+          p.priceOnRequest = undefined;
+        }
         // 'active' y 'sold' no necesitan tocar el price aquí · 'active'
         // significa "respetar Xintel" y 'sold' lo gestiona el badge.
       }
@@ -735,7 +761,11 @@ export async function fetchProperty(id: string): Promise<Property | null> {
       op === "alquiler"
         ? num(ficha.alquiler_precio)
         : num(ficha.venta_precio);
-    const price = rawPrice || num(ficha.in_val) || parsePrecio(ficha.precio);
+    // Mismo criterio que mapListFicha · ver precioAnulado().
+    const priceOnRequest = precioAnulado(ficha);
+    const price = priceOnRequest
+      ? PRECIO_OCULTO
+      : rawPrice || num(ficha.in_val) || parsePrecio(ficha.precio);
     const monedaField = op === "alquiler" ? ficha.alquiler_moneda : ficha.venta_moneda;
     const currency =
       !rawPrice && !num(ficha.in_val) && ficha.precio && !monedaField
@@ -756,6 +786,7 @@ export async function fetchProperty(id: string): Promise<Property | null> {
       subtype: mapSubtype(ficha.in_tpr, ficha.tipo),
       price,
       currency,
+      priceOnRequest: priceOnRequest || undefined,
       address: decodeHtml(ficha.direccion_completa || `${ficha.in_cal ?? ""} ${ficha.in_nro ?? ""}`).trim(),
       locality: normalizeLocality(ficha.in_bar) || normalizeLocality(ficha.in_loc),
       district: decodeHtml(ficha.in_loc),

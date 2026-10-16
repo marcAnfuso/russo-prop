@@ -3,12 +3,12 @@
 import { useState } from "react";
 import { Share2, Check } from "lucide-react";
 import type { Property } from "@/data/types";
-import { formatPrice } from "@/lib/utils";
+import { priceLabel as priceLabelFor } from "@/lib/utils";
 
 interface ShareButtonProps {
   property: Pick<
     Property,
-    "id" | "code" | "operation" | "type" | "price" | "currency" | "address" | "locality"
+    "id" | "code" | "operation" | "type" | "price" | "currency" | "priceOnRequest" | "address" | "locality"
   >;
   /** Variante visual · "card" usa el mismo estilo que FavoriteButton
    * (overlay sobre la imagen, fondo blanco semitransparente) */
@@ -20,9 +20,7 @@ const SITE_URL =
 
 function buildShare(p: ShareButtonProps["property"]) {
   const url = `${SITE_URL}/propiedad/${p.id}`;
-  const currency = p.currency === "ARS" ? "$" : "USD";
-  const priceLabel =
-    p.price === 9999999 ? "Reservado" : `${currency} ${formatPrice(p.price)}`;
+  const priceLabel = priceLabelFor(p);
   const opLabel = p.operation === "alquiler" ? "alquiler" : "venta";
   const typeLabel = p.type.charAt(0).toUpperCase() + p.type.slice(1);
   const text = `${typeLabel} en ${opLabel} · ${priceLabel}\n${p.address}, ${p.locality}\n\nMirá la ficha completa en Russo Propiedades:`;

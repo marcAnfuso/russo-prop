@@ -153,7 +153,16 @@ function fichaToDevelopment(
   // de las fichas reales que carga el equipo en Xintel — la API de
   // emprendimientos no los expone directamente.
   const totalUnits = units.length;
-  const availableUnits = units.filter((u) => isRealPrice(u.price)).length;
+  // "A consultar" (precio anulado en Xintel) está disponible: sólo no
+  // muestra el precio. No confundir con reservada.
+  const availableUnits = units.filter((u) => isRealPrice(u.price) || u.priceOnRequest).length;
+
+  // Si alguna unidad tiene el precio anulado, el valor_desde / valor_hasta
+  // que manda Xintel no sirve: lo calcula con TODAS las unidades, incluidas
+  // las ocultas, y publicarlo deshace lo que el equipo pidió ocultar
+  // (Residencial Espora mostraba "Desde USD 67.505 hasta USD 164.623" con
+  // las 17 unidades anuladas). En ese caso, sólo las visibles.
+  const hayPreciosOcultos = units.some((u) => u.priceOnRequest);
 
   const baths = units
     .map((u) => u.features.bathrooms ?? 0)
@@ -203,13 +212,13 @@ function fichaToDevelopment(
     // precio cargado. Evita el "desde USD 0" en cards.
     priceFrom: (() => {
       const xv = num(f.valor_desde);
-      if (isRealPrice(xv)) return xv;
+      if (!hayPreciosOcultos && isRealPrice(xv)) return xv;
       const prices = unitPrices(units);
       return prices.length ? Math.min(...prices) : 0;
     })(),
     priceTo: (() => {
       const xv = num(f.valor_hasta);
-      if (isRealPrice(xv)) return xv;
+      if (!hayPreciosOcultos && isRealPrice(xv)) return xv;
       const prices = unitPrices(units);
       return prices.length ? Math.max(...prices) : 0;
     })(),

@@ -172,7 +172,13 @@ export default async function DevelopmentDetailPage({
           {/* Rango de precios · cuando queda una sola unidad con precio
               (el resto reservadas o vendidas), "desde X hasta X" lee mal;
               mostramos el precio solo. */}
-          {dev.priceFrom > 0 && (
+          {dev.priceFrom === 0 ? (
+            // Sin precios visibles (todas reservadas o con el precio anulado
+            // en Xintel). Mismo texto que la card del listado.
+            <div className="rounded-lg border border-gray-200 bg-gray-50 p-5">
+              <p className="text-xl font-bold text-navy">Precios a consultar</p>
+            </div>
+          ) : (
             <div className="rounded-lg border border-gray-200 bg-gray-50 p-5">
               <p className="text-xl font-bold text-navy">
                 {dev.priceTo > dev.priceFrom ? (

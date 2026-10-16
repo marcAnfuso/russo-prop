@@ -12,6 +12,7 @@ interface PropertyCard {
   operation: string;
   type: string;
   price: number;
+  priceOnRequest?: boolean;
   currency: string;
   address: string;
   locality: string;
@@ -284,7 +285,9 @@ function PropertyResultCard({ property: p }: { property: PropertyCard }) {
   const isAlquiler = p.operation === "alquiler";
   const currency = p.currency === "ARS" ? "$" : "USD";
   const priceLabel =
-    p.price === 9999999 ? "Reservado" : `${currency} ${formatPrice(p.price)}`;
+    p.price === 9999999
+      ? p.priceOnRequest ? "Consultar" : "Reservado"
+      : `${currency} ${formatPrice(p.price)}`;
 
   return (
     <Link

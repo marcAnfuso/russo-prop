@@ -9,7 +9,7 @@ import {
   useMap,
 } from "@vis.gl/react-google-maps";
 import type { MapViewProps } from "./MapView";
-import { formatPrice } from "@/lib/utils";
+import { priceLabel as priceLabelFor } from "@/lib/utils";
 
 const DEFAULT_CENTER = { lat: -34.6833, lng: -58.55 };
 const DEFAULT_ZOOM = 13;
@@ -143,8 +143,8 @@ export default function MapViewInner({
                   </div>
                 )}
                 <p className="font-semibold text-sm text-gray-900">
-                  {openProperty.currency === "ARS" ? "$" : "USD"}{" "}
-                  {formatPrice(openProperty.price)}
+                  {/* Antes: "USD 9.999.999" en reservadas y a consultar. */}
+                  {priceLabelFor({ ...openProperty, currency: openProperty.currency ?? "USD" })}
                 </p>
                 <p className="text-xs text-gray-600 line-clamp-2">
                   {openProperty.address}

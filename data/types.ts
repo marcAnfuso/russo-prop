@@ -55,6 +55,14 @@ export interface Property {
   subtype?: string;
   price: number;
   currency: "USD" | "ARS";
+  /**
+   * El equipo tildó "Anular precio en Internet" en Xintel: la propiedad se
+   * publica pero sin mostrar el precio. Viene con price = 9999999 (el mismo
+   * sentinel de "precio oculto" que usa Reservado, así hereda todo lo que
+   * ya excluye ese valor de filtros, alertas y orden) y este flag dice que
+   * el motivo es "a consultar", no "reservada".
+   */
+  priceOnRequest?: boolean;
   address: string;
   locality: string;
   district: string;

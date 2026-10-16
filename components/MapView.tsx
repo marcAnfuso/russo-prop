@@ -10,6 +10,7 @@ export interface MapViewProps {
     title: string;
     price: number;
     currency?: "USD" | "ARS";
+    priceOnRequest?: boolean;
     address: string;
     location: { lat: number; lng: number };
     images: string[];

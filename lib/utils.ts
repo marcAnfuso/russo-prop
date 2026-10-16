@@ -60,3 +60,41 @@ export function stripHtml(html: string): string {
     .replace(/\s+/g, " ")
     .trim();
 }
+
+/**
+ * Sentinel de "precio oculto". Lo usa el equipo en Xintel para las
+ * reservadas, y lo usamos nosotros para las que tienen "Anular precio en
+ * Internet" tildado (ver Property.priceOnRequest). Nunca es un precio real.
+ */
+export const PRECIO_OCULTO = 9999999;
+
+type ConPrecio = { price: number; currency: "USD" | "ARS"; priceOnRequest?: boolean };
+
+/** Reservada de verdad: precio oculto y NO por "a consultar". */
+export function isReservada(p: ConPrecio): boolean {
+  return p.price === PRECIO_OCULTO && !p.priceOnRequest;
+}
+
+/**
+ * Lo que se le muestra al visitante en lugar del precio: "Reservado",
+ * "Consultar", o el precio formateado. Única fuente de verdad · antes cada
+ * componente decidía por su cuenta y varios mostraban "USD 9.999.999".
+ */
+export function priceLabel(p: ConPrecio): string {
+  if (p.price === PRECIO_OCULTO) return p.priceOnRequest ? "Consultar" : "Reservado";
+  return `${p.currency === "ARS" ? "$" : "USD"} ${formatPrice(p.price)}`;
+}
+
+/**
+ * El precio como se lo pasamos a Russia (Gemini). Antes le llegaba el
+ * número crudo y con una reservada veía literalmente "9999999"; con una "a
+ * consultar" le hubiéramos regalado el precio que el equipo pidió ocultar.
+ */
+export function priceForModel(p: ConPrecio): string | number {
+  if (p.price === PRECIO_OCULTO) {
+    return p.priceOnRequest
+      ? "a consultar (el equipo no publica el precio; no lo inventes, invitá a consultar por WhatsApp)"
+      : "reservada";
+  }
+  return p.price;
+}

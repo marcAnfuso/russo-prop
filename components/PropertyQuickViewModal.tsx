@@ -5,7 +5,7 @@ import { ChevronLeft, ChevronRight, X, Maximize2, Home, Droplets, Car, Loader2 }
 import type { Property } from "@/data/types";
 import ContactButtons from "@/components/ContactButtons";
 import NoPhotoPlaceholder from "@/components/NoPhotoPlaceholder";
-import { formatPrice } from "@/lib/utils";
+import { priceLabel as priceLabelFor } from "@/lib/utils";
 
 interface PropertyQuickViewModalProps {
   property: Property | null;
@@ -66,13 +66,9 @@ export default function PropertyQuickViewModal({
 
   if (!isOpen || !property) return null;
 
-  const { code, price, currency, address, locality, district, features } = property;
+  const { code, address, locality, district, features } = property;
   const images = fullImages ?? property.images;
-  const currencyLabel = currency === "ARS" ? "$" : "USD";
-  const priceLabel =
-    price === 9999999
-      ? "Reservado"
-      : `${currencyLabel} ${formatPrice(price)}`;
+  const priceLabel = priceLabelFor(property);
 
   const currentImage = images[currentImageIndex] || images[0];
 

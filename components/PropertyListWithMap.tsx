@@ -158,6 +158,7 @@ export default function PropertyListWithMap({
         id: p.id,
         title: p.title,
         price: p.price,
+        priceOnRequest: p.priceOnRequest,
         currency: p.currency,
         address: p.address,
         location: p.location,

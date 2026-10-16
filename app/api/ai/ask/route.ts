@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { fetchProperty } from "@/lib/xintel";
+import { priceForModel } from "@/lib/utils";
 import { gemini, FLASH_MODEL } from "@/lib/gemini";
 
 export const maxDuration = 30;
@@ -37,7 +38,7 @@ function propertyContext(p: NonNullable<Awaited<ReturnType<typeof fetchProperty>
 - Código: ${p.code}
 - Tipo: ${p.type}${p.subtype ? ` (${p.subtype})` : ""}
 - Operación: ${p.operation}
-- Precio: ${p.currency} ${p.price}
+- Precio: ${typeof priceForModel(p) === "number" ? `${p.currency} ${p.price}` : priceForModel(p)}
 - Dirección: ${p.address}
 - Barrio: ${p.locality}${p.district ? `, ${p.district}` : ""}
 - Ambientes: ${feat.rooms ?? "s/d"}

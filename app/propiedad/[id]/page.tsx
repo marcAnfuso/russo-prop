@@ -14,7 +14,7 @@ import {
 import { fetchProperty } from "@/lib/xintel";
 import { listPicks } from "@/lib/picks";
 import type { Property } from "@/data/types";
-import { formatPrice, stripHtml } from "@/lib/utils";
+import { formatPrice, stripHtml, priceLabel as priceLabelFor, isReservada, PRECIO_OCULTO } from "@/lib/utils";
 import Gallery from "@/components/Gallery";
 import AmenityList from "@/components/AmenityList";
 import RussiaChatWidget from "@/components/RussiaChatWidget";
@@ -39,9 +39,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const property = await fetchProperty(id);
   if (!property) return { title: "Propiedad no encontrada", robots: { index: false, follow: false } };
 
-  const priceLabel = property.price === 9999999
-    ? "Reservado"
-    : `${property.currency === "ARS" ? "$" : "USD"} ${formatPrice(property.price)}`;
+  const priceLabel = priceLabelFor(property);
 
   const title = `${property.type.charAt(0).toUpperCase() + property.type.slice(1)} en ${property.operation === "alquiler" ? "Alquiler" : "Venta"} — ${priceLabel}`;
   const description = `${property.address}, ${property.locality}. ${property.features.rooms ? property.features.rooms + " amb." : ""} ${property.features.totalArea ? property.features.totalArea + " m²" : ""}`.trim();
@@ -179,6 +177,7 @@ export default async function PropertyDetailPage({ params }: PageProps) {
     id: property.id,
     title: property.title,
     price: property.price,
+    priceOnRequest: property.priceOnRequest,
     address: property.address,
     location: property.location,
     images: property.images,
@@ -211,12 +210,13 @@ export default async function PropertyDetailPage({ params }: PageProps) {
             },
             offers: {
               "@type": "Offer",
-              price: property.price === 9999999 ? undefined : property.price,
+              // Precio oculto (reservada o a consultar) · no se lo damos
+              // a Google tampoco.
+              price: property.price === PRECIO_OCULTO ? undefined : property.price,
               priceCurrency: property.currency,
-              availability:
-                property.price === 9999999
-                  ? "https://schema.org/SoldOut"
-                  : "https://schema.org/InStock",
+              availability: isReservada(property)
+                ? "https://schema.org/SoldOut"
+                : "https://schema.org/InStock",
             },
           }),
         }}
@@ -296,9 +296,9 @@ export default async function PropertyDetailPage({ params }: PageProps) {
           {/* Price + expensas + impuesto municipal en mini-cards */}
           <div>
             <p className="text-3xl font-bold text-gray-900">
-              {property.sold
-                ? "Vendida"
-                : `${property.currency === "ARS" ? "$" : "USD"} ${formatPrice(property.price)}`}
+              {/* Antes mostraba "USD 9.999.999" en las reservadas: este
+                  precio grande nunca miraba el sentinel. */}
+              {property.sold ? "Vendida" : priceLabelFor(property)}
             </p>
             {!property.sold &&
               ((property.details?.expenses ?? 0) > 0 ||
@@ -455,6 +455,7 @@ export default async function PropertyDetailPage({ params }: PageProps) {
                 className="h-full w-full"
               />
             </div>
+
           </section>
         </div>
 

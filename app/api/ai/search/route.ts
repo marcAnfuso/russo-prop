@@ -9,6 +9,7 @@ import {
 } from "@/lib/property-search";
 import { fetchProperty } from "@/lib/xintel";
 import type { Property } from "@/data/types";
+import { priceForModel } from "@/lib/utils";
 import { listPOILabels } from "@/lib/pois";
 import { hashIp, logRussiaUsage } from "@/lib/russia-logs";
 
@@ -243,6 +244,7 @@ interface PropertyCard {
   operation: string;
   type: string;
   price: number;
+  priceOnRequest?: boolean;
   currency: string;
   address: string;
   locality: string;
@@ -262,6 +264,7 @@ function toCard(p: Property): PropertyCard {
     operation: p.operation,
     type: p.type,
     price: p.price,
+    priceOnRequest: p.priceOnRequest,
     currency: p.currency,
     address: p.address,
     locality: p.locality,
@@ -579,7 +582,7 @@ export async function POST(req: NextRequest) {
             type: prop.type,
             subtype: prop.subtype ?? null,
             operation: prop.operation,
-            price: prop.price,
+            price: priceForModel(prop),
             currency: prop.currency,
             address: prop.address,
             locality: prop.locality,
@@ -690,7 +693,7 @@ export async function POST(req: NextRequest) {
                     code: p.code,
                     type: p.type,
                     operation: p.operation,
-                    price: p.price,
+                    price: priceForModel(p),
                     currency: p.currency,
                     address: p.address,
                     locality: p.locality,
