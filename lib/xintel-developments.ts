@@ -1,5 +1,5 @@
 import type { Development, DevelopmentStatus, Property } from "@/data/types";
-import { listPicks } from "./picks";
+import { listPicksPublic } from "./picks";
 import { mapListFicha, type XintelListFicha } from "./xintel";
 
 const BASE = "https://xintelapi.com.ar/";
@@ -338,7 +338,7 @@ export async function fetchDevelopmentIds(): Promise<string[]> {
 export async function fetchPublicDevelopments(): Promise<Development[]> {
   const [all, hidden] = await Promise.all([
     fetchDevelopments(),
-    listPicks("development_hidden").catch(() => []),
+    listPicksPublic("development_hidden"),
   ]);
   const hiddenSet = new Set(hidden);
   return all.filter((d) => !hiddenSet.has(d.id));

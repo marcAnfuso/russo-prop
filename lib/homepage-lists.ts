@@ -4,7 +4,7 @@ import {
   fetchFeaturedProperties,
   fetchLatestProperties,
 } from "./xintel";
-import { listPicks, rotateDaily } from "./picks";
+import { listPicksPublic, rotateDaily } from "./picks";
 
 /**
  * Featured properties shown on the home.
@@ -17,7 +17,7 @@ import { listPicks, rotateDaily } from "./picks";
  */
 export async function getHomeFeatured(count = 4): Promise<Property[]> {
   try {
-    const picks = await listPicks("featured");
+    const picks = await listPicksPublic("featured");
     if (picks.length > 0) {
       const [ventas, alquileres] = await Promise.all([
         fetchAllProperties("venta"),
@@ -48,7 +48,7 @@ export async function getHomeFeatured(count = 4): Promise<Property[]> {
  */
 export async function getHomeNewListings(count = 6): Promise<Property[]> {
   try {
-    const picks = await listPicks("new");
+    const picks = await listPicksPublic("new");
     if (picks.length > 0) {
       const [ventas, alquileres] = await Promise.all([
         fetchAllProperties("venta"),
@@ -77,7 +77,7 @@ export async function getHomeNewListings(count = 6): Promise<Property[]> {
  */
 export async function getHomeOpportunities(count = 3): Promise<Property[]> {
   try {
-    const picks = await listPicks("opportunity");
+    const picks = await listPicksPublic("opportunity");
     if (picks.length === 0) return [];
     const [ventas, alquileres] = await Promise.all([
       fetchAllProperties("venta"),

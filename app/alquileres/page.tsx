@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import PropertyListWithMap from "@/components/PropertyListWithMap";
 import PropertyListSkeleton from "@/components/PropertyListSkeleton";
 import { fetchAllProperties, toListProperty } from "@/lib/xintel";
-import { listPicks } from "@/lib/picks";
+import { listPicksPublic } from "@/lib/picks";
 
 export const metadata = {
   alternates: { canonical: "/alquileres" },
@@ -23,7 +23,7 @@ export const dynamic = "force-dynamic";
 async function AlquileresContent() {
   const [properties, soldIds] = await Promise.all([
     fetchAllProperties("alquiler"),
-    listPicks("sold"),
+    listPicksPublic("sold"),
   ]);
   const soldSet = new Set(soldIds);
   // Strip campos pesados: el detail page re-fetchea la ficha completa.

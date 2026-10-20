@@ -12,7 +12,7 @@ import {
   Calendar,
 } from "lucide-react";
 import { fetchProperty } from "@/lib/xintel";
-import { listPicks } from "@/lib/picks";
+import { listPicksPublic } from "@/lib/picks";
 import type { Property } from "@/data/types";
 import { formatPrice, stripHtml, priceLabel as priceLabelFor, isReservada, PRECIO_OCULTO } from "@/lib/utils";
 import Gallery from "@/components/Gallery";
@@ -66,7 +66,7 @@ export default async function PropertyDetailPage({ params }: PageProps) {
   const { id } = await params;
   const [property, soldIds] = await Promise.all([
     fetchProperty(id),
-    listPicks("sold"),
+    listPicksPublic("sold"),
   ]);
   const { properties: allProperties } = await fetchProperties({
     operation: property?.operation ?? "venta",

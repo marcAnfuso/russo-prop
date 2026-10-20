@@ -1,3 +1,4 @@
+import { unstable_cache } from "next/cache";
 import { sql } from "./db";
 
 export type PickList = "featured" | "new" | "sold" | "development_hidden" | "opportunity";
@@ -103,4 +104,60 @@ export function rotateDaily<T>(pool: T[], count: number): T[] {
     [arr[i], arr[j]] = [arr[j], arr[i]];
   }
   return arr.slice(0, count);
+}
+
+/**
+ * Todas las filas de manual_picks, cacheadas 120s como prioridades,
+ * estados y coordenadas.
+ */
+const getPicksRowsCached = unstable_cache(
+  async () => {
+    await ensurePicksSchema();
+    const db = sql();
+    return (await db`
+      SELECT property_id, list_key, expires_at
+      FROM manual_picks
+      ORDER BY added_at DESC
+    `) as Array<{ property_id: string; list_key: PickList; expires_at: string | null }>;
+  },
+  ["manual-picks-rows"],
+  { revalidate: 120, tags: ["xintel"] }
+);
+
+/**
+ * listPicks para las páginas públicas: cacheada y a prueba de base caída.
+ *
+ * El 20/10/2026 Neon cortó por cuota agotada (HTTP 402) y el sitio se cayó:
+ * las fichas daban 500 y /ventas quedaba en "cargando". El catálogo viene de
+ * Xintel; la base sólo guarda extras (el cartel de vendida, destacadas,
+ * ocultas), pero listPicks no atrapaba el error y se llevaba la página
+ * puesta. Además no tenía caché: cada visita (y cada pasada de Google por
+ * las ~900 fichas del sitemap) despertaba la base con 3 consultas, que es
+ * justo lo que consume la cuota.
+ *
+ * Si la base no responde devuelve [] y la página sale igual, sin esos
+ * extras. listPicks (sin caché) queda para el admin, que necesita ver el
+ * dato al instante después de editarlo.
+ */
+export async function listPicksPublic(listKey: PickList): Promise<string[]> {
+  try {
+    if (listKey === "sold") {
+      // "Vendida" vive en property_status desde la migración; getStatusMap
+      // ya está cacheada y es la misma que usa fetchAllProperties.
+      const { getStatusMap } = await import("./status-db");
+      const map = await getStatusMap();
+      return [...map].filter(([, st]) => st === "sold").map(([id]) => id);
+    }
+    const rows = await getPicksRowsCached();
+    const ahora = Date.now();
+    return rows
+      .filter(
+        (r) =>
+          r.list_key === listKey &&
+          (!r.expires_at || new Date(r.expires_at).getTime() > ahora)
+      )
+      .map((r) => r.property_id);
+  } catch {
+    return [];
+  }
 }

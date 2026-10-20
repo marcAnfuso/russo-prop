@@ -16,7 +16,7 @@ import ContactSidebar from "@/components/ContactSidebar";
 import MapView from "@/components/MapView";
 import PropertyCard from "@/components/PropertyCard";
 import { fetchDevelopment, fetchDevelopmentIds } from "@/lib/xintel-developments";
-import { listPicks } from "@/lib/picks";
+import { listPicksPublic } from "@/lib/picks";
 import { formatPrice } from "@/lib/utils";
 import type { DevelopmentStatus } from "@/data/types";
 
@@ -89,7 +89,7 @@ export default async function DevelopmentDetailPage({
   const { id } = await params;
   const [dev, hidden] = await Promise.all([
     fetchDevelopment(id),
-    listPicks("development_hidden").catch((): string[] => []),
+    listPicksPublic("development_hidden"),
   ]);
 
   // Si el admin escondió este emprendimiento, no exponer la URL pública.
