@@ -172,6 +172,92 @@ export async function insertEvents(
   await db.query(query, params);
 }
 
+// ── Escritura en lote (cola de analítica) ───────────────────────────────
+//
+// Las usa el vaciado de la cola (lib/analytics-queue.ts). A diferencia de
+// upsertSession / insertEvents, no confían en el DEFAULT now() de las
+// columnas de fecha: los eventos llegan a la base hasta 1 h tarde (8 h los
+// de la madrugada), y si tomaran la hora de la escritura las estadísticas
+// del admin dirían que toda la noche pasó a las 8.
+
+export interface SessionBatchRow extends SessionInfo {
+  first_seen: string; // ISO · primer pedido de la sesión en la tanda
+  last_seen: string; // ISO · último pedido de la sesión en la tanda
+}
+
+export interface EventBatchRow extends AnalyticsEvent {
+  session_id: string;
+  visitor_id: string;
+  ts: string; // ISO · obligatorio acá
+}
+
+const LOTE = 500;
+
+export async function upsertSessionsBatch(rows: SessionBatchRow[]): Promise<void> {
+  if (rows.length === 0) return;
+  await ensureAnalyticsSchema();
+  const db = sql();
+  const cols = 15;
+  for (let i = 0; i < rows.length; i += LOTE) {
+    const chunk = rows.slice(i, i + LOTE);
+    const groups: string[] = [];
+    const params: unknown[] = [];
+    chunk.forEach((r, j) => {
+      const b = j * cols;
+      groups.push(`(${Array.from({ length: cols }, (_, k) => `$${b + k + 1}`).join(", ")})`);
+      params.push(
+        r.session_id, r.visitor_id, r.device ?? null, r.browser ?? null, r.os ?? null,
+        r.country ?? null, r.city ?? null, r.referrer ?? null, r.utm_source ?? null,
+        r.utm_medium ?? null, r.utm_campaign ?? null, r.user_agent ?? null,
+        r.is_bot ?? false, r.first_seen, r.last_seen
+      );
+    });
+    // Mismo criterio que upsertSession: sólo completa campos faltantes.
+    // first_seen no se pisa; last_seen se queda con el más nuevo.
+    await db.query(
+      `INSERT INTO analytics_sessions (
+         id, visitor_id, device, browser, os, country, city, referrer,
+         utm_source, utm_medium, utm_campaign, user_agent, is_bot,
+         first_seen, last_seen
+       ) VALUES ${groups.join(", ")}
+       ON CONFLICT (id) DO UPDATE SET
+         last_seen = GREATEST(analytics_sessions.last_seen, EXCLUDED.last_seen),
+         device   = COALESCE(analytics_sessions.device,   EXCLUDED.device),
+         browser  = COALESCE(analytics_sessions.browser,  EXCLUDED.browser),
+         os       = COALESCE(analytics_sessions.os,       EXCLUDED.os),
+         country  = COALESCE(analytics_sessions.country,  EXCLUDED.country),
+         city     = COALESCE(analytics_sessions.city,     EXCLUDED.city),
+         referrer = COALESCE(analytics_sessions.referrer, EXCLUDED.referrer)`,
+      params
+    );
+  }
+}
+
+export async function insertEventsBatch(rows: EventBatchRow[]): Promise<void> {
+  if (rows.length === 0) return;
+  await ensureAnalyticsSchema();
+  const db = sql();
+  const cols = 7;
+  for (let i = 0; i < rows.length; i += LOTE) {
+    const chunk = rows.slice(i, i + LOTE);
+    const groups: string[] = [];
+    const params: unknown[] = [];
+    chunk.forEach((e, j) => {
+      const b = j * cols;
+      groups.push(`($${b + 1}, $${b + 2}, $${b + 3}, $${b + 4}, $${b + 5}, $${b + 6}, $${b + 7})`);
+      params.push(
+        e.session_id, e.visitor_id, e.type, e.path ?? null, e.property_id ?? null,
+        e.metadata ? JSON.stringify(e.metadata) : null, e.ts
+      );
+    });
+    await db.query(
+      `INSERT INTO analytics_events (session_id, visitor_id, type, path, property_id, metadata, ts)
+       VALUES ${groups.join(", ")}`,
+      params
+    );
+  }
+}
+
 // ── Queries del dashboard ───────────────────────────────────────────────
 
 export interface OverviewStats {

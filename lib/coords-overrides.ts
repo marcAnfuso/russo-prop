@@ -1,5 +1,6 @@
 import { unstable_cache } from "next/cache";
 import { sql } from "./db";
+import { invalidarLecturasDB, LECTURA_DB } from "./db-cache";
 
 export type CoordsStatus = "pending" | "applied" | "ignored";
 
@@ -57,7 +58,7 @@ const getCoordsRowsCached = unstable_cache(
     `) as Array<{ xintel_id: string; lat: number; lng: number }>;
   },
   ["property-coords-rows"],
-  { revalidate: 120, tags: ["xintel"] }
+  LECTURA_DB
 );
 
 export async function getCoordsOverrideMap(): Promise<
@@ -105,6 +106,7 @@ export async function setCoordsOverride(params: {
       notes = EXCLUDED.notes,
       geocoded_at = now()
   `;
+  invalidarLecturasDB();
 }
 
 /** Marca un override como aprobado (Ramita acepta la coord propuesta). */
@@ -119,6 +121,7 @@ export async function approveCoordsOverride(
     SET status = 'applied', reviewed_at = now(), reviewed_by = ${reviewedBy}
     WHERE xintel_id = ${xintelId}
   `;
+  invalidarLecturasDB();
 }
 
 /** Marca un override como ignorado · se queda con las coords de Xintel. */
@@ -133,6 +136,7 @@ export async function ignoreCoordsOverride(
     SET status = 'ignored', reviewed_at = now(), reviewed_by = ${reviewedBy}
     WHERE xintel_id = ${xintelId}
   `;
+  invalidarLecturasDB();
 }
 
 export async function listCoordsOverrides(
@@ -165,6 +169,7 @@ export async function deleteCoordsOverride(xintelId: string): Promise<void> {
   await ensureCoordsSchema();
   const db = sql();
   await db`DELETE FROM property_coords_override WHERE xintel_id = ${xintelId}`;
+  invalidarLecturasDB();
 }
 
 /** IDs de overrides "ignored" · para excluirlos del detector de sospechosas. */

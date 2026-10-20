@@ -1,4 +1,5 @@
 import { sql } from "./db";
+import { invalidarLecturasDB } from "./db-cache";
 import { fetchProperties } from "./xintel";
 
 /**
@@ -117,6 +118,9 @@ export async function captureSnapshot(): Promise<SnapshotResult> {
     if (!hasMore) break;
   }
 
+  // Las "oportunidades" del home salen de este historial: con el
+  // snapshot nuevo, que se recalculen.
+  invalidarLecturasDB();
   return {
     date: buenosAires,
     inserted,

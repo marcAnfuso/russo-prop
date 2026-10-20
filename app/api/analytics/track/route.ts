@@ -10,6 +10,7 @@ import {
   readGeoFromRequest,
   parseUtm,
 } from "@/lib/analytics-server";
+import { colaDisponible, encolar } from "@/lib/analytics-queue";
 
 const VALID_TYPES = new Set<EventType>([
   "pageview",
@@ -126,9 +127,32 @@ export async function POST(req: NextRequest) {
     }
   };
 
-  // En Vercel runtime, podemos usar waitUntil si está disponible vía
-  // `experimental_after`. Por ahora awaiteamos pero el impacto es mínimo
-  // (1-2 inserts pequeños) y Neon es rápido.
+  // Con Redis configurado, el pedido va a la cola y la base ni se entera:
+  // la vacía un cron en lote una vez por hora (y nada de madrugada). Ver
+  // lib/analytics-queue.ts. Si no hay cola o falla, escribimos directo.
+  if (colaDisponible()) {
+    const encolado = await encolar({
+      received_at: new Date().toISOString(),
+      session: {
+        session_id,
+        visitor_id,
+        device: uaInfo.device,
+        browser: uaInfo.browser,
+        os: uaInfo.os,
+        country: geo.country,
+        city: geo.city,
+        referrer: body.referrer || undefined,
+        utm_source: utm.utm_source,
+        utm_medium: utm.utm_medium,
+        utm_campaign: utm.utm_campaign,
+        user_agent: ua ?? undefined,
+        is_bot: uaInfo.is_bot,
+      },
+      events,
+    });
+    if (encolado) return new NextResponse(null, { status: 204 });
+  }
+
   await ingest();
   return new NextResponse(null, { status: 204 });
 }

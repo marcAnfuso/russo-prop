@@ -1,5 +1,6 @@
 import { unstable_cache } from "next/cache";
 import { sql } from "./db";
+import { invalidarLecturasDB, LECTURA_DB } from "./db-cache";
 
 export interface PriorityRow {
   xintel_id: string;
@@ -40,7 +41,7 @@ const getPriorityRowsCached = unstable_cache(
     `) as Array<{ xintel_id: string; priority: number }>;
   },
   ["property-priority-rows"],
-  { revalidate: 120, tags: ["xintel"] }
+  LECTURA_DB
 );
 
 export async function getPriorityMap(): Promise<Map<string, number>> {
@@ -120,6 +121,7 @@ export async function upsertPriority(params: {
     RETURNING xintel_id, priority, note, updated_by,
       to_char(updated_at, 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS updated_at
   `) as PriorityRow[];
+  invalidarLecturasDB();
   return rows[0];
 }
 
@@ -132,6 +134,7 @@ export async function deletePriority(xintelId: string): Promise<boolean> {
   // neon-serverless devuelve un array vacío en DELETE; usamos rowcount via consulta extra.
   // En lugar de eso, devolvemos true siempre — DELETE es idempotente.
   void result;
+  invalidarLecturasDB();
   return true;
 }
 
@@ -158,6 +161,7 @@ export async function seedPriorities(
     `) as Array<{ xintel_id: string }>;
     if (r.length > 0) inserted++;
   }
+  invalidarLecturasDB();
   return inserted;
 }
 

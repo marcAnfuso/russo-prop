@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import { listMediaPicks } from "@/lib/media-picks";
-import { getReactionsMap } from "@/lib/media-reactions";
+import { listMediaPicksPublic } from "@/lib/media-picks";
+import { getReactionsMapPublic } from "@/lib/media-reactions";
 import { fetchAllProperties } from "@/lib/xintel";
 import HistoriasClient from "./HistoriasClient";
 
@@ -14,17 +14,17 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function HistoriasPage() {
-  let items: Awaited<ReturnType<typeof listMediaPicks>> = [];
+  let items: Awaited<ReturnType<typeof listMediaPicksPublic>> = [];
   let reactionsMap = new Map<string, { heart: number; home: number; key: number }>();
   let propertyMap = new Map<string, { code: string; address: string; locality: string }>();
 
   try {
-    items = await listMediaPicks();
+    items = await listMediaPicksPublic();
   } catch {
     // DB down — render empty state instead of crashing the page
   }
   try {
-    reactionsMap = await getReactionsMap();
+    reactionsMap = await getReactionsMapPublic();
   } catch {
     // sin reacciones · arranca todo en 0
   }

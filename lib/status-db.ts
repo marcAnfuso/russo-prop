@@ -1,5 +1,6 @@
 import { unstable_cache } from "next/cache";
 import { sql } from "./db";
+import { invalidarLecturasDB, LECTURA_DB } from "./db-cache";
 
 export type PropertyStatus = "active" | "reserved" | "sold";
 
@@ -42,7 +43,7 @@ const getStatusRowsCached = unstable_cache(
     `) as Array<{ xintel_id: string; status: PropertyStatus }>;
   },
   ["property-status-rows"],
-  { revalidate: 120, tags: ["xintel"] }
+  LECTURA_DB
 );
 
 export async function getStatusMap(): Promise<Map<string, PropertyStatus>> {
@@ -135,6 +136,7 @@ export async function setStatus(params: {
     RETURNING xintel_id, status, note, updated_by,
       to_char(updated_at, 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS updated_at
   `) as StatusRow[];
+  invalidarLecturasDB();
   return rows[0];
 }
 
@@ -143,6 +145,7 @@ export async function clearStatus(xintelId: string): Promise<void> {
   await ensureStatusSchema();
   const db = sql();
   await db`DELETE FROM property_status WHERE xintel_id = ${xintelId}`;
+  invalidarLecturasDB();
 }
 
 /**
@@ -167,6 +170,7 @@ export async function seedStatuses(
     `) as Array<{ xintel_id: string }>;
     if (r.length > 0) inserted++;
   }
+  invalidarLecturasDB();
   return inserted;
 }
 

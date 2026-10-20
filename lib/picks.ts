@@ -1,5 +1,6 @@
 import { unstable_cache } from "next/cache";
 import { sql } from "./db";
+import { invalidarLecturasDB, LECTURA_DB } from "./db-cache";
 
 export type PickList = "featured" | "new" | "sold" | "development_hidden" | "opportunity";
 
@@ -66,6 +67,7 @@ export async function addPick(
       added_at = now(),
       expires_at = EXCLUDED.expires_at
   `;
+  invalidarLecturasDB();
 }
 
 export async function removePick(
@@ -77,6 +79,7 @@ export async function removePick(
     DELETE FROM manual_picks
     WHERE property_id = ${propertyId} AND list_key = ${listKey}
   `;
+  invalidarLecturasDB();
 }
 
 /**
@@ -121,7 +124,7 @@ const getPicksRowsCached = unstable_cache(
     `) as Array<{ property_id: string; list_key: PickList; expires_at: string | null }>;
   },
   ["manual-picks-rows"],
-  { revalidate: 120, tags: ["xintel"] }
+  LECTURA_DB
 );
 
 /**

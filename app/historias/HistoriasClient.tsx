@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { Bell, Film, Video, Instagram, ExternalLink, Heart, Home, Key, MapPin } from "lucide-react";
 import type { MediaPick } from "@/lib/media-picks";
-import { getEmbedUrl } from "@/lib/media-picks";
+import { getEmbedUrl } from "@/lib/media-embed";
 
 type Filter = "all" | "campana" | "tour" | "otro";
 

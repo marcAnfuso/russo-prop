@@ -1,4 +1,6 @@
+import { unstable_cache } from "next/cache";
 import { sql } from "./db";
+import { LECTURA_DB } from "./db-cache";
 import { fetchAllProperties } from "./xintel";
 import type { Property, PriceHistoryEntry } from "@/data/types";
 
@@ -14,28 +16,28 @@ export interface PriceDrop {
   operation: "venta" | "alquiler";
 }
 
-/**
- * Query the snapshot table for properties whose price dropped between the
- * earliest snapshot we have and today. Window is bounded to the last
- * `days` days so we don't pick up ancient changes once the snapshot
- * history grows long.
- */
-export async function fetchPriceDrops(opts?: {
-  days?: number;
-  minPctDrop?: number;
-  minUsdDrop?: number;
-  minArsDrop?: number;
-  limit?: number;
-}): Promise<PriceDrop[]> {
-  const days = opts?.days ?? 30;
-  const minPct = opts?.minPctDrop ?? 2;
-  const minUsd = opts?.minUsdDrop ?? 3000;
-  const minArs = opts?.minArsDrop ?? 30000;
-  const limit = opts?.limit ?? 20;
+type SnapshotWindowRow = {
+  property_id: string;
+  operation: "venta" | "alquiler";
+  currency: "USD" | "ARS";
+  first_price: string | number;
+  last_price: string | number;
+  first_date: string;
+  last_date: string;
+};
 
-  const db = sql();
-  try {
-    const rows = (await db`
+/**
+ * La ventana de historial de precios para las "oportunidades" del home.
+ *
+ * Antes corría en cada visita al home: una consulta con funciones de
+ * ventana sobre ~30 días de price_snapshots, que despertaba la base y
+ * gastaba cómputo para un dato que sólo cambia una vez por día, cuando
+ * corre el snapshot (que invalida esta caché al terminar).
+ */
+const getSnapshotWindowCached = unstable_cache(
+  async (days: number): Promise<SnapshotWindowRow[]> => {
+    const db = sql();
+    return (await db`
       WITH windowed AS (
         SELECT *
         FROM price_snapshots
@@ -58,15 +60,33 @@ export async function fetchPriceDrops(opts?: {
       SELECT property_id, operation, currency, first_price, last_price, first_date, last_date
       FROM first_last
       WHERE rn = 1 AND last_price < first_price
-    `) as unknown as {
-      property_id: string;
-      operation: "venta" | "alquiler";
-      currency: "USD" | "ARS";
-      first_price: string | number;
-      last_price: string | number;
-      first_date: string;
-      last_date: string;
-    }[];
+    `) as unknown as SnapshotWindowRow[];
+  },
+  ["price-drops-window"],
+  LECTURA_DB
+);
+
+/**
+ * Query the snapshot table for properties whose price dropped between the
+ * earliest snapshot we have and today. Window is bounded to the last
+ * `days` days so we don't pick up ancient changes once the snapshot
+ * history grows long.
+ */
+export async function fetchPriceDrops(opts?: {
+  days?: number;
+  minPctDrop?: number;
+  minUsdDrop?: number;
+  minArsDrop?: number;
+  limit?: number;
+}): Promise<PriceDrop[]> {
+  const days = opts?.days ?? 30;
+  const minPct = opts?.minPctDrop ?? 2;
+  const minUsd = opts?.minUsdDrop ?? 3000;
+  const minArs = opts?.minArsDrop ?? 30000;
+  const limit = opts?.limit ?? 20;
+
+  try {
+    const rows = await getSnapshotWindowCached(days);
 
     const drops = rows
       .map((r): PriceDrop => {

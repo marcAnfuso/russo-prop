@@ -1,4 +1,6 @@
 import { sql } from "./db";
+import { invalidarLecturasDB, LECTURA_DB } from "./db-cache";
+import { unstable_cache } from "next/cache";
 
 export type ReactionEmoji = "heart" | "home" | "key";
 
@@ -69,6 +71,7 @@ export async function applyReaction(
         updated_at = now()
       RETURNING heart, home, key
     `) as Array<ReactionCounts>;
+    invalidarLecturasDB();
     return rows[0] ?? ZERO;
   }
   if (emoji === "home") {
@@ -80,6 +83,7 @@ export async function applyReaction(
         updated_at = now()
       RETURNING heart, home, key
     `) as Array<ReactionCounts>;
+    invalidarLecturasDB();
     return rows[0] ?? ZERO;
   }
   // key
@@ -91,5 +95,28 @@ export async function applyReaction(
       updated_at = now()
     RETURNING heart, home, key
   `) as Array<ReactionCounts>;
+  invalidarLecturasDB();
   return rows[0] ?? ZERO;
+}
+
+// Las filas, no el Map: la caché de Next serializa a JSON y un Map no
+// sobrevive el viaje.
+const getReactionRowsCached = unstable_cache(
+  async () => {
+    await ensureReactionsSchema();
+    const db = sql();
+    return (await db`
+      SELECT media_id, heart, home, key FROM media_reactions
+    `) as Array<{ media_id: string; heart: number; home: number; key: number }>;
+  },
+  ["media-reactions-rows"],
+  LECTURA_DB
+);
+
+/** getReactionsMap para la página pública · cacheada, se invalida al reaccionar. */
+export async function getReactionsMapPublic(): Promise<Map<string, ReactionCounts>> {
+  const rows = await getReactionRowsCached();
+  const map = new Map<string, ReactionCounts>();
+  for (const r of rows) map.set(r.media_id, { heart: r.heart, home: r.home, key: r.key });
+  return map;
 }
