@@ -16,6 +16,18 @@ interface GalleryProps {
 
 type Tab = "fotos" | "video" | "planos" | "tour360";
 
+/**
+ * Las fotos de Xintel van con `unoptimized`: se sirven directo desde su CDN,
+ * sin pasar por el optimizador de imágenes de Vercel.
+ *
+ * Xintel ya las manda comprimidas (150-200 KB). Vercel las volvía a
+ * procesar en hasta 8 anchos por foto, y con ~20 fotos por ficha y Google
+ * rastreando las ~900 fichas del sitemap, la galería generaba la mayor
+ * parte de las 109.000 transformaciones del ciclo de octubre de 2026:
+ * ~USD 10 de los 15 que consumía el proyecto. Las cards de los listados
+ * (una foto chica por propiedad) siguen optimizadas, que ahí sí rinde.
+ * Los planos también: son pocos y a veces escaneos grandes.
+ */
 export default function Gallery({ images, videoUrl, plans, tour360Url, title }: GalleryProps) {
   const [activeTab, setActiveTab] = useState<Tab>("fotos");
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -165,6 +177,7 @@ export default function Gallery({ images, videoUrl, plans, tour360Url, title }: 
         onClick={() => openLightbox()}
       >
         <Image
+          unoptimized
           src={images[currentIndex]}
           alt={`${title} - imagen ${currentIndex + 1}`}
           fill
@@ -218,6 +231,7 @@ export default function Gallery({ images, videoUrl, plans, tour360Url, title }: 
       }`}
     >
       <Image
+        unoptimized
         src={src}
         alt={`${title} - miniatura ${idx + 1}`}
         fill
@@ -290,6 +304,7 @@ export default function Gallery({ images, videoUrl, plans, tour360Url, title }: 
                   onClick={() => openLightbox(0)}
                 >
                   <Image
+                    unoptimized
                     src={images[0]}
                     alt={`${title} - imagen 1`}
                     fill
@@ -308,6 +323,7 @@ export default function Gallery({ images, videoUrl, plans, tour360Url, title }: 
                       onClick={() => openLightbox(idx)}
                     >
                       <Image
+                        unoptimized
                         src={src}
                         alt={`${title} - imagen ${idx + 1}`}
                         fill
@@ -327,6 +343,7 @@ export default function Gallery({ images, videoUrl, plans, tour360Url, title }: 
                     onClick={() => openLightbox(0)}
                   >
                     <Image
+                      unoptimized
                       src={images[0]}
                       alt={`${title} - imagen 1`}
                       fill
@@ -341,6 +358,7 @@ export default function Gallery({ images, videoUrl, plans, tour360Url, title }: 
                     onClick={() => openLightbox(1)}
                   >
                     <Image
+                      unoptimized
                       src={images[1]}
                       alt={`${title} - imagen 2`}
                       fill
@@ -354,6 +372,7 @@ export default function Gallery({ images, videoUrl, plans, tour360Url, title }: 
                     onClick={() => openLightbox(2)}
                   >
                     <Image
+                      unoptimized
                       src={images[2]}
                       alt={`${title} - imagen 3`}
                       fill
@@ -676,6 +695,7 @@ export default function Gallery({ images, videoUrl, plans, tour360Url, title }: 
               }}
             >
               <Image
+                unoptimized
                 src={images[currentIndex]}
                 alt={`${title} - imagen ${currentIndex + 1}`}
                 fill
