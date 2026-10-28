@@ -6,6 +6,9 @@ import { Sparkles, X } from "lucide-react";
 import RussiaSearchChat from "@/components/RussiaSearchChat";
 import { useMundialActive } from "@/components/mundial/useMundialActive";
 import Vincha from "@/components/mundial/Vincha";
+import { useHalloweenActive } from "@/components/halloween/useHalloweenActive";
+import RussiaCalabaza from "@/components/halloween/RussiaCalabaza";
+import SombreroBruja from "@/components/halloween/SombreroBruja";
 
 const ONBOARDING_KEY = "russo_russia_onboarded";
 const POPUP_KEY = "russo_new_web_popup_dismissed_at";
@@ -13,6 +16,7 @@ const POPUP_KEY = "russo_new_web_popup_dismissed_at";
 export default function RussiaWidget() {
   const pathname = usePathname();
   const mundial = useMundialActive();
+  const halloween = useHalloweenActive() && !mundial;
   const [open, setOpen] = useState(false);
   const [closing, setClosing] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
@@ -21,8 +25,8 @@ export default function RussiaWidget() {
 
   // No montar en /demo/russia (ya tiene su propio chat full-screen) ni
   // en /admin/* (paneles internos) ni en /lab/mundial/* (cada prototipo
-  // monta su propio demo del FAB)
-  const hideOn = ["/demo/russia", "/lab/mundial"];
+  // monta su propio demo del FAB), ídem /lab/halloween
+  const hideOn = ["/demo/russia", "/lab/mundial", "/lab/halloween"];
   const isHidden =
     hideOn.some((p) => pathname?.startsWith(p)) ||
     pathname?.startsWith("/admin");
@@ -144,26 +148,33 @@ export default function RussiaWidget() {
           {/* Glow magenta sutil detrás · más visible cuando breathe */}
           <div
             aria-hidden="true"
-            className={`absolute inset-0 rounded-full bg-magenta/40 blur-xl transition-opacity duration-500 ${
+            className={`absolute inset-0 rounded-full ${halloween ? "bg-orange-500/50" : "bg-magenta/40"} blur-xl transition-opacity duration-500 ${
               breathe ? "opacity-100 animate-russia-pulse" : "opacity-0 group-hover:opacity-60"
             }`}
           />
-          {/* Botón principal */}
+          {/* Botón principal · en Halloween, Russia es una calabaza */}
+          {halloween ? (
+            <RussiaCalabaza />
+          ) : (
           <div className="relative h-14 w-14 rounded-full bg-gradient-to-br from-magenta via-[#cc006f] to-navy shadow-[0_18px_36px_-10px_rgba(230,0,126,0.55),0_8px_16px_-6px_rgba(26,34,81,0.35),inset_0_1px_0_rgba(255,255,255,0.18)] ring-1 ring-white/20 flex items-center justify-center transition-transform duration-300 group-hover:scale-[1.06] group-active:scale-[0.97]">
             <Sparkles className="h-5 w-5 text-white drop-shadow-sm" />
           </div>
-          {/* Chip "IA" */}
+          )}
+          {/* Chip "IA" · en Halloween se saca porque choca con el sombrero */}
+          {!halloween && (
           <span className="absolute -top-1.5 -right-1.5 h-5 min-w-[20px] px-1.5 rounded-full bg-white text-magenta text-[9px] font-black uppercase tracking-widest flex items-center justify-center shadow-md ring-1 ring-magenta/20">
             IA
           </span>
+          )}
           {/* Vincha mundialista sobre la cabeza del FAB */}
           {mundial && <Vincha />}
+          {halloween && <SombreroBruja />}
         </div>
         {/* Etiqueta visible en desktop */}
         <span className="hidden md:inline-flex items-center gap-1 rounded-full bg-white/95 backdrop-blur px-3.5 py-1.5 text-[12px] font-bold text-navy shadow-[0_6px_18px_-6px_rgba(26,34,81,0.25)] ring-1 ring-gray-100 group-hover:bg-white transition-colors">
           Russia
-          <span className="text-magenta">·</span>
-          <span className="text-gray-500 font-semibold">preguntale</span>
+          <span className={halloween ? "text-orange-500" : "text-magenta"}>·</span>
+          <span className="text-gray-500 font-semibold">{halloween ? "preguntale… si te animás" : "preguntale"}</span>
         </span>
       </button>
 

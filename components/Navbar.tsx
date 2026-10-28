@@ -9,6 +9,8 @@ import NavbarContactPopover from "./NavbarContactPopover";
 import { useMundialActive } from "@/components/mundial/useMundialActive";
 import ChampionStars from "@/components/mundial/ChampionStars";
 import CountdownStrip from "@/components/mundial/CountdownStrip";
+import { useHalloweenActive } from "@/components/halloween/useHalloweenActive";
+import HalloweenStrip from "@/components/halloween/HalloweenStrip";
 
 const navLinks = [
   { href: "/ventas", label: "Ventas" },
@@ -24,6 +26,7 @@ const navLinks = [
 export default function Navbar() {
   const pathname = usePathname();
   const mundial = useMundialActive();
+  const halloween = useHalloweenActive();
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -57,6 +60,7 @@ export default function Navbar() {
     <>
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white transition-all duration-300">
       {mundial && <CountdownStrip />}
+      {!mundial && halloween && <HalloweenStrip />}
       <div
         className={`transition-all duration-300 ${
           scrolled

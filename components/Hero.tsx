@@ -5,9 +5,19 @@ import { motion } from "framer-motion";
 import SearchBar from "@/components/SearchBar";
 import { useMundialActive } from "@/components/mundial/useMundialActive";
 import HeroPatrioUnderline from "@/components/mundial/HeroPatrioUnderline";
+import { useHalloweenActive } from "@/components/halloween/useHalloweenActive";
+import CalabazaUnderline from "@/components/halloween/CalabazaUnderline";
+import TelaranaOverlay from "@/components/halloween/TelaranaOverlay";
 
-export default function Hero() {
+/**
+ * `underline` permite reemplazar el garabato bajo "empieza acá" desde afuera
+ * (decoraciones de temporada: Mundial, Halloween, Navidad…). Si no viene,
+ * se usa el de temporada activa (patrio en el Mundial, calabaza en
+ * Halloween) y si no el magenta.
+ */
+export default function Hero({ underline }: { underline?: React.ReactNode } = {}) {
   const mundial = useMundialActive();
+  const halloween = useHalloweenActive() && !mundial;
   return (
     <section className="relative -mt-[72px] min-h-[72vh] md:min-h-screen flex items-center justify-center">
       <div className="absolute inset-0 overflow-hidden">
@@ -60,8 +70,10 @@ export default function Hero() {
           <br />
           <span className="relative inline-block">
             <span className="relative z-10">empieza acá</span>
-            {mundial ? (
+            {underline ?? (mundial ? (
               <HeroPatrioUnderline />
+            ) : halloween ? (
+              <CalabazaUnderline />
             ) : (
               <svg
                 viewBox="0 0 300 20"
@@ -77,7 +89,7 @@ export default function Hero() {
                   fill="none"
                 />
               </svg>
-            )}
+            ))}
           </span>
         </motion.h1>
 
@@ -90,6 +102,8 @@ export default function Hero() {
           <SearchBar variant="hero" />
         </motion.div>
       </div>
+      {/* Halloween: telaraña en la esquina y murciélagos que cruzan una vez */}
+      {halloween && !underline && <TelaranaOverlay />}
     </section>
   );
 }
