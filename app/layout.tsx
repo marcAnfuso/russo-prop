@@ -9,6 +9,8 @@ import AnalyticsTracker from "@/components/AnalyticsTracker";
 import RussiaWidget from "@/components/RussiaWidget";
 import MundialDecorations from "@/components/mundial/MundialDecorations";
 import SiteContentOffset from "@/components/mundial/SiteContentOffset";
+import IntroHalloween from "@/components/halloween/intro/IntroHalloween";
+import IntroHalloweenScript from "@/components/halloween/intro/IntroHalloweenScript";
 import { SITE_URL } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -65,7 +67,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es">
+    <html lang="es" suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
@@ -91,6 +93,7 @@ export default function RootLayout({
         )}
       </head>
       <body>
+        <IntroHalloweenScript />
         <NextTopLoader
           color="#e6007e"
           height={3}
@@ -130,6 +133,7 @@ export default function RootLayout({
         <WhatsAppFAB />
         <RussiaWidget />
         <MundialDecorations />
+        <IntroHalloween />
         {/* Tracker propio · pageviews + base para fases siguientes */}
         <Suspense fallback={null}>
           <AnalyticsTracker />

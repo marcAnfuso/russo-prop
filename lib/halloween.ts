@@ -17,6 +17,14 @@ const END = new Date("2026-11-01T23:59:59-03:00").getTime();
 /** Frase del cintillo. Cambiarla acá es lo único que hace falta. */
 export const HALLOWEEN_FRASE = "Casas embrujadas no tenemos. Encantadoras, todas.";
 
+/**
+ * Intro a pantalla completa del home ("La casa"): sólo el viernes 30 y el
+ * sábado 31, una vez por dispositivo. Se apaga sola por fecha.
+ */
+export const INTRO_START = new Date("2026-10-30T00:00:00-03:00").getTime();
+export const INTRO_END = new Date("2026-10-31T23:59:59-03:00").getTime();
+export const INTRO_KEY = "russo_halloween_intro_vista";
+
 export function isHalloweenActive(now: number = Date.now()): boolean {
   return now >= START && now <= END;
 }

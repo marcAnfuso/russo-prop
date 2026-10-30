@@ -5,11 +5,11 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { ArrowLeft, RotateCcw } from "lucide-react";
 import Hero from "@/components/Hero";
-import IntroStage from "./IntroStage";
+import IntroStage from "@/components/halloween/intro/IntroStage";
 
 const ESCENAS = {
   llave: dynamic(() => import("./EscenaLlave"), { ssr: false }),
-  casa: dynamic(() => import("./EscenaCasa"), { ssr: false }),
+  casa: dynamic(() => import("@/components/halloween/intro/EscenaCasa"), { ssr: false }),
   arana: dynamic(() => import("./EscenaArana"), { ssr: false }),
 };
 type Id = keyof typeof ESCENAS;

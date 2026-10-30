@@ -42,7 +42,8 @@ export default function RussiaWidget() {
       // Esperar a que el popup de "nueva web 2026" haya sido cerrado
       // (o nunca aparecido). Si está activo, esperamos.
       const popupActive = !localStorage.getItem(POPUP_KEY);
-      const delay = popupActive ? 8000 : 2500;
+      const enIntro = document.documentElement.classList.contains("hw-intro");
+      const delay = popupActive || enIntro ? 8000 : 2500;
       timer = setTimeout(() => setShowOnboarding(true), delay);
     } catch {
       // localStorage bloqueado · mostramos igual a los 5s

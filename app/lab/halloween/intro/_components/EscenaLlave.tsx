@@ -1,7 +1,7 @@
 "use client";
 
 import type gsap from "gsap";
-import { useEscena } from "./IntroStage";
+import { useEscena } from "@/components/halloween/intro/IntroStage";
 
 /**
  * "La llave": una puerta vieja; por la cerradura ya se espía la web real. Entra

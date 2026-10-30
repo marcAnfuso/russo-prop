@@ -5,8 +5,9 @@ import { useEscena } from "./IntroStage";
 
 /**
  * "La casa": de noche, una casa torcida con el cartel de Russo en la entrada.
- * Se prenden las ventanas de a una, salen murciélagos por la chimenea y la
- * puerta se abre: la cámara entra por ella y la luz de adentro se vuelve la web.
+ * Se prenden las ventanas de a una, salen murciélagos por la chimenea, aparece
+ * un fantasmita que saluda y se mete por la puerta justo cuando se abre: la
+ * cámara lo sigue y la luz de adentro se vuelve la web.
  */
 const ESTRELLAS = [
   [120, 90, 2.4], [260, 200, 1.6], [420, 70, 2], [560, 160, 1.4], [660, 60, 2.2], [760, 210, 1.5],
@@ -50,6 +51,14 @@ function construir(tl: gsap.core.Timeline, root: HTMLDivElement) {
       .fromTo(b.querySelector(".ala"), { scaleY: 1 }, { scaleY: 0.35, svgOrigin: "0 0", duration: 0.08 + i * 0.004, repeat: 17, yoyo: true, ease: "sine.inOut" }, t);
   });
 
+  // El fantasmita: aparece, flota, saluda, pestañea y va hacia la puerta.
+  tl.fromTo(".fantasma", { autoAlpha: 0, scale: 0.55, y: 26 }, { autoAlpha: 1, scale: 1, y: 0, duration: 0.55, ease: "back.out(1.6)" }, 1.5)
+    .to(".fantasma-flota", { y: -9, duration: 0.5, ease: "sine.inOut", repeat: 3, yoyo: true }, 1.6)
+    .to(".fantasma-brazo", { rotation: -30, svgOrigin: "28 2", duration: 0.15, ease: "sine.inOut", repeat: 5, yoyo: true }, 2.05)
+    .to(".fantasma-ojos", { scaleY: 0.1, svgOrigin: "0 -8", duration: 0.06, repeat: 1, yoyo: true }, 2.72)
+    .to(".fantasma", { x: -185, y: 142, scale: 0.42, duration: 0.55, ease: "power2.in" }, 2.95)
+    .to(".fantasma", { autoAlpha: 0, duration: 0.15 }, 3.42);
+
   tl.from(".t2", { y: 16, autoAlpha: 0, duration: 0.6, ease: "power3.out" }, 2.4)
     .to(".hoja-puerta", { scaleX: 0.08, svgOrigin: "771 750", duration: 0.5, ease: "power2.inOut" }, 3.25)
     .to(".t1, .t2", { autoAlpha: 0, duration: 0.25 }, 3.45)
@@ -61,6 +70,7 @@ function construir(tl: gsap.core.Timeline, root: HTMLDivElement) {
 
 function poster() {
   document.querySelectorAll<SVGElement>(".ventana").forEach((v) => (v.style.opacity = "1"));
+  document.querySelector<SVGElement>(".fantasma")?.style.setProperty("visibility", "visible");
 }
 
 const BAT_ALA_IZQ = "M0 0 C -6 -10, -16 -12, -26 -8 C -22 -4, -21 0, -21 5 C -17 1, -12 2, -9 7 C -6 3, -3 3, 0 5 Z";
@@ -94,6 +104,10 @@ export default function EscenaCasa({ onFin }: { onFin: () => void }) {
             <stop offset="0%" stopColor="#fff3c9" />
             <stop offset="100%" stopColor="#fbbf24" />
           </linearGradient>
+          <radialGradient id="cs-fantasma" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor="#fff" stopOpacity="0.4" />
+            <stop offset="100%" stopColor="#fff" stopOpacity="0" />
+          </radialGradient>
         </defs>
 
         <g className="cielo">
@@ -167,8 +181,30 @@ export default function EscenaCasa({ onFin }: { onFin: () => void }) {
             <rect x="953" y="716" width="9" height="102" fill="#3a2614" />
             <rect x="900" y="690" width="118" height="62" rx="4" fill="#e6007e" />
             <rect x="905" y="695" width="108" height="52" rx="2" fill="none" stroke="#fff" strokeOpacity="0.55" strokeWidth="1.5" />
-            <text x="959" y="718" textAnchor="middle" fontSize="20" fontWeight="800" fill="#fff" fontFamily="Arial, sans-serif" letterSpacing="1.5">RUSSO</text>
-            <text x="959" y="738" textAnchor="middle" fontSize="13" fontWeight="600" fill="#fff" fontFamily="Arial, sans-serif">en venta</text>
+            <rect x="908" y="698" width="102" height="29" rx="1.5" fill="#fff" />
+            <image href="/images/halloween/cartel-russo.webp" x="912" y="700.3" width="94" height="24.4" />
+            <text x="959" y="741.5" textAnchor="middle" fontSize="12.5" fontWeight="600" fill="#fff">en venta</text>
+          </g>
+
+          {/* fantasmita: misma cara simpática que la araña del Hero */}
+          <g transform="translate(985 610)">
+            <g className="fantasma" style={{ visibility: "hidden" }}>
+              <g className="fantasma-flota">
+                <circle r="72" fill="url(#cs-fantasma)" />
+                <path d="M-32 -2 C -42 -8, -46 2, -38 8 C -36 10, -32 10, -29 8 Z" fill="#f4f1ff" />
+                <path className="fantasma-brazo" d="M28 8 C 34 6, 42 0, 44 -10 C 45 -16, 37 -17, 35 -11 C 34 -7, 31 -4, 28 -3 Z" fill="#f4f1ff" />
+                <path d="M-30 38 L-30 -6 C -30 -46, 30 -46, 30 -6 L30 38 Q 22.5 28, 15 38 Q 7.5 48, 0 38 Q -7.5 28, -15 38 Q -22.5 48, -30 38 Z" fill="#f4f1ff" />
+                <g className="fantasma-ojos" fill="#1a1a2e">
+                  <ellipse cx="-10" cy="-8" rx="4.6" ry="6" />
+                  <ellipse cx="10" cy="-8" rx="4.6" ry="6" />
+                  <circle cx="-8.6" cy="-10.4" r="1.5" fill="#fff" />
+                  <circle cx="11.4" cy="-10.4" r="1.5" fill="#fff" />
+                </g>
+                <circle cx="-18" cy="3" r="4" fill="#f472b6" opacity="0.6" />
+                <circle cx="18" cy="3" r="4" fill="#f472b6" opacity="0.6" />
+                <path d="M-6 3 Q 0 11, 6 3" stroke="#1a1a2e" strokeWidth="2.4" strokeLinecap="round" fill="none" />
+              </g>
+            </g>
           </g>
 
           {/* colina de adelante: acá apoya el texto */}

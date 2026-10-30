@@ -1,7 +1,7 @@
 "use client";
 
 import gsap from "gsap";
-import { useEscena } from "./IntroStage";
+import { useEscena } from "@/components/halloween/intro/IntroStage";
 
 /**
  * "La araña": la misma araña de la telaraña del home baja frente a una luna
