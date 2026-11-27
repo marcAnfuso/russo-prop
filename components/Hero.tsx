@@ -13,9 +13,10 @@ import TelaranaOverlay from "@/components/halloween/TelaranaOverlay";
  * `underline` permite reemplazar el garabato bajo "empieza acá" desde afuera
  * (decoraciones de temporada: Mundial, Halloween, Navidad…). Si no viene,
  * se usa el de temporada activa (patrio en el Mundial, calabaza en
- * Halloween) y si no el magenta.
+ * Halloween) y si no el magenta. `titulo` hace lo mismo con "Tu próximo
+ * hogar" (para colgarle adornos a las palabras).
  */
-export default function Hero({ underline }: { underline?: React.ReactNode } = {}) {
+export default function Hero({ underline, titulo }: { underline?: React.ReactNode; titulo?: React.ReactNode } = {}) {
   const mundial = useMundialActive();
   const halloween = useHalloweenActive() && !mundial;
   return (
@@ -66,7 +67,7 @@ export default function Hero({ underline }: { underline?: React.ReactNode } = {}
           className="font-display font-bold text-white tracking-tight mb-10 text-5xl sm:text-6xl lg:text-7xl leading-[1.05]"
           style={{ textShadow: "0 2px 30px rgba(0,0,0,0.35)" }}
         >
-          Tu próximo hogar
+          {titulo ?? "Tu próximo hogar"}
           <br />
           <span className="relative inline-block">
             <span className="relative z-10">empieza acá</span>

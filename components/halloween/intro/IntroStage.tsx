@@ -51,9 +51,11 @@ export function useEscena(construir: Construir, poster: () => void, onFin: () =>
 export default function IntroStage({
   onDone,
   Escena,
+  label = "Intro de Halloween",
 }: {
   onDone: () => void;
   Escena: React.ComponentType<{ onFin: () => void }>;
+  label?: string;
 }) {
   const stage = useRef<HTMLDivElement>(null);
   const cerrado = useRef(false);
@@ -91,7 +93,7 @@ export default function IntroStage({
   }, [saltar]);
 
   return (
-    <div ref={stage} role="dialog" aria-label="Intro de Halloween" className="fixed inset-0 z-[200] overflow-hidden">
+    <div ref={stage} role="dialog" aria-label={label} className="fixed inset-0 z-[200] overflow-hidden">
       <Escena onFin={onFin} />
       <button
         type="button"
