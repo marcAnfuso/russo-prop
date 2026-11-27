@@ -27,6 +27,7 @@ export default async function Page() {
         desc="Intro de la bola de nieve (1 vez por dispositivo) → trineo (1 vez por día) → título con guirnalda de pino, bolitas y botita, Rudolf (el reno IA, tocalo) y cards decoradas. Hay 5 bolitas doradas escondidas."
         stripOffset
         placeholder={false}
+        barra={false}
         customHero={
           <FuegosOverlay>
             <Hero titulo={<TituloNavidad />} underline={<GuirnaldaPino />} />
@@ -36,8 +37,8 @@ export default async function Page() {
       >
         <SeccionesNavidad destacadas={destacadas} nuevas={nuevas} />
       </NavidadShell>
-      <IntroNavidad lab />
-      <Trineo lab top={205} esperar={EVENTO_INTRO_FIN} />
+      <IntroNavidad lab boton={false} />
+      <Trineo lab boton={false} esperar={EVENTO_INTRO_FIN} />
       <RussiaRobot totalBolitas={5} variante="reno" esperar={EVENTO_INTRO_FIN} />
     </>
   );

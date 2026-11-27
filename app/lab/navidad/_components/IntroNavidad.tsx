@@ -15,7 +15,7 @@ const CLAVE = "russo_intro_navidad";
  * Al terminar (o al saltearla) avisa con `russo:intro-fin` para que recién
  * ahí pasen el trineo y aparezca Rudolf.
  */
-export default function IntroNavidad({ lab = false }: { lab?: boolean }) {
+export default function IntroNavidad({ lab = false, boton = lab }: { lab?: boolean; boton?: boolean }) {
   const [toma, setToma] = useState(0);
 
   useEffect(() => {
@@ -40,7 +40,7 @@ export default function IntroNavidad({ lab = false }: { lab?: boolean }) {
   return (
     <>
       {toma > 0 && <IntroStage key={toma} label="Intro de Navidad" onDone={fin} Escena={EscenaGlobo} />}
-      {lab && toma === 0 && (
+      {boton && toma === 0 && (
         <button type="button" onClick={() => { window.scrollTo(0, 0); setToma((n) => n + 1); }} className="fixed right-3 top-[220px] z-[46] inline-flex items-center gap-1.5 rounded-full bg-white/95 px-3 py-1.5 text-[11px] font-semibold text-navy shadow ring-1 ring-gray-200 hover:bg-white">
           <RotateCcw className="h-3 w-3" /> Repetir la bola de nieve (lab)
         </button>

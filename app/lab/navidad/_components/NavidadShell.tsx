@@ -15,6 +15,7 @@ export default function NavidadShell({
   customHero,
   stripOffset = false,
   placeholder = true,
+  barra = true,
   children,
 }: {
   name: string;
@@ -22,10 +23,13 @@ export default function NavidadShell({
   customHero?: React.ReactNode;
   stripOffset?: boolean;
   placeholder?: boolean;
+  /** false: sin la barrita del lab, para mostrar la página tal cual quedaría. */
+  barra?: boolean;
   children?: React.ReactNode;
 }) {
   return (
     <>
+      {barra && (
       <div className={`sticky ${stripOffset ? "top-[108px]" : "top-[72px]"} z-30 bg-white/95 backdrop-blur border-b border-gray-100`}>
         <div className="mx-auto max-w-6xl px-4 py-2 flex items-center justify-between gap-3">
           <Link href="/lab/navidad" className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-gray-500 hover:text-magenta transition-colors">
@@ -39,6 +43,7 @@ export default function NavidadShell({
           <p className="text-[11px] text-gray-500 hidden sm:block max-w-[240px] text-right leading-tight">{desc}</p>
         </div>
       </div>
+      )}
 
       <main className="min-h-screen">
         {customHero ?? <Hero />}

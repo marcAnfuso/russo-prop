@@ -160,7 +160,7 @@ type Chispa = { id: number; x: number; y: number; c: string; s: number };
  *
  * `lab`: pasa en cada carga y muestra un botón para repetirlo.
  */
-export default function Trineo({ lab = false, demoraMs = 2200, texto = "Está llegando la Navidad…", top = 150, esperar }: { lab?: boolean; demoraMs?: number; texto?: string; top?: number; esperar?: string }) {
+export default function Trineo({ lab = false, demoraMs = 2200, texto = "Está llegando la Navidad…", top = 150, esperar, boton = lab }: { lab?: boolean; demoraMs?: number; texto?: string; top?: number; esperar?: string; boton?: boolean }) {
   const listo = useArranque(esperar);
   const [vuelo, setVuelo] = useState(0);
   const [chispas, setChispas] = useState<Chispa[]>([]);
@@ -237,7 +237,7 @@ export default function Trineo({ lab = false, demoraMs = 2200, texto = "Está ll
           ))}
         </div>
       )}
-      {lab && (
+      {boton && (
         <button type="button" onClick={volar} className="fixed right-4 top-[180px] z-30 inline-flex items-center gap-1.5 rounded-full bg-white/95 px-3 py-1.5 text-[11px] font-bold text-navy shadow-md ring-1 ring-gray-200 hover:text-magenta sm:right-6">
           <RotateCcw className="h-3 w-3" /> Que pase el trineo (lab)
         </button>
