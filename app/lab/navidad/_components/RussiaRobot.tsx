@@ -140,11 +140,11 @@ const TEXTOS: Record<"robot" | "reno", { hola: Globo; presenta: Globo | null; tr
     aria: "Russia navideña: tocala",
   },
   reno: {
-    hola: { titulo: "Hola, soy Rudolf", texto: "La IA de Russo. Contame qué buscás y te encuentro propiedades." },
+    hola: { titulo: "Hola, soy Rudolf 🦌", texto: "El asistente navideño de Russo. Contame qué buscás y te encuentro propiedades." },
     presenta: null,
     trineo: null,
     toque: null,
-    aria: "Abrir Rudolf, asistente IA de Russo",
+    aria: "Abrir Rudolf, el asistente navideño de Russo",
   },
 };
 
