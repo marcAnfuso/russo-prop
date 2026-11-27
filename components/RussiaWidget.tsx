@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { usePathname } from "next/navigation";
 import { Sparkles, X } from "lucide-react";
-import RussiaSearchChat from "@/components/RussiaSearchChat";
+import RussiaSearchChat, { PERSONAS_RUSSIA, type PersonaRussia } from "@/components/RussiaSearchChat";
 import { useMundialActive } from "@/components/mundial/useMundialActive";
 import Vincha from "@/components/mundial/Vincha";
 import { useHalloweenActive } from "@/components/halloween/useHalloweenActive";
@@ -22,6 +22,7 @@ export default function RussiaWidget() {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [breathe, setBreathe] = useState(true);
   const [presetMessage, setPresetMessage] = useState<string | undefined>();
+  const [persona, setPersona] = useState<PersonaRussia | undefined>();
 
   // No montar en /demo/russia (ya tiene su propio chat full-screen) ni
   // en /admin/* (paneles internos) ni en /lab/mundial/* (cada prototipo
@@ -108,7 +109,7 @@ export default function RussiaWidget() {
   // otro componente del sitio abra Russia con un preset opcional
   useEffect(() => {
     function handler(e: Event) {
-      const detail = (e as CustomEvent).detail as { presetMessage?: string } | undefined;
+      const detail = (e as CustomEvent).detail as { presetMessage?: string; persona?: PersonaRussia } | undefined;
       setShowOnboarding(false);
       try {
         localStorage.setItem(ONBOARDING_KEY, "1");
@@ -117,6 +118,7 @@ export default function RussiaWidget() {
       }
       setBreathe(false);
       setPresetMessage(detail?.presetMessage);
+      setPersona(detail?.persona);
       setOpen(true);
     }
     window.addEventListener("russia:open", handler);
@@ -126,7 +128,10 @@ export default function RussiaWidget() {
   // Limpiar preset al cerrar para que no se reuse
   useEffect(() => {
     if (!open) {
-      const t = setTimeout(() => setPresetMessage(undefined), 300);
+      const t = setTimeout(() => {
+        setPresetMessage(undefined);
+        setPersona(undefined);
+      }, 300);
       return () => clearTimeout(t);
     }
   }, [open]);
@@ -275,7 +280,7 @@ export default function RussiaWidget() {
           }`}
           role="dialog"
           aria-modal="true"
-          aria-label="Chat con Russia"
+          aria-label={persona ? `Chat con ${PERSONAS_RUSSIA[persona].nombre}` : "Chat con Russia"}
         >
           {/* Backdrop */}
           <button
@@ -290,7 +295,7 @@ export default function RussiaWidget() {
               closing ? "animate-russia-slideout" : "animate-russia-slidein"
             }`}
           >
-            <RussiaSearchChat presetMessage={presetMessage} />
+            <RussiaSearchChat presetMessage={presetMessage} persona={persona} />
             {/* Botón cerrar · esquina superior derecha del modal,
                 fuera del chat para no tapar contenido */}
             <button

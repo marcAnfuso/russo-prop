@@ -219,7 +219,7 @@ export default function RussiaRobot({ totalBolitas = 5, variante = "robot", espe
       // Funciona como el botón de Russia de siempre: abre el chat.
       gestoBreve("salta", 700);
       setGlobo(null);
-      window.dispatchEvent(new CustomEvent("russia:open"));
+      window.dispatchEvent(new CustomEvent("russia:open", { detail: { persona: "rudolf" } }));
       return;
     }
     cascabeles();

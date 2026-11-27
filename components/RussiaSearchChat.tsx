@@ -55,15 +55,34 @@ function formatDistance(meters: number): string {
   return `${(meters / 1000).toFixed(1).replace(".", ",")} km`;
 }
 
+/**
+ * Disfraces de temporada de Russia (mismo chat, otro nombre y saludo). Se
+ * eligen al abrir: `russia:open` con `detail.persona`.
+ */
+export const PERSONAS_RUSSIA = {
+  rudolf: {
+    nombre: "Rudolf",
+    emoji: "🦌",
+    subtitulo: "Asistente navideño de Russo · busca en el catálogo en tiempo real",
+    saludo:
+      "¡Hola! Soy Rudolf, el asistente navideño de Russo Propiedades. Contame qué buscás (compra/alquiler, zona, ambientes, presupuesto) y te muestro lo que tenemos.",
+  },
+} as const;
+export type PersonaRussia = keyof typeof PERSONAS_RUSSIA;
+
 export default function RussiaSearchChat({
   presetMessage,
+  persona,
 }: {
   presetMessage?: string;
+  persona?: PersonaRussia;
 } = {}) {
+  const disfraz = persona ? PERSONAS_RUSSIA[persona] : undefined;
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       role: "model",
       content:
+        disfraz?.saludo ??
         "Hola! Soy Russia, la IA de Russo Propiedades. Contame qué buscás (compra/alquiler, zona, ambientes, presupuesto) y te muestro lo que tenemos.",
     },
   ]);
@@ -168,15 +187,15 @@ export default function RussiaSearchChat({
       {/* Header */}
       <div className="flex items-center gap-3 px-5 py-4 bg-gradient-to-br from-magenta to-[#b3006d] text-white">
         <div className="flex items-center justify-center h-10 w-10 rounded-full bg-white/20 backdrop-blur">
-          <Bot className="h-5 w-5" />
+          {disfraz ? <span className="text-xl leading-none" aria-hidden="true">{disfraz.emoji}</span> : <Bot className="h-5 w-5" />}
         </div>
         <div className="flex-1 min-w-0">
           <p className="font-semibold text-sm flex items-center gap-1.5">
-            Russia
+            {disfraz?.nombre ?? "Russia"}
             <Sparkles className="h-3.5 w-3.5" />
           </p>
           <p className="text-[11px] opacity-80">
-            IA inmobiliaria de Russo · busca en el catálogo en tiempo real
+            {disfraz?.subtitulo ?? "IA inmobiliaria de Russo · busca en el catálogo en tiempo real"}
           </p>
         </div>
         <Link
